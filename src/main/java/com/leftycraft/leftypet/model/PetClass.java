@@ -1,10 +1,10 @@
 package com.leftycraft.leftypet.model;
 
 public enum PetClass {
-    FIGHTER("&c&lFIGHTER", "DIAMOND_SWORD"),
-    SUPPORT("&a&lSUPPORT", "GOLDEN_APPLE"),
-    LOOTER("&6&lLOOTER", "HOPPER"),
-    TRAVELER("&b&lTRAVELER", "SADDLE");
+    FIGHTER("<gradient:#ff416c:#ff4b2b><b>ғɪɢʜᴛᴇʀ</b></gradient>", "DIAMOND_SWORD"),
+    SUPPORT("<gradient:#11998e:#38ef7d><b>sᴜᴘᴘᴏʀᴛ</b></gradient>", "GOLDEN_APPLE"),
+    LOOTER("<gradient:#f7971e:#ffd200><b>ʟᴏᴏᴛᴇʀ</b></gradient>", "HOPPER"),
+    TRAVELER("<gradient:#00c6ff:#0072ff><b>ᴛʀᴀᴠᴇʟᴇʀ</b></gradient>", "SADDLE");
 
     private final String displayName;
     private final String iconMaterial;

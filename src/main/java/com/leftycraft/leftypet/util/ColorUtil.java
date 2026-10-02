@@ -58,20 +58,63 @@ public final class ColorUtil {
     }
 
     /**
-     * Parses text supporting both MiniMessage tags (<gradient>, <rainbow>, etc.) and legacy & codes.
+     * Parses text supporting MiniMessage tags (<gradient>, <rainbow>, etc.), legacy & codes, and § codes.
      */
     public static Component component(String text) {
         if (text == null || text.isEmpty()) {
             return Component.empty();
         }
 
-        if (text.contains("<") && text.contains(">")) {
-            try {
-                return MINI_MESSAGE.deserialize(text).decoration(TextDecoration.ITALIC, false);
-            } catch (Exception ignored) {}
+        String converted = convertToMiniMessage(text);
+        try {
+            return MINI_MESSAGE.deserialize(converted).decoration(TextDecoration.ITALIC, false);
+        } catch (Exception e) {
+            // Fallback to legacy serializer if MiniMessage fails
+            String safeLegacy = text.replace('§', '&');
+            return LEGACY_SERIALIZER.deserialize(safeLegacy).decoration(TextDecoration.ITALIC, false);
         }
+    }
 
-        return LEGACY_SERIALIZER.deserialize(text).decoration(TextDecoration.ITALIC, false);
+    /**
+     * Converts legacy ampersand (&) and section (§) color/style codes into valid MiniMessage tags.
+     */
+    public static String convertToMiniMessage(String input) {
+        if (input == null || input.isEmpty()) return "";
+
+        // 1. Hex codes: &#123456 or §#123456 -> <#123456>
+        String s = input.replaceAll("[&§]#([0-9a-fA-F]{6})", "<#$1>");
+
+        // 2. Spigot hex format: &x&r&r&g&g&b&b or §x§r§r§g§g§b§b -> <#rrggbb>
+        s = s.replaceAll("[&§]x[&§]([0-9a-fA-F])[&§]([0-9a-fA-F])[&§]([0-9a-fA-F])[&§]([0-9a-fA-F])[&§]([0-9a-fA-F])[&§]([0-9a-fA-F])", "<#$1$2$3$4$5$6>");
+
+        // 3. Standard Minecraft color codes
+        s = s.replaceAll("[&§]0", "<black>")
+                .replaceAll("[&§]1", "<dark_blue>")
+                .replaceAll("[&§]2", "<dark_green>")
+                .replaceAll("[&§]3", "<dark_aqua>")
+                .replaceAll("[&§]4", "<dark_red>")
+                .replaceAll("[&§]5", "<dark_purple>")
+                .replaceAll("[&§]6", "<gold>")
+                .replaceAll("[&§]7", "<gray>")
+                .replaceAll("[&§]8", "<dark_gray>")
+                .replaceAll("[&§]9", "<blue>")
+                .replaceAll("[&§][aA]", "<green>")
+                .replaceAll("[&§][bB]", "<aqua>")
+                .replaceAll("[&§][cC]", "<red>")
+                .replaceAll("[&§][dD]", "<light_purple>")
+                .replaceAll("[&§][eE]", "<yellow>")
+                .replaceAll("[&§][fF]", "<white>")
+                .replaceAll("[&§][kK]", "<obfuscated>")
+                .replaceAll("[&§][lL]", "<b>")
+                .replaceAll("[&§][mM]", "<strikethrough>")
+                .replaceAll("[&§][nN]", "<u>")
+                .replaceAll("[&§][oO]", "<i>")
+                .replaceAll("[&§][rR]", "<reset>");
+
+        // 4. Strip any remaining rogue section symbols so MiniMessage parser never throws ParsingException
+        s = s.replace("§", "");
+
+        return s;
     }
 
     /**

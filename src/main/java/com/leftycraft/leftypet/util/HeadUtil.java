@@ -66,19 +66,27 @@ public final class HeadUtil {
                 profileUuid = UUID.randomUUID();
             }
 
-            // CRITICAL: Username MUST be null so Paper builds ResolvableProfile(Optional.empty(), ...)
-            // preventing the client from searching for a player named "PetSkin" on Mojang session server
-            PlayerProfile profile = Bukkit.createProfile(profileUuid, null);
-            profile.setProperty(new ProfileProperty("textures", cleanB64));
+            // Standard Bukkit PlayerProfile
+            org.bukkit.profile.PlayerProfile profile = Bukkit.createPlayerProfile(profileUuid);
 
             if (hash != null) {
                 try {
+                    org.bukkit.profile.PlayerTextures textures = profile.getTextures();
                     URL skinUrl = URI.create("https://textures.minecraft.net/texture/" + hash).toURL();
-                    profile.getTextures().setSkin(skinUrl);
-                } catch (Exception ignored) {}
+                    textures.setSkin(skinUrl);
+                    profile.setTextures(textures); // CRITICAL: Must assign back to profile
+                } catch (Exception e) {
+                    Bukkit.getLogger().warning("[LeftyPet] Error setting skin url: " + e.getMessage());
+                }
             }
 
-            meta.setPlayerProfile(profile);
+            // Set both standard Bukkit owner profile and Paper player profile property
+            meta.setOwnerProfile(profile);
+
+            if (profile instanceof com.destroystokyo.paper.profile.PlayerProfile paperProfile) {
+                paperProfile.setProperty(new ProfileProperty("textures", cleanB64));
+                meta.setPlayerProfile(paperProfile);
+            }
         } catch (Exception e) {
             Bukkit.getLogger().warning("[LeftyPet] Error creating custom head: " + e.getMessage());
         }

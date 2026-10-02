@@ -16,9 +16,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
@@ -31,31 +33,41 @@ public class PetInteractListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGH)
-    public void onEntityInteract(PlayerInteractAtEntityEvent event) {
-        Player player = event.getPlayer();
-        Entity clicked = event.getRightClicked();
+    public void onEntityInteractAt(PlayerInteractAtEntityEvent event) {
+        handleInteract(event.getPlayer(), event.getRightClicked(), event);
+    }
 
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onEntityInteract(PlayerInteractEntityEvent event) {
+        handleInteract(event.getPlayer(), event.getRightClicked(), event);
+    }
+
+    private void handleInteract(Player player, Entity clicked, org.bukkit.event.Cancellable event) {
         ActivePet pet = plugin.getPetManager().getActivePet(player.getUniqueId());
         if (pet == null || !pet.isValid()) return;
 
-        // Check if player clicked their own pet display or seat
-        if (clicked.equals(pet.getDisplayEntity()) || clicked.equals(pet.getSeatEntity())) {
+        // Check if player clicked their pet interaction hitbox, display, or seat
+        boolean isPetEntity = clicked.equals(pet.getInteractionEntity())
+                || clicked.equals(pet.getDisplayEntity())
+                || clicked.equals(pet.getSeatEntity());
+
+        if (isPetEntity) {
             event.setCancelled(true);
 
             ItemStack hand = player.getInventory().getItemInMainHand();
-            // Try feeding
+            // 1. Try feeding if holding food
             if (plugin.getConfigManager().getFoodRestore(hand.getType()) > 0) {
                 plugin.getPetManager().feedPet(player, hand);
                 return;
             }
 
-            // If sneaking -> open GUI (Revisi 7)
+            // 2. If sneaking -> open GUI (Shift + Klik Kanan)
             if (player.isSneaking()) {
                 PetMenu.open(player, plugin);
                 return;
             }
 
-            // If empty hand and can mount -> mount, otherwise open menu
+            // 3. If can mount -> toggle mount, otherwise open menu
             if (plugin.getMountManager().canMount(pet.getData())) {
                 if (pet.isMounting()) {
                     plugin.getMountManager().stopMount(player);
@@ -65,6 +77,20 @@ public class PetInteractListener implements Listener {
             } else {
                 PetMenu.open(player, plugin);
             }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onEntityDamage(EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof Player player)) return;
+
+        ActivePet pet = plugin.getPetManager().getActivePet(player.getUniqueId());
+        if (pet == null || !pet.isValid()) return;
+
+        // Left click / punch pet opens Pet GUI
+        if (event.getEntity().equals(pet.getInteractionEntity()) || event.getEntity().equals(pet.getDisplayEntity())) {
+            event.setCancelled(true);
+            PetMenu.open(player, plugin);
         }
     }
 

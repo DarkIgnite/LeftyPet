@@ -114,14 +114,22 @@ public class MountManager {
                     continue;
                 }
 
-                Input input = playerInputs.get(uuid);
+                Input input = player.getCurrentInput();
+                if (input == null) {
+                    input = playerInputs.get(uuid);
+                }
                 if (input == null) continue;
+
+                if (input.isSneak()) {
+                    stopMount(player);
+                    continue;
+                }
 
                 PetData data = pet.getData();
                 double classMult = plugin.getConfigManager().getClassSpeedMultiplier(data.getPetClass());
-                double speed = 0.32 * classMult;
+                double speed = 0.35 * classMult;
                 if (input.isSprint()) {
-                    speed *= 1.3;
+                    speed *= 1.35;
                 }
 
                 Vector dir = player.getLocation().getDirection().setY(0);
@@ -140,7 +148,10 @@ public class MountManager {
                 }
 
                 Location currentLoc = seat.getLocation();
-                double newY = currentLoc.getY();
+
+                // Gravity handling: if not on ground and not jumping, pull down
+                Location checkBelow = currentLoc.clone().subtract(0, 0.2, 0);
+                boolean onGround = checkBelow.getBlock().isSolid();
 
                 // Jump / Double Jump handling
                 if (input.isJump()) {
@@ -148,35 +159,46 @@ public class MountManager {
                     long now = System.currentTimeMillis();
                     long lastJump = doubleJumpCooldown.getOrDefault(uuid, 0L);
 
-                    if (seat.isOnGround()) {
-                        moveVec.setY(0.42);
-                    } else if (canDoubleJump && (now - lastJump > 2500)) {
+                    if (onGround) {
+                        moveVec.setY(0.48);
+                    } else if (canDoubleJump && (now - lastJump > 2000)) {
                         doubleJumpCooldown.put(uuid, now);
-                        moveVec.add(player.getLocation().getDirection().multiply(0.65)).setY(0.55);
+                        moveVec.add(player.getLocation().getDirection().multiply(0.75)).setY(0.55);
                         player.getWorld().spawnParticle(Particle.FIREWORK, player.getLocation(), 15, 0.2, 0.2, 0.2, 0.08);
                         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_LAUNCH, 0.8f, 1.2f);
                     }
+                } else if (!onGround) {
+                    moveVec.setY(-0.35); // Gentle gravity
                 }
 
-                // Check step-up (0.5 or 1 block in front)
-                if (moveVec.lengthSquared() > 0.001) {
-                    Location inFront = currentLoc.clone().add(moveVec.clone().normalize().multiply(0.7));
+                // Step-up (auto walk up 0.5 - 1 block stairs/slabs/blocks in front)
+                if (moveVec.getX() != 0 || moveVec.getZ() != 0) {
+                    Location inFront = currentLoc.clone().add(moveVec.clone().setY(0).normalize().multiply(0.65));
                     Block footBlock = inFront.getBlock();
                     Block headBlock = inFront.clone().add(0, 1, 0).getBlock();
 
                     if (!footBlock.isPassable() && headBlock.isPassable()) {
-                        // Step up smoothly
-                        moveVec.setY(0.5);
+                        moveVec.setY(0.52);
                     }
                 }
 
-                Location targetLoc = currentLoc.add(moveVec);
-                targetLoc.setYaw(player.getLocation().getYaw());
-                seat.teleport(targetLoc);
+                // Only teleport if moving or rotated significantly
+                float playerYaw = player.getLocation().getYaw();
+                boolean moving = moveVec.lengthSquared() > 0.0001;
+                boolean rotating = Math.abs(currentLoc.getYaw() - playerYaw) > 1.5f;
 
-                // Keep pet display with seat
-                pet.getDisplayEntity().teleport(targetLoc.clone().add(0, 0.35, 0));
-                pet.getNameTagDisplay().teleport(targetLoc.clone().add(0, 1.25, 0));
+                if (moving || rotating) {
+                    Location targetLoc = currentLoc.clone().add(moveVec);
+                    targetLoc.setYaw(playerYaw);
+                    seat.teleport(targetLoc, io.papermc.paper.entity.TeleportFlag.EntityState.RETAIN_PASSENGERS);
+
+                    // Keep pet visual display, nametag, and interaction hitbox in sync with seat
+                    pet.getDisplayEntity().teleport(targetLoc.clone().add(0, 0.35, 0));
+                    pet.getNameTagDisplay().teleport(targetLoc.clone().add(0, 1.25, 0));
+                    if (pet.getInteractionEntity() != null && pet.getInteractionEntity().isValid()) {
+                        pet.getInteractionEntity().teleport(targetLoc.clone().add(0, 0.35, 0));
+                    }
+                }
             }
         }, 1L, 1L); // Every tick
     }

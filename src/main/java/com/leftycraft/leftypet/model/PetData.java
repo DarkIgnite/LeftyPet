@@ -17,7 +17,7 @@ public class PetData {
 
     public PetData(UUID ownerUuid) {
         this.ownerUuid = ownerUuid;
-        this.name = "&bSpirit Companion";
+        this.name = "<gradient:#00f2fe:#4facfe>Spirit Companion</gradient>";
         this.level = 1;
         this.energy = 100.0;
         this.petClass = PetClass.FIGHTER;
@@ -132,17 +132,17 @@ public class PetData {
         int activeBars = (int) Math.round((energy / 100.0) * totalBars);
         StringBuilder sb = new StringBuilder();
         if (energy > 50) {
-            sb.append("&a");
+            sb.append("<green>");
         } else if (energy > 20) {
-            sb.append("&e");
+            sb.append("<yellow>");
         } else {
-            sb.append("&c");
+            sb.append("<red>");
         }
         for (int i = 0; i < totalBars; i++) {
             if (i < activeBars) {
                 sb.append("|");
             } else {
-                if (i == activeBars) sb.append("&7");
+                if (i == activeBars) sb.append("<dark_gray>");
                 sb.append("|");
             }
         }

@@ -249,17 +249,17 @@ public class AltarManager {
     }
 
     private void spawnAltarDisplays(PetAltar altar) {
-        // Lowered position: 0.85 above lodestone (Revisi 3)
-        Location baseLoc = altar.getLocation().clone().add(0.5, 0.85, 0.5);
-        if (!baseLoc.isWorldLoaded() || !baseLoc.getChunk().isLoaded()) return;
+        Location lodestoneLoc = altar.getLocation();
+        if (!lodestoneLoc.isWorldLoaded() || !lodestoneLoc.getChunk().isLoaded()) return;
 
         altar.removeEntities();
 
-        // 1. Floating Head: FIXED Billboard so it stays facing its natural yaw and doesn't follow player camera! (Revisi 2)
-        ItemDisplay display = baseLoc.getWorld().spawn(baseLoc, ItemDisplay.class, d -> {
+        // 1. Floating Head: Perfectly centered at Y=1.15 in the middle of the glass chamber
+        Location headLoc = lodestoneLoc.clone().add(0.5, 1.15, 0.5);
+        ItemDisplay display = headLoc.getWorld().spawn(headLoc, ItemDisplay.class, d -> {
             d.setPersistent(false);
             d.setBillboard(Display.Billboard.FIXED); // Stays in place!
-            float scale = plugin.getConfigManager().getPetScale();
+            float scale = 1.2f;
             Transformation t = new Transformation(
                     new Vector3f(0f, 0f, 0f),
                     new AxisAngle4f(0f, 0f, 1f, 0f),
@@ -275,8 +275,9 @@ public class AltarManager {
         });
         altar.setFloatingDisplay(display);
 
-        // 2. Hologram Display: placed at +0.60 (Y=1.45), well below the roof slab! (Revisi 3)
-        TextDisplay text = baseLoc.getWorld().spawn(baseLoc.clone().add(0, 0.60, 0), TextDisplay.class, t -> {
+        // 2. Hologram Display: placed at Y=2.05, above the head with zero overlap, below ceiling slab (Y=3)
+        Location textLoc = lodestoneLoc.clone().add(0.5, 2.05, 0.5);
+        TextDisplay text = textLoc.getWorld().spawn(textLoc, TextDisplay.class, t -> {
             t.setPersistent(false);
             t.setBillboard(Display.Billboard.CENTER);
             t.setDefaultBackground(false);

@@ -13,6 +13,7 @@ import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Display;
+import org.bukkit.entity.Interaction;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
@@ -36,6 +37,7 @@ public class ActivePet {
     private ItemDisplay displayEntity;
     private TextDisplay nameTagDisplay;
     private ArmorStand seatEntity;
+    private Interaction interactionEntity;
 
     private int ticksLived = 0;
     private boolean isMounting = false;
@@ -86,7 +88,15 @@ public class ActivePet {
             text.setTeleportDuration(plugin.getConfigManager().getInterpolationDuration());
         });
 
-        // 3. Spawn Seat Entity (ArmorStand for mounting)
+        // 3. Spawn Interaction Entity (Hitbox for click & punch)
+        interactionEntity = spawnLoc.getWorld().spawn(spawnLoc.clone().subtract(0, 0.45, 0), Interaction.class, inter -> {
+            inter.setPersistent(false);
+            inter.setInteractionWidth(0.9f);
+            inter.setInteractionHeight(0.9f);
+            inter.setResponsive(true);
+        });
+
+        // 4. Spawn Seat Entity (ArmorStand for mounting)
         seatEntity = spawnLoc.getWorld().spawn(spawnLoc, ArmorStand.class, stand -> {
             stand.setPersistent(false);
             stand.setVisible(false);
@@ -132,7 +142,12 @@ public class ActivePet {
         float diff = (playerYaw - smoothedYaw) % 360f;
         if (diff > 180f) diff -= 360f;
         if (diff < -180f) diff += 360f;
-        smoothedYaw += diff * 0.12f; // Smooth trailing delay
+
+        // Slow down orbit when player is looking at the pet so they can easily interact
+        Vector eyeToPet = displayEntity.getLocation().toVector().subtract(owner.getEyeLocation().toVector()).normalize();
+        double dot = owner.getEyeLocation().getDirection().normalize().dot(eyeToPet);
+        float followRate = (dot > 0.45) ? 0.02f : 0.12f;
+        smoothedYaw += diff * followRate;
 
         double rad = Math.toRadians(smoothedYaw);
         Vector dir = new Vector(-Math.sin(rad), 0, Math.cos(rad));
@@ -149,6 +164,9 @@ public class ActivePet {
         if (distSq > 576.0) {
             displayEntity.teleport(targetLoc);
             nameTagDisplay.teleport(targetLoc.clone().add(0, 0.70, 0));
+            if (interactionEntity != null && interactionEntity.isValid()) {
+                interactionEntity.teleport(targetLoc.clone().subtract(0, 0.45, 0));
+            }
         } else if (distSq > 0.04) {
             Location current = displayEntity.getLocation();
             Vector moveVec = targetLoc.toVector().subtract(current.toVector()).multiply(0.35);
@@ -156,6 +174,9 @@ public class ActivePet {
             newLoc.setDirection(owner.getLocation().getDirection());
             displayEntity.teleport(newLoc);
             nameTagDisplay.teleport(newLoc.clone().add(0, 0.70, 0));
+            if (interactionEntity != null && interactionEntity.isValid()) {
+                interactionEntity.teleport(newLoc.clone().subtract(0, 0.45, 0));
+            }
         }
 
         if (data.getPetClass() == PetClass.SUPPORT && !data.isFainted()) {
@@ -209,7 +230,7 @@ public class ActivePet {
     public void updateNameTag() {
         if (nameTagDisplay == null || !nameTagDisplay.isValid()) return;
 
-        String faintedTag = data.isFainted() ? " &c[ᴘɪɴɢsᴀɴ]" : "";
+        String faintedTag = data.isFainted() ? " <red>[ᴘɪɴɢsᴀɴ]</red>" : "";
         String line1 = "<yellow>[ʟᴠ." + data.getLevel() + "]</yellow> <white>" + data.getName() + "</white>" + faintedTag;
         String line2 = "<gray>ᴋᴇʟᴀs: </gray>" + data.getPetClass().getDisplayName();
         String line3 = "<green>ᴇɴᴇʀɢɪ: </green>" + data.getEnergyProgressBar() + " <white>" + (int) data.getEnergy() + "%</white>";
@@ -228,7 +249,7 @@ public class ActivePet {
     public void mount() {
         if (seatEntity == null || !seatEntity.isValid()) return;
         isMounting = true;
-        seatEntity.teleport(owner.getLocation());
+        seatEntity.teleport(owner.getLocation(), io.papermc.paper.entity.TeleportFlag.EntityState.RETAIN_PASSENGERS);
         seatEntity.addPassenger(owner);
     }
 
@@ -260,11 +281,15 @@ public class ActivePet {
         if (nameTagDisplay != null && nameTagDisplay.isValid()) {
             nameTagDisplay.remove();
         }
+        if (interactionEntity != null && interactionEntity.isValid()) {
+            interactionEntity.remove();
+        }
         if (seatEntity != null && seatEntity.isValid()) {
             seatEntity.remove();
         }
         displayEntity = null;
         nameTagDisplay = null;
+        interactionEntity = null;
         seatEntity = null;
     }
 
@@ -274,6 +299,10 @@ public class ActivePet {
 
     public TextDisplay getNameTagDisplay() {
         return nameTagDisplay;
+    }
+
+    public Interaction getInteractionEntity() {
+        return interactionEntity;
     }
 
     public ArmorStand getSeatEntity() {

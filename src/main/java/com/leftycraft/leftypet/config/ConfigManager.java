@@ -166,6 +166,12 @@ public class ConfigManager {
             return prefix;
         }
         String msg = plugin.getConfig().getString("messages." + path, "");
+        if (msg == null || msg.isEmpty()) {
+            return prefix;
+        }
+        if (msg.contains("LeftyPet") || msg.contains("ʟᴇғᴛʏᴘᴇᴛ")) {
+            return msg;
+        }
         return prefix + msg;
     }
 

@@ -4,6 +4,7 @@ import com.leftycraft.leftypet.LeftyPetPlugin;
 import com.leftycraft.leftypet.entity.ActivePet;
 import com.leftycraft.leftypet.model.PetClass;
 import com.leftycraft.leftypet.model.PetData;
+import com.leftycraft.leftypet.util.ColorUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -58,7 +59,7 @@ public class PetManager {
         PetData data = getPetData(uuid);
 
         if (data.isTraining()) {
-            player.sendMessage(plugin.getConfigManager().getMessage("altar-already-training"));
+            ColorUtil.sendMessage(player, plugin.getConfigManager().getMessage("altar-already-training"));
             return false;
         }
 
@@ -68,7 +69,7 @@ public class PetManager {
         activePets.put(uuid, activePet);
         data.setSummoned(true);
 
-        player.sendMessage(plugin.getConfigManager().getMessage("pet-summoned"));
+        ColorUtil.sendMessage(player, plugin.getConfigManager().getMessage("pet-summoned"));
         player.playSound(player.getLocation(), Sound.ENTITY_ILLUSIONER_PREPARE_MIRROR, 0.7f, 1.4f);
         return true;
     }
@@ -94,7 +95,7 @@ public class PetManager {
 
         PetData data = pet.getData();
         if (data.getEnergy() >= 100.0) {
-            player.sendMessage(plugin.getConfigManager().getMessage("prefix") + "§ePet kamu sudah sangat kenyang!");
+            ColorUtil.sendMessage(player, plugin.getConfigManager().getMessage("prefix") + "<yellow>ᴘᴇᴛ ᴋᴀᴍᴜ sᴜᴅᴀʜ sᴀɴɢᴀᴛ ᴋᴇɴʏᴀɴɢ!</yellow>");
             return true;
         }
 
@@ -105,7 +106,7 @@ public class PetManager {
         String msg = plugin.getConfigManager().getMessage("pet-fed")
                 .replace("{amount}", String.valueOf((int) restore))
                 .replace("{current}", String.valueOf((int) data.getEnergy()));
-        player.sendMessage(msg);
+        ColorUtil.sendMessage(player, msg);
         player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 0.7f, 1.2f);
         return true;
     }

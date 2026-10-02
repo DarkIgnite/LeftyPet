@@ -4,6 +4,7 @@ import com.leftycraft.leftypet.LeftyPetPlugin;
 import com.leftycraft.leftypet.entity.ActivePet;
 import com.leftycraft.leftypet.model.PetClass;
 import com.leftycraft.leftypet.model.PetData;
+import com.leftycraft.leftypet.util.ColorUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -102,7 +103,7 @@ public class CombatManager {
         pet.updateNameTag();
 
         if (data.isFainted()) {
-            player.sendMessage(plugin.getConfigManager().getMessage("pet-fainted"));
+            ColorUtil.sendMessage(player, plugin.getConfigManager().getMessage("pet-fainted"));
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 0.8f);
         }
     }
