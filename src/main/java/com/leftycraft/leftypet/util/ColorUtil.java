@@ -140,6 +140,20 @@ public final class ColorUtil {
     }
 
     /**
+     * Strips both MiniMessage tags and legacy color/formatting codes to get raw visible text.
+     */
+    public static String stripFormatting(String input) {
+        if (input == null || input.isEmpty()) return "";
+        // Remove MiniMessage tags like <gradient:...>, </gradient>, <color:...>, <b>, etc.
+        String stripped = input.replaceAll("<[^>]*>", "");
+        // Remove legacy ampersand and section codes (&a, §a, &#123456, &x...)
+        stripped = stripped.replaceAll("(?i)[&§][0-9a-fk-or]", "");
+        stripped = stripped.replaceAll("(?i)[&§]#([0-9a-f]{6})", "");
+        stripped = stripped.replaceAll("(?i)[&§]x([&§][0-9a-f]){6}", "");
+        return stripped.trim();
+    }
+
+    /**
      * Translates into legacy color code string (§) with gradient/hex support.
      */
     public static String colorize(String text) {

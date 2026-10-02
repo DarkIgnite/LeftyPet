@@ -79,26 +79,26 @@ classes:
 # Available Custom Head Skins (HTTPS Base64 Value)
 skins:
   spirit:
-    display-name: "<gradient:#00f2fe:#4facfe><b>Spirit Soul</b></gradient>"
-    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzE0MWJkY2NlNWE2OWI3Y2M0YjkxNjA1NjAzYjdiMDYwZjUxYjQ1YWE5NGZmZjYwMjIxY2QwYzJiNDRjYmMwNDgifX19"
+    display-name: "<gradient:#00f2fe:#4facfe><b>Ghast Spirit</b></gradient>"
+    texture: "ewogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzRhNGU0MmViMTVhMDg4MTNhNmE2ZjYxZjEwYWEyODgwMTlmYTBmYWUxMDZhMjk1M2RkYjQ2Zjc3ZWUyZDc3ZiIKICAgIH0KICB9Cn0="
   slime:
     display-name: "<gradient:#56ab2f:#a8e063><b>Slime King</b></gradient>"
-    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzg2YzI3YjAxM2YxYmYzMzQ0ODY5ZTgxZTVjNjEwMDI3YmM0NWVjNWI3OTUxNGZkYzk2ZTAxZGYxYjdlM2EzODcifX19"
+    texture: "ewogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzg2YzI3YjAxM2YxYmYzMzQ0ODY5ZTgxZTVjNjEwMDI3YmM0NWVjNWI3OTUxNGZkYzk2ZTAxZGYxYjdlM2EzODciCiAgICB9CiAgfQp9"
   dragon:
-    display-name: "<gradient:#f12711:#f5af19><b>Flame Dragon</b></gradient>"
-    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2MwMWE3YjkwODkxY2FmMjk1MGJiYmIwOWU0ZTBkOTE1YTUwM2VhYzk4NWE1MDc4Y2E1ODNmZGRmMDMyNmJlMzcifX19"
+    display-name: "<gradient:#f12711:#f5af19><b>Ender Dragon</b></gradient>"
+    texture: "ewogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2ZmY2RhZTU4NmI1MjQwM2I5MmIxODU3ZWU0MzMxYmFjNjM2YWYwOGJhYjkyYmE1NzUwYTU0YTgzMzMxYTYzNTMiCiAgICB9CiAgfQp9"
   panda:
     display-name: "<gradient:#e0eafc:#cfdef3><b>Baby Panda</b></gradient>"
-    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2RiMmUwYzA4NmFhNzU1ZDRmODFmODlmZTA1NWM0ZGFhOTE0ODRiMzliOTJmZDUzZDE1NDFiMjhlYzdjMjY4OWYifX19"
+    texture: "ewogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2NmYmFmMTM5NTJmNWIwZWUxODdkNzg3MDQxZWI4MzBkYjliOWQ5YjdkNGJmYTc0ZjIyMmFjNGVmNjhkYzMzMmUiCiAgICB9CiAgfQp9"
   robot:
-    display-name: "<gradient:#4b6cb7:#182848><b>Cyber Robot</b></gradient>"
-    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzE5NzJiZmYwYTg2NGViYjBjMDc3YzBiYjFkZDNhMzQwNzQ0ZjBjOTI5M2M2ZTUyODRkZTJmYWRkMWJmOGU3NzMifX19"
+    display-name: "<gradient:#4b6cb7:#182848><b>Cyber Golem</b></gradient>"
+    texture: "ewogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzFjNmNkN2IwMmMzNGU3OGYzMDczMDkwMzQ5ZjdkOTczYjI4OGFmNWU1YjczMzRkZDI0OTAxMGIzZjI3MDc4ZjkiCiAgICB9CiAgfQp9"
   demon:
-    display-name: "<gradient:#8a2387:#e94057><b>Shadow Demon</b></gradient>"
-    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzE0M2EzMTMxMjgwMGM1OWJlYjgxNDUxYzM4M2VkNDU4NWJiY2M2MzI2MTU2ZWU5MmQ2YjM4NTc2MGQzZGJlZTcifX19"
+    display-name: "<gradient:#8a2387:#e94057><b>Shadow Enderman</b></gradient>"
+    texture: "ewogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzFiMDlhMzc1MjUxMGU5MTRiMGJkYzkwOTZiMzkyYmIzNTlmN2E4ZThhOTU2NmEwMmU3ZjY2ZmFmZjhkNmY4OWUiCiAgICB9CiAgfQp9"
   angel:
-    display-name: "<gradient:#ffe259:#ffa751><b>Golden Angel</b></gradient>"
-    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2MyMzIyYmMwNTU3YWMyMTQ2NTI3NjRmMGJlZmViMDRiZWM0NmE2MDM5NmRmY2ZiNGI1NDZiN2E1ZDBmMTNiNGUifX19"
+    display-name: "<gradient:#ffe259:#ffa751><b>Golden Blaze</b></gradient>"
+    texture: "ewogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2QwNmUzNDJmOTBlYzUzOGFhYTE1NTJiMjI0ZjI2NGEwNDA4NDA5MDJlMTI2ZDkxZWNlNjEzOWFhNWIzYzdjYzMiCiAgICB9CiAgfQp9"
 
 # Particle Trails
 trails:

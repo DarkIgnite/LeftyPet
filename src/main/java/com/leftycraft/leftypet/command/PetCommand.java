@@ -3,6 +3,7 @@ package com.leftycraft.leftypet.command;
 import com.leftycraft.leftypet.LeftyPetPlugin;
 import com.leftycraft.leftypet.entity.ActivePet;
 import com.leftycraft.leftypet.gui.PetMenu;
+import com.leftycraft.leftypet.gui.PetRoadmapMenu;
 import com.leftycraft.leftypet.model.PetClass;
 import com.leftycraft.leftypet.model.PetData;
 import com.leftycraft.leftypet.util.ColorUtil;
@@ -21,7 +22,7 @@ import java.util.List;
 public class PetCommand implements CommandExecutor, TabCompleter {
 
     private final LeftyPetPlugin plugin;
-    private final List<String> subCommands = Arrays.asList("menu", "summon", "dismiss", "rename", "class", "altar", "help");
+    private final List<String> subCommands = Arrays.asList("menu", "summon", "dismiss", "rename", "class", "altar", "roadmap", "help");
 
     public PetCommand(LeftyPetPlugin plugin) {
         this.plugin = plugin;
@@ -62,6 +63,16 @@ public class PetCommand implements CommandExecutor, TabCompleter {
                     nameBuilder.append(args[i]).append(" ");
                 }
                 String newName = nameBuilder.toString().trim();
+                String stripped = ColorUtil.stripFormatting(newName);
+                if (stripped.isEmpty()) {
+                    player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<red>ɴᴀᴍᴀ ᴘᴇᴛ ᴛɪᴅᴀᴋ ʙᴏʟᴇʜ ᴋᴏsᴏɴɢ!</red>"));
+                    return true;
+                }
+                if (stripped.length() > 15) {
+                    player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<red>ɴᴀᴍᴀ ᴘᴇᴛ ᴍᴀᴋsɪᴍᴀʟ 15 ᴋᴀʀᴀᴋᴛᴇʀ! (ᴛᴇʀᴅᴇᴛᴇᴋsɪ: " + stripped.length() + " ᴋᴀʀᴀᴋᴛᴇʀ)</red>"));
+                    return true;
+                }
+
                 PetData data = plugin.getPetManager().getPetData(player.getUniqueId());
                 data.setName(newName);
 
@@ -96,12 +107,16 @@ public class PetCommand implements CommandExecutor, TabCompleter {
                 player.getInventory().addItem(plugin.getAltarManager().createAltarItem());
                 player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<gradient:#43e97b:#38f9d7>ᴋᴀᴍᴜ ᴍᴇɴᴇʀɪᴍᴀ 1x ᴘᴇᴛ ᴛʀᴀɪɴɪɴɢ ᴀʟᴛᴀʀ (3x3)! ʟᴇᴛᴀᴋᴋᴀɴ ᴅɪ ᴀʀᴇᴀ 3x3 ᴛᴇʀʙᴜᴋᴀ.</gradient>"));
             }
+            case "roadmap" -> {
+                PetRoadmapMenu.open(player, plugin);
+            }
             case "help" -> {
                 player.sendMessage(ColorUtil.component("<gradient:#00f2fe:#4facfe><b>---------------- [ʟᴇғᴛʏᴘᴇᴛ ᴄᴏᴍᴍᴀɴᴅs] ----------------</b></gradient>"));
                 player.sendMessage(ColorUtil.component("<aqua>/pet</aqua> <gray>- ʙᴜᴋᴀ ᴍᴇɴᴜ ɢᴜɪ ᴘᴇᴛ</gray>"));
                 player.sendMessage(ColorUtil.component("<aqua>/pet summon</aqua> <gray>- ᴘᴀɴɢɢɪʟ ᴘᴇᴛ ᴋᴇ sᴀᴍᴘɪɴɢ ʙᴀʜᴜᴍᴜ</gray>"));
                 player.sendMessage(ColorUtil.component("<aqua>/pet dismiss</aqua> <gray>- sɪᴍᴘᴀɴ ᴘᴇᴛ ᴋᴇ ᴀʟᴀᴍ sᴘɪʀɪᴛᴜᴀʟ</gray>"));
-                player.sendMessage(ColorUtil.component("<aqua>/pet rename [nama]</aqua> <gray>- ʙᴇʀɪ ɴᴀᴍᴀ ᴘᴇᴛ ᴋᴀᴍᴜ</gray>"));
+                player.sendMessage(ColorUtil.component("<aqua>/pet rename [nama]</aqua> <gray>- ʙᴇʀɪ ɴᴀᴍᴀ ᴘᴇᴛ ᴋᴀᴍᴜ (ᴍᴀᴋs. 15 ᴋᴀʀᴀᴋᴛᴇʀ)</gray>"));
+                player.sendMessage(ColorUtil.component("<aqua>/pet roadmap</aqua> <gray>- ʟɪʜᴀᴛ ᴘᴏʜᴏɴ ᴘʀᴏɢʀᴇsɪ ʟᴇᴠᴇʟ ᴘᴇᴛ (ᴀᴜʀᴀsᴋɪʟʟs sᴛʏʟᴇ)</gray>"));
                 player.sendMessage(ColorUtil.component("<aqua>/pet class [class]</aqua> <gray>- ᴘɪʟɪʜ ᴋᴇʟᴀs sᴘᴇsɪᴀʟɪsᴀsɪ ᴘᴇᴛ</gray>"));
                 player.sendMessage(ColorUtil.component("<aqua>/pet altar</aqua> <gray>- ᴅᴀᴘᴀᴛᴋᴀɴ ᴀʟᴛᴀʀ ᴛʀᴀɪɴɪɴɢ ᴀғᴋ (3x3)</gray>"));
                 player.sendMessage(ColorUtil.component("<gradient:#00f2fe:#4facfe><b>-----------------------------------------------------</b></gradient>"));

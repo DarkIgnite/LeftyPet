@@ -132,7 +132,8 @@ public class ActivePet {
                 .add(0, 1.30 + bobbing, 0);
 
         double distSq = displayEntity.getLocation().distanceSquared(targetLoc);
-        float targetYaw = owner.getLocation().getYaw();
+        // Player heads on ItemDisplay have the skull face on the back, so adding 180 flips it to face forward in player POV
+        float targetYaw = (owner.getLocation().getYaw() + 180f) % 360f;
         float currentYaw = displayEntity.getLocation().getYaw();
         float yawDiff = Math.abs(currentYaw - targetYaw);
 

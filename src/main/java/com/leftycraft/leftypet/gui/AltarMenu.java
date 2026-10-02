@@ -19,7 +19,7 @@ import java.util.UUID;
 
 public class AltarMenu {
 
-    public static final String TITLE = "§8[§bʟᴇғᴛʏᴘᴇᴛ§8] §0ᴘᴇɴɢᴀᴛᴜʀᴀɴ ᴀʟᴛᴀʀ";
+    public static final String TITLE = "§8» §b§lʟᴇғᴛʏᴘᴇᴛ §8| §fᴘᴇɴɢᴀᴛᴜʀᴀɴ ᴀʟᴛᴀʀ";
     private static final Map<UUID, PetAltar> OPEN_ALTARS = new HashMap<>();
 
     public static void open(Player player, PetAltar altar, LeftyPetPlugin plugin) {
@@ -28,10 +28,15 @@ public class AltarMenu {
         Inventory inv = Bukkit.createInventory(holder, 27, ColorUtil.component(TITLE));
         holder.setInventory(inv);
 
-        ItemStack filler = PetMenu.createItem(Material.BLACK_STAINED_GLASS_PANE, " ");
+        ItemStack darkFiller = PetMenu.createItem(Material.BLACK_STAINED_GLASS_PANE, " ");
+        ItemStack cyanCorner = PetMenu.createItem(Material.CYAN_STAINED_GLASS_PANE, " ");
         for (int i = 0; i < 27; i++) {
-            inv.setItem(i, filler);
+            inv.setItem(i, darkFiller);
         }
+        inv.setItem(0, cyanCorner);
+        inv.setItem(8, cyanCorner);
+        inv.setItem(18, cyanCorner);
+        inv.setItem(26, cyanCorner);
 
         ActivePet activePet = plugin.getPetManager().getActivePet(player.getUniqueId());
         PetData data = plugin.getPetManager().getPetData(player.getUniqueId());
@@ -42,25 +47,31 @@ public class AltarMenu {
             int maxLvl = plugin.getConfigManager().getMaxLevel();
 
             if (currentLvl >= maxLvl) {
-                inv.setItem(11, PetMenu.createItem(Material.BARRIER, "&c&lᴘᴇᴛ sᴜᴅᴀʜ ʟᴇᴠᴇʟ ᴍᴀᴋsɪᴍᴀʟ",
-                        "&7ʟᴇᴠᴇʟ ᴘᴇᴛ ᴋᴀᴍᴜ: &e" + maxLvl));
+                inv.setItem(11, PetMenu.createItem(Material.BARRIER, false, "&c&lᴘᴇᴛ sᴜᴅᴀʜ ʟᴇᴠᴇʟ ᴍᴀᴋsɪᴍᴀʟ",
+                        "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
+                        "&7ʟᴇᴠᴇʟ ᴘᴇᴛ ᴋᴀᴍᴜ: &e" + maxLvl,
+                        "&7sᴜᴅᴀʜ ᴍᴇɴᴄᴀᴘᴀɪ ʙᴀᴛᴀs ᴛᴇʀᴛɪɴɢɢɪ!",
+                        "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"));
             } else {
                 int targetLvl = currentLvl + 1;
                 int baseSec = plugin.getConfigManager().getUpgradeDuration(currentLvl);
                 int finalSec = (int) Math.round(baseSec * altar.getTimeMultiplier());
 
-                inv.setItem(11, PetMenu.createItem(Material.EMERALD_BLOCK, "&a&lᴍᴜʟᴀɪ ᴛʀᴀɪɴɪɴɢ ᴘᴇᴛ",
-                        "&7ᴛᴀʀɢᴇᴛ: &eʟᴇᴠᴇʟ " + targetLvl,
-                        "&7ᴅᴜʀᴀsɪ sᴛᴀɴᴅᴀʀ: &e" + formatSec(baseSec),
-                        "&bᴅɪsᴋᴏɴ ᴀʟᴛᴀʀ (ʟᴠ." + altar.getAltarLevel() + "): &a-" + (int) altar.getTimeReductionPercent() + "%",
-                        "&6ᴡᴀᴋᴛᴜ ᴛʀᴀɪɴɪɴɢ: &e" + formatSec(finalSec),
-                        "",
-                        "&eᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴍᴇᴍᴀsᴜᴋᴋᴀɴ ᴘᴇᴛ ᴋᴇ ᴀʟᴛᴀʀ!"));
+                inv.setItem(11, PetMenu.createItem(Material.EMERALD_BLOCK, true, "<gradient:#a8ff78:#78ffd6><b>ᴍᴜʟᴀɪ ᴛʀᴀɪɴɪɴɢ ᴘᴇᴛ</b></gradient>",
+                        "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
+                        "&7• ᴛᴀʀɢᴇᴛ: &eʟᴇᴠᴇʟ " + targetLvl,
+                        "&7• ᴅᴜʀᴀsɪ sᴛᴀɴᴅᴀʀ: &7" + formatSec(baseSec),
+                        "&7• ᴅɪsᴋᴏɴ ᴀʟᴛᴀʀ: &a-" + (int) altar.getTimeReductionPercent() + "% (ʟᴠ." + altar.getAltarLevel() + ")",
+                        "&7• ᴡᴀᴋᴛᴜ ᴛʀᴀɪɴɪɴɢ: &e<b>" + formatSec(finalSec) + "</b>",
+                        "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
+                        "&e▶ ᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴍᴇᴍᴀsᴜᴋᴋᴀɴ ᴘᴇᴛ ᴋᴇ ᴀʟᴛᴀʀ!"));
             }
         } else {
-            inv.setItem(11, PetMenu.createItem(Material.REDSTONE_BLOCK, "&c&lᴘᴇᴛ ʙᴇʟᴜᴍ ᴅɪᴘᴀɴɢɢɪʟ",
-                    "&7ᴘᴀɴɢɢɪʟ ᴘᴇᴛ ᴋᴀᴍᴜ ᴛᴇʀʟᴇʙɪʜ ᴅᴀʜᴜʟᴜ",
-                    "&7ᴅᴇɴɢᴀɴ ᴘᴇʀɪɴᴛᴀʜ &e/pet summon&7!"));
+            inv.setItem(11, PetMenu.createItem(Material.REDSTONE_BLOCK, false, "&c&lᴘᴇᴛ ʙᴇʟᴜᴍ ᴅɪᴘᴀɴɢɢɪʟ",
+                    "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
+                    "&7ᴘᴀɴɢɢɪʟ ᴘᴇᴛ ᴋᴀᴍᴜ ᴛᴇʀʟᴇʙɪʜ ᴅᴀʜᴜʟᴜ!",
+                    "&7ɢᴜɴᴀᴋᴀɴ ᴘᴇʀɪɴᴛᴀʜ: &e/pet summon",
+                    "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"));
         }
 
         // Slot 13: Altar Info
@@ -70,11 +81,12 @@ public class AltarMenu {
             default -> Material.POLISHED_DIORITE_SLAB;
         };
 
-        inv.setItem(13, PetMenu.createItem(altarIcon,
-                "&6&lᴀʟᴛᴀʀ ʟᴇᴠᴇʟ &e" + altar.getAltarLevel() + " &7/ &e3",
-                "&7ᴇғɪsɪᴇɴsɪ ᴡᴀᴋᴛᴜ: &a-" + (int) altar.getTimeReductionPercent() + "%",
-                "&7sᴛʀᴜᴋᴛᴜʀ: &f3x3 Glass Chamber",
-                "",
+        inv.setItem(13, PetMenu.createItem(altarIcon, true,
+                "<gradient:#ffe259:#ffa751><b>ᴀʟᴛᴀʀ ʟᴇᴠᴇʟ " + altar.getAltarLevel() + " / 3</b></gradient>",
+                "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
+                "&7• ᴇғɪsɪᴇɴsɪ ᴡᴀᴋᴛᴜ: &a-" + (int) altar.getTimeReductionPercent() + "%",
+                "&7• sᴛʀᴜᴋᴛᴜʀ: &f3x3 Glass Chamber",
+                "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
                 "&7ᴀʟᴛᴀʀ ᴍᴇᴍᴘᴇʀᴄᴇᴘᴀᴛ ᴡᴀᴋᴛᴜ ᴜᴘɢʀᴀᴅᴇ",
                 "&7ᴘᴇᴛ ᴋᴀᴍᴜ sᴇᴄᴀʀᴀ ᴏᴛᴏᴍᴀᴛɪs!"));
 
@@ -82,26 +94,32 @@ public class AltarMenu {
         int nextAltarLvl = altar.getAltarLevel() + 1;
         if (nextAltarLvl <= 3) {
             String costLore = (nextAltarLvl == 2)
-                    ? "&7ʙɪᴀʏᴀ: &e16x End Stone Bricks & 4x Diamonds"
-                    : "&7ʙɪᴀʏᴀ: &e16x Purpur Blocks & 8x Diamonds";
+                    ? "&7• ʙɪᴀʏᴀ: &e16x End Stone Bricks & 4x Diamonds"
+                    : "&7• ʙɪᴀʏᴀ: &e16x Purpur Blocks & 8x Diamonds";
 
-            inv.setItem(15, PetMenu.createItem(Material.ANVIL,
-                    "&b&lᴜᴘɢʀᴀᴅᴇ ᴀʟᴛᴀʀ ᴋᴇ ʟᴇᴠᴇʟ &e" + nextAltarLvl,
-                    "&7ᴍᴇɴɪɴɢᴋᴀᴛᴋᴀɴ ᴅɪsᴋᴏɴ ᴡᴀᴋᴛᴜ ᴍᴇɴᴊᴀᴅɪ: &a-" + (nextAltarLvl * 10) + "%",
+            inv.setItem(15, PetMenu.createItem(Material.ANVIL, true,
+                    "<gradient:#00c6ff:#0072ff><b>ᴜᴘɢʀᴀᴅᴇ ᴀʟᴛᴀʀ (ʟᴇᴠᴇʟ " + nextAltarLvl + ")</b></gradient>",
+                    "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
+                    "&7• ᴅɪsᴋᴏɴ ʙᴀʀᴜ: &a-" + (nextAltarLvl * 10) + "% ᴡᴀᴋᴛᴜ",
                     costLore,
-                    "",
-                    "&eᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴜᴘɢʀᴀᴅᴇ ᴀʟᴛᴀʀ!"));
+                    "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
+                    "&e▶ ᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴜᴘɢʀᴀᴅᴇ ᴀʟᴛᴀʀ!"));
         } else {
-            inv.setItem(15, PetMenu.createItem(Material.NETHER_STAR,
-                    "&a&lᴀʟᴛᴀʀ sᴜᴅᴀʜ ʟᴇᴠᴇʟ ᴍᴀᴋsɪᴍᴀʟ!",
-                    "&7ᴅɪsᴋᴏɴ ᴍᴀᴋsɪᴍᴀʟ &a-30% &7ᴛᴇʟᴀʜ ᴀᴋᴛɪғ."));
+            inv.setItem(15, PetMenu.createItem(Material.NETHER_STAR, true,
+                    "<gradient:#a8ff78:#78ffd6><b>ᴀʟᴛᴀʀ ʟᴇᴠᴇʟ ᴍᴀᴋsɪᴍᴀʟ!</b></gradient>",
+                    "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
+                    "&7ᴅɪsᴋᴏɴ ᴍᴀᴋsɪᴍᴀʟ &a-30% &7sᴜᴅᴀʜ ᴀᴋᴛɪғ.",
+                    "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"));
         }
 
         // Slot 22: Bongkar Altar
-        inv.setItem(22, PetMenu.createItem(Material.LODESTONE,
-                "&c&lʙᴏɴɢᴋᴀʀ ᴀʟᴛᴀʀ",
+        inv.setItem(22, PetMenu.createItem(Material.LODESTONE, false,
+                "<red><b>ʙᴏɴɢᴋᴀʀ ᴀʟᴛᴀʀ</b></red>",
+                "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
                 "&7ᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴍᴇɴɢᴀᴍʙɪʟ ᴋᴇᴍʙᴀʟɪ ʙʟᴏᴋ ᴀʟᴛᴀʀ",
-                "&7ᴅᴀɴ ᴍᴇɴɢʜᴀᴘᴜs sᴛʀᴜᴋᴛᴜʀ 3x3 ɪɴɪ."));
+                "&7ᴅᴀɴ ᴍᴇɴɢʜᴀᴘᴜs sᴛʀᴜᴋᴛᴜʀ 3x3 ɪɴɪ.",
+                "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
+                "&c▶ ᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴍᴇᴍʙᴏɴɢᴋᴀʀ"));
 
         player.openInventory(inv);
         player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 0.7f, 1.2f);

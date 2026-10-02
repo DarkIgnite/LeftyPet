@@ -6,10 +6,12 @@ import com.leftycraft.leftypet.gui.AltarCancelMenu;
 import com.leftycraft.leftypet.gui.AltarMenu;
 import com.leftycraft.leftypet.gui.CosmeticMenu;
 import com.leftycraft.leftypet.gui.PetMenu;
+import com.leftycraft.leftypet.gui.PetRoadmapMenu;
 import com.leftycraft.leftypet.gui.holder.AltarCancelMenuHolder;
 import com.leftycraft.leftypet.gui.holder.AltarMenuHolder;
 import com.leftycraft.leftypet.gui.holder.CosmeticMenuHolder;
 import com.leftycraft.leftypet.gui.holder.PetMenuHolder;
+import com.leftycraft.leftypet.gui.holder.PetRoadmapMenuHolder;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -107,6 +109,12 @@ public class PetInteractListener implements Listener {
             return;
         }
 
+        if (holder instanceof PetRoadmapMenuHolder) {
+            event.setCancelled(true);
+            PetRoadmapMenu.handleClick(event, plugin);
+            return;
+        }
+
         // Secondary fallback by title
         String title = PlainTextComponentSerializer.plainText().serialize(event.getView().title());
         if (title.contains("ʟᴇғᴛʏᴘᴇᴛ") || title.contains("LeftyPet") || title.contains("ᴘᴇᴛ ᴅᴀsʜʙᴏᴀʀᴅ") || title.contains("Pet Dashboard")) {
@@ -115,6 +123,8 @@ public class PetInteractListener implements Listener {
                 PetMenu.handleClick(event, plugin);
             } else if (title.contains("ᴘɪʟɪʜ ᴋᴏsᴍᴇᴛɪᴋ") || title.contains("Pilih Kosmetik")) {
                 CosmeticMenu.handleClick(event, plugin);
+            } else if (title.contains("ʟᴇᴠᴇʟ ʀᴏᴀᴅᴍᴀᴘ") || title.contains("Level Roadmap")) {
+                PetRoadmapMenu.handleClick(event, plugin);
             } else if (title.contains("ʙᴀᴛᴀʟᴋᴀɴ") || title.contains("Batalkan")) {
                 AltarCancelMenu.handleClick(event, plugin);
             } else if (title.contains("ᴘᴇɴɢᴀᴛᴜʀᴀɴ ᴀʟᴛᴀʀ") || title.contains("Pengaturan Altar")) {
@@ -127,7 +137,8 @@ public class PetInteractListener implements Listener {
     public void onInventoryDrag(InventoryDragEvent event) {
         InventoryHolder holder = event.getInventory().getHolder();
         if (holder instanceof PetMenuHolder || holder instanceof CosmeticMenuHolder
-                || holder instanceof AltarMenuHolder || holder instanceof AltarCancelMenuHolder) {
+                || holder instanceof AltarMenuHolder || holder instanceof AltarCancelMenuHolder
+                || holder instanceof PetRoadmapMenuHolder) {
             event.setCancelled(true);
             return;
         }
