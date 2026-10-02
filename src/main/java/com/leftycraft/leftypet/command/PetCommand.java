@@ -1,6 +1,7 @@
 package com.leftycraft.leftypet.command;
 
 import com.leftycraft.leftypet.LeftyPetPlugin;
+import com.leftycraft.leftypet.entity.ActivePet;
 import com.leftycraft.leftypet.gui.PetMenu;
 import com.leftycraft.leftypet.model.PetClass;
 import com.leftycraft.leftypet.model.PetData;
@@ -29,7 +30,7 @@ public class PetCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(ColorUtil.component("<gradient:#ff5f6d:#ffc371>Perintah ini hanya bisa dijalankan oleh player di dalam game!</gradient>"));
+            sender.sendMessage(ColorUtil.component("<gradient:#ff5f6d:#ffc371>ᴘᴇʀɪɴᴛᴀʜ ɪɴɪ ʜᴀɴʏᴀ ʙɪsᴀ ᴅɪᴊᴀʟᴀɴᴋᴀɴ ᴏʟᴇʜ ᴘʟᴀʏᴇʀ ᴅɪ ᴅᴀʟᴀᴍ ɢᴀᴍᴇ!</gradient>"));
             return true;
         }
 
@@ -48,7 +49,7 @@ public class PetCommand implements CommandExecutor, TabCompleter {
                     plugin.getPetManager().despawnPet(player.getUniqueId());
                     player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("pet-dismissed")));
                 } else {
-                    player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<yellow>Pet kamu memang sedang tidak dipanggil.</yellow>"));
+                    player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<yellow>ᴘᴇᴛ ᴋᴀᴍᴜ ᴍᴇᴍᴀɴɢ sᴇᴅᴀɴɢ ᴛɪᴅᴀᴋ ᴅɪᴘᴀɴɢɢɪʟ.</yellow>"));
                 }
             }
             case "mount", "ride" -> {
@@ -56,7 +57,7 @@ public class PetCommand implements CommandExecutor, TabCompleter {
             }
             case "rename" -> {
                 if (args.length < 2) {
-                    player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<red>Gunakan: /pet rename <nama baru></red>"));
+                    player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<red>ɢᴜɴᴀᴋᴀɴ: /pet rename &lt;nama baru&gt;</red>"));
                     return true;
                 }
                 StringBuilder nameBuilder = new StringBuilder();
@@ -78,31 +79,35 @@ public class PetCommand implements CommandExecutor, TabCompleter {
             }
             case "class" -> {
                 if (args.length < 2) {
-                    player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<yellow>Pilih kelas: FIGHTER, SUPPORT, LOOTER, TRAVELER</yellow>"));
+                    player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<yellow>ᴘɪʟɪʜ ᴋᴇʟᴀs: FIGHTER, SUPPORT, LOOTER, TRAVELER</yellow>"));
                     return true;
                 }
                 try {
                     PetClass pc = PetClass.valueOf(args[1].toUpperCase());
                     PetData data = plugin.getPetManager().getPetData(player.getUniqueId());
                     data.setPetClass(pc);
-                    player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<green>Kelas pet diubah ke: </green>" + pc.getDisplayName()));
+                    ActivePet active = plugin.getPetManager().getActivePet(player.getUniqueId());
+                    if (active != null) {
+                        active.updateNameTag();
+                    }
+                    player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<green>ᴋᴇʟᴀs ᴘᴇᴛ ᴅɪᴜʙᴀʜ ᴋᴇ: </green>" + pc.getDisplayName()));
                 } catch (IllegalArgumentException e) {
-                    player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<red>Kelas tidak valid! Pilihan: FIGHTER, SUPPORT, LOOTER, TRAVELER</red>"));
+                    player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<red>ᴋᴇʟᴀs ᴛɪᴅᴀᴋ ᴠᴀʟɪᴅ! ᴘɪʟɪʜᴀɴ: FIGHTER, SUPPORT, LOOTER, TRAVELER</red>"));
                 }
             }
             case "altar" -> {
                 player.getInventory().addItem(plugin.getAltarManager().createAltarItem());
-                player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<gradient:#43e97b:#38f9d7>Kamu menerima 1x Pet Training Altar (3x3)! Letakkan di area 3x3 terbuka.</gradient>"));
+                player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<gradient:#43e97b:#38f9d7>ᴋᴀᴍᴜ ᴍᴇɴᴇʀɪᴍᴀ 1x ᴘᴇᴛ ᴛʀᴀɪɴɪɴɢ ᴀʟᴛᴀʀ (3x3)! ʟᴇᴛᴀᴋᴋᴀɴ ᴅɪ ᴀʀᴇᴀ 3x3 ᴛᴇʀʙᴜᴋᴀ.</gradient>"));
             }
             case "help" -> {
-                player.sendMessage(ColorUtil.component("<gradient:#00f2fe:#4facfe><b>---------------- [LeftyPet Commands] ----------------</b></gradient>"));
-                player.sendMessage(ColorUtil.component("<aqua>/pet</aqua> <gray>- Buka menu GUI Pet</gray>"));
-                player.sendMessage(ColorUtil.component("<aqua>/pet summon</aqua> <gray>- Panggil pet ke samping bahumu</gray>"));
-                player.sendMessage(ColorUtil.component("<aqua>/pet dismiss</aqua> <gray>- Simpan pet ke alam spiritual</gray>"));
-                player.sendMessage(ColorUtil.component("<aqua>/pet mount</aqua> <gray>- Naiki pet (unlocked Lv 3+)</gray>"));
-                player.sendMessage(ColorUtil.component("<aqua>/pet rename &lt;nama&gt;</aqua> <gray>- Beri nama pet kamu</gray>"));
-                player.sendMessage(ColorUtil.component("<aqua>/pet class &lt;class&gt;</aqua> <gray>- Pilih class spesialisasi pet</gray>"));
-                player.sendMessage(ColorUtil.component("<aqua>/pet altar</aqua> <gray>- Dapatkan Altar training AFK (3x3)</gray>"));
+                player.sendMessage(ColorUtil.component("<gradient:#00f2fe:#4facfe><b>---------------- [ʟᴇғᴛʏᴘᴇᴛ ᴄᴏᴍᴍᴀɴᴅs] ----------------</b></gradient>"));
+                player.sendMessage(ColorUtil.component("<aqua>/pet</aqua> <gray>- ʙᴜᴋᴀ ᴍᴇɴᴜ ɢᴜɪ ᴘᴇᴛ</gray>"));
+                player.sendMessage(ColorUtil.component("<aqua>/pet summon</aqua> <gray>- ᴘᴀɴɢɢɪʟ ᴘᴇᴛ ᴋᴇ sᴀᴍᴘɪɴɢ ʙᴀʜᴜᴍᴜ</gray>"));
+                player.sendMessage(ColorUtil.component("<aqua>/pet dismiss</aqua> <gray>- sɪᴍᴘᴀɴ ᴘᴇᴛ ᴋᴇ ᴀʟᴀᴍ sᴘɪʀɪᴛᴜᴀʟ</gray>"));
+                player.sendMessage(ColorUtil.component("<aqua>/pet mount</aqua> <gray>- ɴᴀɪᴋɪ ᴘᴇᴛ (ᴜɴʟᴏᴄᴋᴇᴅ ʟᴠ 3+)</gray>"));
+                player.sendMessage(ColorUtil.component("<aqua>/pet rename &lt;nama&gt;</aqua> <gray>- ʙᴇʀɪ ɴᴀᴍᴀ ᴘᴇᴛ ᴋᴀᴍᴜ</gray>"));
+                player.sendMessage(ColorUtil.component("<aqua>/pet class &lt;class&gt;</aqua> <gray>- ᴘɪʟɪʜ ᴋᴇʟᴀs sᴘᴇsɪᴀʟɪsᴀsɪ ᴘᴇᴛ</gray>"));
+                player.sendMessage(ColorUtil.component("<aqua>/pet altar</aqua> <gray>- ᴅᴀᴘᴀᴛᴋᴀɴ ᴀʟᴛᴀʀ ᴛʀᴀɪɴɪɴɢ ᴀғᴋ (3x3)</gray>"));
                 player.sendMessage(ColorUtil.component("<gradient:#00f2fe:#4facfe><b>-----------------------------------------------------</b></gradient>"));
             }
             default -> {

@@ -39,6 +39,7 @@ public class ActivePet {
 
     private int ticksLived = 0;
     private boolean isMounting = false;
+    private float smoothedYaw = 0f;
     private long lastSupportHeal = 0;
     private long lastLooterPickup = 0;
 
@@ -46,6 +47,7 @@ public class ActivePet {
         this.plugin = plugin;
         this.owner = owner;
         this.data = data;
+        this.smoothedYaw = owner.getLocation().getYaw();
         spawn();
     }
 
@@ -73,8 +75,8 @@ public class ActivePet {
             display.setItemStack(head);
         });
 
-        // 2. Spawn TextDisplay (Nametag & Energy bar)
-        nameTagDisplay = spawnLoc.getWorld().spawn(spawnLoc.clone().add(0, 0.65, 0), TextDisplay.class, text -> {
+        // 2. Spawn TextDisplay (Nametag, Class, Energy bar)
+        nameTagDisplay = spawnLoc.getWorld().spawn(spawnLoc.clone().add(0, 0.75, 0), TextDisplay.class, text -> {
             text.setPersistent(false);
             text.setBillboard(Display.Billboard.CENTER);
             text.setDefaultBackground(false);
@@ -103,67 +105,63 @@ public class ActivePet {
         if (!isValid()) return;
         ticksLived++;
 
-        // Update Nametag text every 10 ticks
         if (ticksLived % 10 == 0) {
             updateNameTag();
         }
 
-        // Spawn particle trail
         spawnParticleTrail();
 
         if (isMounting && seatEntity != null && seatEntity.isValid()) {
-            // Mounting mode: Pet stays with seat entity
-            Location seatLoc = seatEntity.getLocation();
-            displayEntity.teleport(seatLoc.clone().add(0, 0.4, 0));
-            nameTagDisplay.teleport(seatLoc.clone().add(0, 1.25, 0));
+            if (seatEntity.getPassengers().isEmpty() || !seatEntity.getPassengers().contains(owner)) {
+                dismount();
+                return;
+            }
 
-            // Riding energy drain check
-            if (ticksLived % 200 == 0) { // every 10 seconds
+            if (ticksLived % 200 == 0) {
                 data.drainEnergy(plugin.getConfigManager().getEnergyDrainPerRiding());
                 if (data.isFainted()) {
                     dismount();
-                    owner.sendMessage(plugin.getConfigManager().getMessage("pet-fainted"));
+                    owner.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("pet-fainted")));
                 }
             }
             return;
         }
 
-        // Following mode: Hover beside owner (offset ~1.35 blocks to the right, slightly forward)
+        // Following mode: Smoothed orbit so player can turn to look at pet without pet fleeing
+        float playerYaw = owner.getLocation().getYaw();
+        float diff = (playerYaw - smoothedYaw) % 360f;
+        if (diff > 180f) diff -= 360f;
+        if (diff < -180f) diff += 360f;
+        smoothedYaw += diff * 0.12f; // Smooth trailing delay
+
+        double rad = Math.toRadians(smoothedYaw);
+        Vector dir = new Vector(-Math.sin(rad), 0, Math.cos(rad));
+        Vector side = new Vector(-dir.getZ(), 0, dir.getX());
+
         double bobbing = Math.sin((ticksLived + owner.getEntityId()) * 0.15) * 0.12;
 
-        Vector dir = owner.getLocation().getDirection().setY(0);
-        if (dir.lengthSquared() > 0.001) {
-            dir.normalize();
-        } else {
-            dir = new Vector(1, 0, 0);
-        }
-
-        Vector side = new Vector(-dir.getZ(), 0, dir.getX()); // Perpendicular
         Location targetLoc = owner.getLocation()
                 .add(side.multiply(1.35))
-                .add(dir.multiply(0.20))
+                .add(dir.multiply(0.25))
                 .add(0, 1.25 + bobbing, 0);
 
         double distSq = displayEntity.getLocation().distanceSquared(targetLoc);
-        if (distSq > 576.0) { // > 24 blocks -> teleport instantly
+        if (distSq > 576.0) {
             displayEntity.teleport(targetLoc);
-            nameTagDisplay.teleport(targetLoc.clone().add(0, 0.55, 0));
+            nameTagDisplay.teleport(targetLoc.clone().add(0, 0.70, 0));
         } else if (distSq > 0.04) {
-            // Smooth lerp movement towards target
             Location current = displayEntity.getLocation();
             Vector moveVec = targetLoc.toVector().subtract(current.toVector()).multiply(0.35);
             Location newLoc = current.add(moveVec);
             newLoc.setDirection(owner.getLocation().getDirection());
             displayEntity.teleport(newLoc);
-            nameTagDisplay.teleport(newLoc.clone().add(0, 0.55, 0));
+            nameTagDisplay.teleport(newLoc.clone().add(0, 0.70, 0));
         }
 
-        // Passive Support Class check
         if (data.getPetClass() == PetClass.SUPPORT && !data.isFainted()) {
             handleSupportAura();
         }
 
-        // Passive Looter Class check
         if (data.getPetClass() == PetClass.LOOTER && !data.isFainted()) {
             handleLooterVacuum();
         }
@@ -193,7 +191,7 @@ public class ActivePet {
                     owner.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, item.getLocation(), 3, 0.1, 0.1, 0.1, 0.02);
                     owner.playSound(owner.getLocation(), Sound.ENTITY_ITEM_PICKUP, 0.4f, 1.5f);
                     item.remove();
-                    break; // one stack at a time
+                    break;
                 }
             }
         }
@@ -211,11 +209,12 @@ public class ActivePet {
     public void updateNameTag() {
         if (nameTagDisplay == null || !nameTagDisplay.isValid()) return;
 
-        String faintedTag = data.isFainted() ? " &c[Pingsan]" : "";
-        String line1 = "&e[Lv." + data.getLevel() + "] " + data.getName() + faintedTag;
-        String line2 = "&aEnergi: " + data.getEnergyProgressBar() + " &f" + (int) data.getEnergy() + "%";
+        String faintedTag = data.isFainted() ? " &c[ᴘɪɴɢsᴀɴ]" : "";
+        String line1 = "<yellow>[ʟᴠ." + data.getLevel() + "]</yellow> <white>" + data.getName() + "</white>" + faintedTag;
+        String line2 = "<gray>ᴋᴇʟᴀs: </gray>" + data.getPetClass().getDisplayName();
+        String line3 = "<green>ᴇɴᴇʀɢɪ: </green>" + data.getEnergyProgressBar() + " <white>" + (int) data.getEnergy() + "%</white>";
 
-        Component comp = ColorUtil.component(line1 + "\n" + line2);
+        Component comp = ColorUtil.component(line1 + "\n" + line2 + "\n" + line3);
         nameTagDisplay.text(comp);
     }
 
@@ -227,14 +226,13 @@ public class ActivePet {
     }
 
     public void mount() {
-        if (isMounting || seatEntity == null || !seatEntity.isValid()) return;
+        if (seatEntity == null || !seatEntity.isValid()) return;
         isMounting = true;
         seatEntity.teleport(owner.getLocation());
         seatEntity.addPassenger(owner);
     }
 
     public void dismount() {
-        if (!isMounting) return;
         isMounting = false;
         if (seatEntity != null && seatEntity.isValid()) {
             seatEntity.removePassenger(owner);

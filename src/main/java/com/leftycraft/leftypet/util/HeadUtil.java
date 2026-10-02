@@ -22,8 +22,11 @@ public final class HeadUtil {
     private HeadUtil() {}
 
     /**
-     * Creates a custom player head with HTTPS texture URL and Paper PlayerProfile API.
-     * Fixes the Steve head bug caused by http:// and modern Minecraft 1.20.5+ / 1.21 profile format.
+     * Creates a custom player head with valid texture.
+     * Fixes Steve bug by ensuring:
+     * 1. Profile username is null (so client does NOT attempt to resolve an offline player name).
+     * 2. Texture URL is HTTPS.
+     * 3. Both PlayerProfile property and PlayerTextures skin URL are populated.
      */
     public static ItemStack createCustomHead(String texture) {
         ItemStack head = new ItemStack(Material.PLAYER_HEAD);
@@ -52,23 +55,30 @@ public final class HeadUtil {
                 }
             }
 
+            String cleanB64 = trimmed;
+            UUID profileUuid;
             if (hash != null) {
                 String httpsUrl = "https://textures.minecraft.net/texture/" + hash;
-                UUID profileUuid = UUID.nameUUIDFromBytes(hash.getBytes(StandardCharsets.UTF_8));
+                String cleanJson = "{\"textures\":{\"SKIN\":{\"url\":\"" + httpsUrl + "\"}}}";
+                cleanB64 = Base64.getEncoder().encodeToString(cleanJson.getBytes(StandardCharsets.UTF_8));
+                profileUuid = UUID.nameUUIDFromBytes(hash.getBytes(StandardCharsets.UTF_8));
+            } else {
+                profileUuid = UUID.randomUUID();
+            }
 
-                PlayerProfile profile = Bukkit.createProfile(profileUuid, "PetSkin");
+            // CRITICAL: Username MUST be null so Paper builds ResolvableProfile(Optional.empty(), ...)
+            // preventing the client from searching for a player named "PetSkin" on Mojang session server
+            PlayerProfile profile = Bukkit.createProfile(profileUuid, null);
+            profile.setProperty(new ProfileProperty("textures", cleanB64));
+
+            if (hash != null) {
                 try {
-                    URL skinUrl = URI.create(httpsUrl).toURL();
+                    URL skinUrl = URI.create("https://textures.minecraft.net/texture/" + hash).toURL();
                     profile.getTextures().setSkin(skinUrl);
                 } catch (Exception ignored) {}
-
-                // Also attach clean Base64 property with https URL for clients checking property list
-                String cleanJson = "{\"textures\":{\"SKIN\":{\"url\":\"" + httpsUrl + "\"}}}";
-                String cleanBase64 = Base64.getEncoder().encodeToString(cleanJson.getBytes(StandardCharsets.UTF_8));
-                profile.setProperty(new ProfileProperty("textures", cleanBase64));
-
-                meta.setPlayerProfile(profile);
             }
+
+            meta.setPlayerProfile(profile);
         } catch (Exception e) {
             Bukkit.getLogger().warning("[LeftyPet] Error creating custom head: " + e.getMessage());
         }

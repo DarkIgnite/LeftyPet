@@ -2,6 +2,7 @@ package com.leftycraft.leftypet.listener;
 
 import com.leftycraft.leftypet.LeftyPetPlugin;
 import com.leftycraft.leftypet.entity.ActivePet;
+import com.leftycraft.leftypet.gui.PetMenu;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.LivingEntity;
@@ -31,6 +32,11 @@ public class CombatListener implements Listener {
                             event.getEntity().equals(pet.getNameTagDisplay()) ||
                             event.getEntity().equals(pet.getSeatEntity())) {
                         event.setCancelled(true);
+
+                        // If owner shifts + punches pet -> open PetMenu (Revisi 7)
+                        if (event.getDamager() instanceof Player damager && damager.equals(player) && damager.isSneaking()) {
+                            PetMenu.open(damager, plugin);
+                        }
                         return;
                     }
                 }

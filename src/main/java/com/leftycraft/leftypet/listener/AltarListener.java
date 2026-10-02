@@ -16,6 +16,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDismountEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 
@@ -36,11 +37,11 @@ public class AltarListener implements Listener {
         Player player = event.getPlayer();
         Location loc = event.getBlock().getLocation();
 
-        // Check if player already owns an altar in the world
+        // Check if player already owns an active altar
         PetAltar existing = plugin.getAltarManager().getAltarByOwner(player.getUniqueId());
         if (existing != null) {
             event.setCancelled(true);
-            player.sendMessage(ColorUtil.component("<gradient:#ff5f6d:#ffc371><b>[LeftyPet]</b> Kamu sudah memiliki 1 Altar aktif! Bongkar altar lamamu terlebih dahulu.</gradient>"));
+            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<gradient:#ff5f6d:#ffc371>ᴋᴀᴍᴜ sᴜᴅᴀʜ ᴍᴇᴍɪʟɪᴋɪ 1 ᴀʟᴛᴀʀ ᴀᴋᴛɪғ! ʙᴏɴɢᴋᴀʀ ᴀʟᴛᴀʀ ʟᴀᴍᴀᴍᴜ ᴛᴇʀʟᴇʙɪʜ ᴅᴀʜᴜʟᴜ.</gradient>"));
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
             return;
         }
@@ -48,17 +49,18 @@ public class AltarListener implements Listener {
         // Check 3x3x4 footprint clearance
         if (!plugin.getAltarManager().getStructureManager().canPlaceStructure(loc)) {
             event.setCancelled(true);
-            player.sendMessage(ColorUtil.component("<gradient:#ff5f6d:#ffc371><b>[LeftyPet]</b> Area 3x3x4 terhalang! Pastikan area di sekitar altar rata dan bersih dari rintangan.</gradient>"));
+            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<gradient:#ff5f6d:#ffc371>ᴀʀᴇᴀ 3x3x4 ᴛᴇʀʜᴀʟᴀɴɢ! ᴘᴀsᴛɪᴋᴀɴ ᴀʀᴇᴀ ᴅɪ sᴇᴋɪᴛᴀʀ ᴀʟᴛᴀʀ ʀᴀᴛᴀ ᴅᴀɴ ʙᴇʀsɪʜ ᴅᴀʀɪ ʀɪɴᴛᴀɴɢᴀɴ.</gradient>"));
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
             return;
         }
 
-        // Register and build 3x3 Level 1 structure
         UUID altarId = UUID.randomUUID();
         plugin.getAltarManager().registerAltar(altarId, player.getUniqueId(), loc, 1);
-        plugin.getAltarManager().getStructureManager().buildStructure(loc, 1);
 
-        player.sendMessage(ColorUtil.component("<gradient:#43e97b:#38f9d7><b>[LeftyPet]</b> Pet Training Altar (3x3) berhasil dibangun! Klik kanan lodestone di tengah untuk membuka menu Altar.</gradient>"));
+        // Build with animation (Revisi 16)
+        plugin.getAltarManager().getStructureManager().buildStructureAnimated(loc, 1, () -> {
+            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<gradient:#43e97b:#38f9d7>ᴘᴇᴛ ᴛʀᴀɪɴɪɴɢ ᴀʟᴛᴀʀ (3x3) ʙᴇʀʜᴀsɪʟ ᴅɪʙᴀɴɢᴜɴ! ᴋʟɪᴋ ᴋᴀɴᴀɴ ʟᴏᴅᴇsᴛᴏɴᴇ ᴜɴᴛᴜᴋ ᴍᴇᴍʙᴜᴋᴀ ᴍᴇɴᴜ.</gradient>"));
+        });
     }
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -72,9 +74,7 @@ public class AltarListener implements Listener {
         Location loc = block.getLocation();
         PetAltar altar = plugin.getAltarManager().getAltarAt(loc);
 
-        // If not clicked directly on Lodestone, check if part of structure
         if (altar == null) {
-            // Find if clicked block is part of an active altar structure
             for (Location cLoc : plugin.getAltarManager().getAltarsMap().keySet()) {
                 if (plugin.getAltarManager().getStructureManager().isPartOfStructure(cLoc, loc)) {
                     altar = plugin.getAltarManager().getAltarAt(cLoc);
@@ -88,23 +88,20 @@ public class AltarListener implements Listener {
 
         Player player = event.getPlayer();
         if (!altar.getOwnerUuid().equals(player.getUniqueId()) && !player.hasPermission("leftypet.admin")) {
-            player.sendMessage(ColorUtil.component("<gradient:#ff5f6d:#ffc371><b>[LeftyPet]</b> Ini bukan altar milikmu!</gradient>"));
+            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<gradient:#ff5f6d:#ffc371>ɪɴɪ ʙᴜᴋᴀɴ ᴀʟᴛᴀʀ ᴍɪʟɪᴋᴍᴜ!</gradient>"));
             return;
         }
 
-        // If finished -> Claim
         if (altar.isFinished()) {
             plugin.getAltarManager().claimTraining(player, altar);
             return;
         }
 
-        // If in-progress -> Open Cancel Confirmation GUI (Revisi 3)
         if (altar.isTraining()) {
             AltarCancelMenu.open(player, altar, plugin);
             return;
         }
 
-        // If idle -> Open Altar Management GUI (Revisi 5)
         AltarMenu.open(player, altar, plugin);
     }
 
@@ -128,12 +125,18 @@ public class AltarListener implements Listener {
             event.setCancelled(true);
 
             if (!altar.getOwnerUuid().equals(player.getUniqueId()) && !player.hasPermission("leftypet.admin")) {
-                player.sendMessage(ColorUtil.component("<gradient:#ff5f6d:#ffc371><b>[LeftyPet]</b> Kamu tidak bisa merusak altar milik pemain lain!</gradient>"));
+                player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<gradient:#ff5f6d:#ffc371>ᴋᴀᴍᴜ ᴛɪᴅᴀᴋ ʙɪsᴀ ᴍᴇʀᴜsᴀᴋ ᴀʟᴛᴀʀ ᴍɪʟɪᴋ ᴘᴇᴍᴀɪɴ ʟᴀɪɴ!</gradient>"));
                 return;
             }
 
-            // Dismantle cleanly
             plugin.getAltarManager().dismantleAltar(player, altar);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onDismount(EntityDismountEvent event) {
+        if (event.getEntity() instanceof Player player) {
+            plugin.getMountManager().stopMount(player);
         }
     }
 }

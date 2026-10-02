@@ -19,7 +19,7 @@ import java.util.UUID;
 
 public class AltarMenu {
 
-    public static final String TITLE = "§8[§bAltar§8] §0Pengaturan Altar";
+    public static final String TITLE = "§8[§bʟᴇғᴛʏᴘᴇᴛ§8] §0ᴘᴇɴɢᴀᴛᴜʀᴀɴ ᴀʟᴛᴀʀ";
     private static final Map<UUID, PetAltar> OPEN_ALTARS = new HashMap<>();
 
     public static void open(Player player, PetAltar altar, LeftyPetPlugin plugin) {
@@ -40,25 +40,25 @@ public class AltarMenu {
             int maxLvl = plugin.getConfigManager().getMaxLevel();
 
             if (currentLvl >= maxLvl) {
-                inv.setItem(11, PetMenu.createItem(Material.BARRIER, "&c&lPet Sudah Level Maksimal",
-                        "&7Level pet kamu: &e" + maxLvl));
+                inv.setItem(11, PetMenu.createItem(Material.BARRIER, "&c&lᴘᴇᴛ sᴜᴅᴀʜ ʟᴇᴠᴇʟ ᴍᴀᴋsɪᴍᴀʟ",
+                        "&7ʟᴇᴠᴇʟ ᴘᴇᴛ ᴋᴀᴍᴜ: &e" + maxLvl));
             } else {
                 int targetLvl = currentLvl + 1;
                 int baseSec = plugin.getConfigManager().getUpgradeDuration(currentLvl);
                 int finalSec = (int) Math.round(baseSec * altar.getTimeMultiplier());
 
-                inv.setItem(11, PetMenu.createItem(Material.EMERALD_BLOCK, "&a&lMulai Training Pet",
-                        "&7Target: &eLevel " + targetLvl,
-                        "&7Durasi Standar: &e" + formatSec(baseSec),
-                        "&bDiskon Altar (Lv." + altar.getAltarLevel() + "): &a-" + (int) altar.getTimeReductionPercent() + "%",
-                        "&6Waktu Training: &e" + formatSec(finalSec),
+                inv.setItem(11, PetMenu.createItem(Material.EMERALD_BLOCK, "&a&lᴍᴜʟᴀɪ ᴛʀᴀɪɴɪɴɢ ᴘᴇᴛ",
+                        "&7ᴛᴀʀɢᴇᴛ: &eʟᴇᴠᴇʟ " + targetLvl,
+                        "&7ᴅᴜʀᴀsɪ sᴛᴀɴᴅᴀʀ: &e" + formatSec(baseSec),
+                        "&bᴅɪsᴋᴏɴ ᴀʟᴛᴀʀ (ʟᴠ." + altar.getAltarLevel() + "): &a-" + (int) altar.getTimeReductionPercent() + "%",
+                        "&6ᴡᴀᴋᴛᴜ ᴛʀᴀɪɴɪɴɢ: &e" + formatSec(finalSec),
                         "",
-                        "&eKlik untuk memasukkan pet ke Altar!"));
+                        "&eᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴍᴇᴍᴀsᴜᴋᴋᴀɴ ᴘᴇᴛ ᴋᴇ ᴀʟᴛᴀʀ!"));
             }
         } else {
-            inv.setItem(11, PetMenu.createItem(Material.REDSTONE_BLOCK, "&c&lPet Belum Dipanggil",
-                    "&7Panggil pet kamu terlebih dahulu",
-                    "&7dengan perintah &e/pet summon&7!"));
+            inv.setItem(11, PetMenu.createItem(Material.REDSTONE_BLOCK, "&c&lᴘᴇᴛ ʙᴇʟᴜᴍ ᴅɪᴘᴀɴɢɢɪʟ",
+                    "&7ᴘᴀɴɢɢɪʟ ᴘᴇᴛ ᴋᴀᴍᴜ ᴛᴇʀʟᴇʙɪʜ ᴅᴀʜᴜʟᴜ",
+                    "&7ᴅᴇɴɢᴀɴ ᴘᴇʀɪɴᴛᴀʜ &e/pet summon&7!"));
         }
 
         // Slot 13: Altar Info
@@ -69,37 +69,37 @@ public class AltarMenu {
         };
 
         inv.setItem(13, PetMenu.createItem(altarIcon,
-                "&6&lAltar Level &e" + altar.getAltarLevel() + " &7/ &e3",
-                "&7Efisiensi Waktu: &a-" + (int) altar.getTimeReductionPercent() + "%",
-                "&7Struktur: &f3x3 Glass Chamber",
+                "&6&lᴀʟᴛᴀʀ ʟᴇᴠᴇʟ &e" + altar.getAltarLevel() + " &7/ &e3",
+                "&7ᴇғɪsɪᴇɴsɪ ᴡᴀᴋᴛᴜ: &a-" + (int) altar.getTimeReductionPercent() + "%",
+                "&7sᴛʀᴜᴋᴛᴜʀ: &f3x3 Glass Chamber",
                 "",
-                "&7Altar mempercepat waktu upgrade",
-                "&7pet kamu secara otomatis!"));
+                "&7ᴀʟᴛᴀʀ ᴍᴇᴍᴘᴇʀᴄᴇᴘᴀᴛ ᴡᴀᴋᴛᴜ ᴜᴘɢʀᴀᴅᴇ",
+                "&7ᴘᴇᴛ ᴋᴀᴍᴜ sᴇᴄᴀʀᴀ ᴏᴛᴏᴍᴀᴛɪs!"));
 
         // Slot 15: Upgrade Altar
         int nextAltarLvl = altar.getAltarLevel() + 1;
         if (nextAltarLvl <= 3) {
             String costLore = (nextAltarLvl == 2)
-                    ? "&7Biaya: &e16x End Stone Bricks & 4x Diamonds"
-                    : "&7Biaya: &e16x Purpur Blocks & 8x Diamonds";
+                    ? "&7ʙɪᴀʏᴀ: &e16x End Stone Bricks & 4x Diamonds"
+                    : "&7ʙɪᴀʏᴀ: &e16x Purpur Blocks & 8x Diamonds";
 
             inv.setItem(15, PetMenu.createItem(Material.ANVIL,
-                    "&b&lUpgrade Altar ke Level &e" + nextAltarLvl,
-                    "&7Meningkatkan diskon waktu menjadi: &a-" + (nextAltarLvl * 10) + "%",
+                    "&b&lᴜᴘɢʀᴀᴅᴇ ᴀʟᴛᴀʀ ᴋᴇ ʟᴇᴠᴇʟ &e" + nextAltarLvl,
+                    "&7ᴍᴇɴɪɴɢᴋᴀᴛᴋᴀɴ ᴅɪsᴋᴏɴ ᴡᴀᴋᴛᴜ ᴍᴇɴᴊᴀᴅɪ: &a-" + (nextAltarLvl * 10) + "%",
                     costLore,
                     "",
-                    "&eKlik untuk upgrade altar!"));
+                    "&eᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴜᴘɢʀᴀᴅᴇ ᴀʟᴛᴀʀ!"));
         } else {
             inv.setItem(15, PetMenu.createItem(Material.NETHER_STAR,
-                    "&a&lAltar Sudah Level Maksimal!",
-                    "&7Diskon maksimal &a-30% &7telah aktif."));
+                    "&a&lᴀʟᴛᴀʀ sᴜᴅᴀʜ ʟᴇᴠᴇʟ ᴍᴀᴋsɪᴍᴀʟ!",
+                    "&7ᴅɪsᴋᴏɴ ᴍᴀᴋsɪᴍᴀʟ &a-30% &7ᴛᴇʟᴀʜ ᴀᴋᴛɪғ."));
         }
 
         // Slot 22: Bongkar Altar
         inv.setItem(22, PetMenu.createItem(Material.LODESTONE,
-                "&c&lBongkar Altar",
-                "&7Klik untuk mengambil kembali blok Altar",
-                "&7dan menghapus struktur 3x3 ini."));
+                "&c&lʙᴏɴɢᴋᴀʀ ᴀʟᴛᴀʀ",
+                "&7ᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴍᴇɴɢᴀᴍʙɪʟ ᴋᴇᴍʙᴀʟɪ ʙʟᴏᴋ ᴀʟᴛᴀʀ",
+                "&7ᴅᴀɴ ᴍᴇɴɢʜᴀᴘᴜs sᴛʀᴜᴋᴛᴜʀ 3x3 ɪɴɪ."));
 
         player.openInventory(inv);
         player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 0.7f, 1.2f);
@@ -114,32 +114,31 @@ public class AltarMenu {
 
         int slot = event.getRawSlot();
         switch (slot) {
-            case 11 -> { // Mulai Training
+            case 11 -> {
                 player.closeInventory();
                 plugin.getAltarManager().startTraining(player, altar.getLocation());
             }
-            case 15 -> { // Upgrade Altar
+            case 15 -> {
                 int nextLvl = altar.getAltarLevel() + 1;
                 if (nextLvl > 3) return;
 
-                // Check materials
                 if (hasUpgradeMaterials(player, nextLvl)) {
                     takeUpgradeMaterials(player, nextLvl);
                     altar.setAltarLevel(nextLvl);
                     plugin.getAltarManager().getStructureManager().buildStructure(altar.getLocation(), nextLvl);
                     plugin.getAltarManager().saveAltars();
 
-                    player.sendMessage(plugin.getConfigManager().getMessage("prefix") +
-                            "§aAltar berhasil di-upgrade ke §eLevel " + nextLvl + "§a! Diskon waktu sekarang: §b-" + (nextLvl * 10) + "%§a!");
+                    player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                            "<gradient:#43e97b:#38f9d7>ᴀʟᴛᴀʀ ʙᴇʀʜᴀsɪʟ ᴅɪ-ᴜᴘɢʀᴀᴅᴇ ᴋᴇ <b>ʟᴇᴠᴇʟ " + nextLvl + "</b>! ᴅɪsᴋᴏɴ ᴡᴀᴋᴛᴜ: <b>-" + (nextLvl * 10) + "%</b>!</gradient>"));
                     player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1.2f);
-                    open(player, altar, plugin); // refresh
+                    open(player, altar, plugin);
                 } else {
-                    player.sendMessage(plugin.getConfigManager().getMessage("prefix") +
-                            "§cMaterial kamu tidak cukup untuk upgrade altar!");
+                    player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                            "<gradient:#ff5f6d:#ffc371>ᴍᴀᴛᴇʀɪᴀʟ ᴋᴀᴍᴜ ᴛɪᴅᴀᴋ ᴄᴜᴋᴜᴘ ᴜɴᴛᴜᴋ ᴜᴘɢʀᴀᴅᴇ ᴀʟᴛᴀʀ!</gradient>"));
                     player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
                 }
             }
-            case 22 -> { // Bongkar Altar
+            case 22 -> {
                 player.closeInventory();
                 plugin.getAltarManager().dismantleAltar(player, altar);
             }

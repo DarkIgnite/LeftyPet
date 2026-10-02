@@ -3,6 +3,7 @@ package com.leftycraft.leftypet.command;
 import com.leftycraft.leftypet.LeftyPetPlugin;
 import com.leftycraft.leftypet.entity.ActivePet;
 import com.leftycraft.leftypet.model.PetData;
+import com.leftycraft.leftypet.util.ColorUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -28,16 +29,17 @@ public class PetAdminCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (!sender.hasPermission("leftypet.admin")) {
-            sender.sendMessage("§cKamu tidak memiliki izin untuk perintah ini!");
+            sender.sendMessage(ColorUtil.component("<gradient:#ff5f6d:#ffc371>ᴋᴀᴍᴜ ᴛɪᴅᴀᴋ ᴍᴇᴍɪʟɪᴋɪ ɪᴢɪɴ ᴜɴᴛᴜᴋ ᴘᴇʀɪɴᴛᴀʜ ɪɴɪ!</gradient>"));
             return true;
         }
 
         if (args.length == 0) {
-            sender.sendMessage("§b§lLeftyPet Admin Commands:");
-            sender.sendMessage("§7/leftypet reload - Reload konfigurasi plugin");
-            sender.sendMessage("§7/leftypet setlevel <player> <level> - Atur level pet player");
-            sender.sendMessage("§7/leftypet setenergy <player> <amount> - Atur energi pet player");
-            sender.sendMessage("§7/leftypet givealtar <player> - Berikan Altar ke player");
+            sender.sendMessage(ColorUtil.component("<gradient:#00f2fe:#4facfe><b>---------------- [ʟᴇғᴛʏᴘᴇᴛ ᴀᴅᴍɪɴ] ----------------</b></gradient>"));
+            sender.sendMessage(ColorUtil.component("<aqua>/leftypet reload</aqua> <gray>- ʀᴇʟᴏᴀᴅ ᴋᴏɴғɪɢᴜʀᴀsɪ ᴘʟᴜɢɪɴ</gray>"));
+            sender.sendMessage(ColorUtil.component("<aqua>/leftypet setlevel &lt;player&gt; &lt;level&gt;</aqua> <gray>- ᴀᴛᴜʀ ʟᴇᴠᴇʟ ᴘᴇᴛ ᴘʟᴀʏᴇʀ</gray>"));
+            sender.sendMessage(ColorUtil.component("<aqua>/leftypet setenergy &lt;player&gt; &lt;amount&gt;</aqua> <gray>- ᴀᴛᴜʀ ᴇɴᴇʀɢɪ ᴘᴇᴛ ᴘʟᴀʏᴇʀ</gray>"));
+            sender.sendMessage(ColorUtil.component("<aqua>/leftypet givealtar &lt;player&gt;</aqua> <gray>- ʙᴇʀɪᴋᴀɴ ᴀʟᴛᴀʀ ᴋᴇ ᴘʟᴀʏᴇʀ</gray>"));
+            sender.sendMessage(ColorUtil.component("<gradient:#00f2fe:#4facfe><b>--------------------------------------------------</b></gradient>"));
             return true;
         }
 
@@ -45,16 +47,16 @@ public class PetAdminCommand implements CommandExecutor, TabCompleter {
         switch (sub) {
             case "reload" -> {
                 plugin.getConfigManager().loadConfig();
-                sender.sendMessage(plugin.getConfigManager().getMessage("prefix") + "§aKonfigurasi berhasil dimuat ulang!");
+                sender.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<gradient:#43e97b:#38f9d7>ᴋᴏɴғɪɢᴜʀᴀsɪ ʙᴇʀʜᴀsɪʟ ᴅɪᴍᴜᴀᴛ ᴜʟᴀɴɢ!</gradient>"));
             }
             case "setlevel" -> {
                 if (args.length < 3) {
-                    sender.sendMessage("§cGunakan: /leftypet setlevel <player> <level>");
+                    sender.sendMessage(ColorUtil.component("<red>ɢᴜɴᴀᴋᴀɴ: /leftypet setlevel &lt;player&gt; &lt;level&gt;</red>"));
                     return true;
                 }
                 Player target = Bukkit.getPlayer(args[1]);
                 if (target == null) {
-                    sender.sendMessage("§cPlayer tidak ditemukan atau sedang offline!");
+                    sender.sendMessage(ColorUtil.component("<red>ᴘʟᴀʏᴇʀ ᴛɪᴅᴀᴋ ᴅɪᴛᴇᴍᴜᴋᴀɴ ᴀᴛᴀᴜ sᴇᴅᴀɴɢ ᴏғғʟɪɴᴇ!</red>"));
                     return true;
                 }
                 try {
@@ -66,19 +68,20 @@ public class PetAdminCommand implements CommandExecutor, TabCompleter {
                     if (pet != null) {
                         pet.updateNameTag();
                     }
-                    sender.sendMessage("§aBerhasil mengatur level pet milik §e" + target.getName() + " §ake Level §e" + lvl + "§a!");
+                    sender.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                            "<gradient:#43e97b:#38f9d7>ʙᴇʀʜᴀsɪʟ ᴍᴇɴɢᴀᴛᴜʀ ʟᴇᴠᴇʟ ᴘᴇᴛ ᴍɪʟɪᴋ <yellow>" + target.getName() + "</yellow> ᴋᴇ ʟᴇᴠᴇʟ <yellow>" + lvl + "</yellow>!</gradient>"));
                 } catch (NumberFormatException e) {
-                    sender.sendMessage("§cLevel harus berupa angka bulat!");
+                    sender.sendMessage(ColorUtil.component("<red>ʟᴇᴠᴇʟ ʜᴀʀᴜs ʙᴇʀᴜᴘᴀ ᴀɴɢᴋᴀ ʙᴜʟᴀᴛ!</red>"));
                 }
             }
             case "setenergy" -> {
                 if (args.length < 3) {
-                    sender.sendMessage("§cGunakan: /leftypet setenergy <player> <amount>");
+                    sender.sendMessage(ColorUtil.component("<red>ɢᴜɴᴀᴋᴀɴ: /leftypet setenergy &lt;player&gt; &lt;amount&gt;</red>"));
                     return true;
                 }
                 Player target = Bukkit.getPlayer(args[1]);
                 if (target == null) {
-                    sender.sendMessage("§cPlayer tidak ditemukan!");
+                    sender.sendMessage(ColorUtil.component("<red>ᴘʟᴀʏᴇʀ ᴛɪᴅᴀᴋ ᴅɪᴛᴇᴍᴜᴋᴀɴ!</red>"));
                     return true;
                 }
                 try {
@@ -90,22 +93,24 @@ public class PetAdminCommand implements CommandExecutor, TabCompleter {
                     if (pet != null) {
                         pet.updateNameTag();
                     }
-                    sender.sendMessage("§aBerhasil mengatur energi pet milik §e" + target.getName() + " §ake §e" + energy + "%§a!");
+                    sender.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                            "<gradient:#43e97b:#38f9d7>ʙᴇʀʜᴀsɪʟ ᴍᴇɴɢᴀᴛᴜʀ ᴇɴᴇʀɢɪ ᴘᴇᴛ ᴍɪʟɪᴋ <yellow>" + target.getName() + "</yellow> ᴋᴇ <yellow>" + energy + "%</yellow>!</gradient>"));
                 } catch (NumberFormatException e) {
-                    sender.sendMessage("§cEnergi harus berupa angka!");
+                    sender.sendMessage(ColorUtil.component("<red>ᴇɴᴇʀɢɪ ʜᴀʀᴜs ʙᴇʀᴜᴘᴀ ᴀɴɢᴋᴀ!</red>"));
                 }
             }
             case "givealtar" -> {
                 Player target = (args.length >= 2) ? Bukkit.getPlayer(args[1]) : (sender instanceof Player p ? p : null);
                 if (target == null) {
-                    sender.sendMessage("§cTentukan target player!");
+                    sender.sendMessage(ColorUtil.component("<red>ᴛᴇɴᴛᴜᴋᴀɴ ᴛᴀʀɢᴇᴛ ᴘʟᴀʏᴇʀ!</red>"));
                     return true;
                 }
                 target.getInventory().addItem(plugin.getAltarManager().createAltarItem());
-                sender.sendMessage("§aBerhasil memberikan Altar kepada §e" + target.getName() + "§a!");
+                sender.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                        "<gradient:#43e97b:#38f9d7>ʙᴇʀʜᴀsɪʟ ᴍᴇᴍʙᴇʀɪᴋᴀɴ ᴀʟᴛᴀʀ ᴋᴇᴘᴀᴅᴀ <yellow>" + target.getName() + "</yellow>!</gradient>"));
             }
             default -> {
-                sender.sendMessage("§cSubcommand tidak diketahui! Ketik /leftypet untuk melihat bantuan.");
+                sender.sendMessage(ColorUtil.component("<red>sᴜʙᴄᴏᴍᴍᴀɴᴅ ᴛɪᴅᴀᴋ ᴅɪᴋᴇᴛᴀʜᴜɪ!</red>"));
             }
         }
         return true;

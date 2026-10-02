@@ -161,12 +161,15 @@ public class ConfigManager {
     }
 
     public String getMessage(String path) {
-        String prefix = plugin.getConfig().getString("messages.prefix", "&8[&bLeftyPet&8] &r");
+        String prefix = plugin.getConfig().getString("messages.prefix", "<gradient:#00f2fe:#4facfe><b>[ʟᴇғᴛʏᴘᴇᴛ]</b></gradient> ");
+        if ("prefix".equalsIgnoreCase(path)) {
+            return prefix;
+        }
         String msg = plugin.getConfig().getString("messages." + path, "");
-        return ColorUtil.colorize(prefix + msg);
+        return prefix + msg;
     }
 
     public String getRawMessage(String path) {
-        return ColorUtil.colorize(plugin.getConfig().getString("messages." + path, ""));
+        return plugin.getConfig().getString("messages." + path, "");
     }
 }

@@ -20,7 +20,7 @@ import java.util.*;
 
 public class CosmeticMenu {
 
-    public static final String TITLE = "§8[§bLeftyPet§8] §0Pilih Kosmetik";
+    public static final String TITLE = "§8[§bʟᴇғᴛʏᴘᴇᴛ§8] §0ᴘɪʟɪʜ ᴋᴏsᴍᴇᴛɪᴋ";
     private static final Map<Integer, String> SLOT_TO_SKIN = new HashMap<>();
     private static final Map<Integer, String> SLOT_TO_TRAIL = new HashMap<>();
 
@@ -48,9 +48,9 @@ public class CosmeticMenu {
                 List<Component> lore = new ArrayList<>();
                 boolean isSelected = key.equalsIgnoreCase(data.getSkinKey());
                 if (isSelected) {
-                    lore.add(ColorUtil.component("&a✔ Sedang Dipakai"));
+                    lore.add(ColorUtil.component("&a✔ sᴇᴅᴀɴɢ ᴅɪᴘᴀᴋᴀɪ"));
                 } else {
-                    lore.add(ColorUtil.component("&eKlik untuk memilih skin ini!"));
+                    lore.add(ColorUtil.component("&eᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴍᴇᴍɪʟɪʜ sᴋɪɴ ɪɴɪ!"));
                 }
                 meta.lore(lore);
                 head.setItemMeta(meta);
@@ -80,14 +80,14 @@ public class CosmeticMenu {
 
             boolean isSelected = key.equalsIgnoreCase(data.getTrailKey());
             ItemStack item = PetMenu.createItem(mat, name,
-                    isSelected ? "&a✔ Sedang Dipakai" : "&eKlik untuk memilih efek trail ini!");
+                    isSelected ? "&a✔ sᴇᴅᴀɴɢ ᴅɪᴘᴀᴋᴀɪ" : "&eᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴍᴇᴍɪʟɪʜ ᴇғᴇᴋ ᴛʀᴀɪʟ ɪɴɪ!");
             inv.setItem(trailSlot, item);
             SLOT_TO_TRAIL.put(trailSlot, key);
             trailSlot++;
         }
 
         // Slot 31: Back Button
-        inv.setItem(31, PetMenu.createItem(Material.ARROW, "&c&lKembali ke Menu Utama"));
+        inv.setItem(31, PetMenu.createItem(Material.ARROW, "&c&lᴋᴇᴍʙᴀʟɪ ᴋᴇ ᴍᴇɴᴜ ᴜᴛᴀᴍᴀ"));
 
         player.openInventory(inv);
         player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 0.6f, 1.2f);
@@ -105,7 +105,6 @@ public class CosmeticMenu {
             return;
         }
 
-        // Skin clicked
         if (SLOT_TO_SKIN.containsKey(slot)) {
             String skinKey = SLOT_TO_SKIN.get(slot);
             data.setSkinKey(skinKey);
@@ -116,19 +115,18 @@ public class CosmeticMenu {
             }
 
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.7f, 1.4f);
-            player.sendMessage(plugin.getConfigManager().getMessage("prefix") + "§aSkin pet berhasil diganti!");
-            open(player, plugin); // refresh
+            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<gradient:#43e97b:#38f9d7>sᴋɪɴ ᴘᴇᴛ ʙᴇʀʜᴀsɪʟ ᴅɪɢᴀɴᴛɪ!</gradient>"));
+            open(player, plugin);
             return;
         }
 
-        // Trail clicked
         if (SLOT_TO_TRAIL.containsKey(slot)) {
             String trailKey = SLOT_TO_TRAIL.get(slot);
             data.setTrailKey(trailKey);
 
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.7f, 1.4f);
-            player.sendMessage(plugin.getConfigManager().getMessage("prefix") + "§aEfek trail pet berhasil diganti!");
-            open(player, plugin); // refresh
+            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<gradient:#43e97b:#38f9d7>ᴇғᴇᴋ ᴛʀᴀɪʟ ᴘᴇᴛ ʙᴇʀʜᴀsɪʟ ᴅɪɢᴀɴᴛɪ!</gradient>"));
+            open(player, plugin);
         }
     }
 }

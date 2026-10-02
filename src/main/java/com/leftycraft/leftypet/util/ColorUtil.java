@@ -18,6 +18,46 @@ public final class ColorUtil {
     private ColorUtil() {}
 
     /**
+     * Converts a string to modern small-caps font.
+     */
+    public static String toSmallCaps(String input) {
+        if (input == null) return "";
+        StringBuilder sb = new StringBuilder();
+        for (char c : input.toCharArray()) {
+            sb.append(switch (Character.toLowerCase(c)) {
+                case 'a' -> 'ᴀ';
+                case 'b' -> 'ʙ';
+                case 'c' -> 'ᴄ';
+                case 'd' -> 'ᴅ';
+                case 'e' -> 'ᴇ';
+                case 'f' -> 'ғ';
+                case 'g' -> 'ɢ';
+                case 'h' -> 'ʜ';
+                case 'i' -> 'ɪ';
+                case 'j' -> 'ᴊ';
+                case 'k' -> 'ᴋ';
+                case 'l' -> 'ʟ';
+                case 'm' -> 'ᴍ';
+                case 'n' -> 'ɴ';
+                case 'o' -> 'ᴏ';
+                case 'p' -> 'ᴘ';
+                case 'q' -> 'ǫ';
+                case 'r' -> 'ʀ';
+                case 's' -> 's';
+                case 't' -> 'ᴛ';
+                case 'u' -> 'ᴜ';
+                case 'v' -> 'ᴠ';
+                case 'w' -> 'ᴡ';
+                case 'x' -> 'x';
+                case 'y' -> 'ʏ';
+                case 'z' -> 'ᴢ';
+                default -> c;
+            });
+        }
+        return sb.toString();
+    }
+
+    /**
      * Parses text supporting both MiniMessage tags (<gradient>, <rainbow>, etc.) and legacy & codes.
      */
     public static Component component(String text) {
@@ -25,14 +65,10 @@ public final class ColorUtil {
             return Component.empty();
         }
 
-        // If message contains MiniMessage tags (<tag>)
         if (text.contains("<") && text.contains(">")) {
-            // Convert any remaining legacy & codes into MiniMessage compatible format if needed
             try {
                 return MINI_MESSAGE.deserialize(text).decoration(TextDecoration.ITALIC, false);
-            } catch (Exception e) {
-                // fallback to legacy
-            }
+            } catch (Exception ignored) {}
         }
 
         return LEGACY_SERIALIZER.deserialize(text).decoration(TextDecoration.ITALIC, false);
