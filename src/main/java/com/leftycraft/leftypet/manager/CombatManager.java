@@ -13,15 +13,24 @@ import org.bukkit.entity.*;
 import org.bukkit.util.Vector;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class CombatManager {
 
     private final LeftyPetPlugin plugin;
+    private boolean isProcessingAttack = false;
+    private final Map<UUID, Long> lastAttackTime = new HashMap<>();
 
     public CombatManager(LeftyPetPlugin plugin) {
         this.plugin = plugin;
         startCombatTask();
+    }
+
+    public boolean isProcessingAttack() {
+        return isProcessingAttack;
     }
 
     private void startCombatTask() {
@@ -72,7 +81,22 @@ public class CombatManager {
     }
 
     public void performAttack(Player player, ActivePet pet, LivingEntity target) {
+        if (target == null || target.isDead() || !target.isValid()) return;
+        if (isProcessingAttack) return;
+
+        // Rate limit pet attacks to prevent packet/event spam (at most once per 800ms)
+        long now = System.currentTimeMillis();
+        long last = lastAttackTime.getOrDefault(player.getUniqueId(), 0L);
+        if (now - last < 800L) {
+            return;
+        }
+        lastAttackTime.put(player.getUniqueId(), now);
+
         PetData data = pet.getData();
+        if (data.isFainted() || data.getEnergy() < plugin.getConfigManager().getEnergyDrainPerAttack()) {
+            return;
+        }
+
         double classMult = plugin.getConfigManager().getClassDamageMultiplier(data.getPetClass());
         double damage = data.getAttackDamage(classMult);
 
@@ -88,8 +112,13 @@ public class CombatManager {
         // Spawn magic beam particles
         spawnBeam(start, end, data.getPetClass(), isCrit);
 
-        // Apply damage attributed to the owner player
-        target.damage(damage, player);
+        // Apply damage attributed to the owner player (guarded against recursive events)
+        try {
+            isProcessingAttack = true;
+            target.damage(damage, player);
+        } finally {
+            isProcessingAttack = false;
+        }
 
         // Play combat sound
         player.getWorld().playSound(start, Sound.ENTITY_ILLUSIONER_CAST_SPELL, 0.6f, 1.6f);

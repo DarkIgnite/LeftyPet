@@ -46,6 +46,10 @@ public class CombatListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerAttack(EntityDamageByEntityEvent event) {
+        if (plugin.getCombatManager().isProcessingAttack()) {
+            return;
+        }
+
         if (event.getDamager() instanceof Player player && event.getEntity() instanceof Monster monster) {
             ActivePet pet = plugin.getPetManager().getActivePet(player.getUniqueId());
             if (pet != null && pet.isValid() && !pet.getData().isFainted()) {

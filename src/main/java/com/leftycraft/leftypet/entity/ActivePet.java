@@ -57,7 +57,8 @@ public class ActivePet {
         // 1. Spawn ItemDisplay (Floating Head)
         displayEntity = spawnLoc.getWorld().spawn(spawnLoc, ItemDisplay.class, display -> {
             display.setPersistent(false);
-            display.setBillboard(Display.Billboard.CENTER);
+            display.setBillboard(Display.Billboard.FIXED); // FIXED so pet has real world yaw/facing direction
+            display.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.HEAD);
             display.setInterpolationDuration(plugin.getConfigManager().getInterpolationDuration());
             display.setTeleportDuration(plugin.getConfigManager().getInterpolationDuration());
 
@@ -131,17 +132,24 @@ public class ActivePet {
                 .add(0, 1.30 + bobbing, 0);
 
         double distSq = displayEntity.getLocation().distanceSquared(targetLoc);
+        float targetYaw = owner.getLocation().getYaw();
+        float currentYaw = displayEntity.getLocation().getYaw();
+        float yawDiff = Math.abs(currentYaw - targetYaw);
+
         if (distSq > 576.0) {
+            targetLoc.setYaw(targetYaw);
+            targetLoc.setPitch(0f);
             displayEntity.teleport(targetLoc);
             nameTagDisplay.teleport(targetLoc.clone().add(0, 0.70, 0));
             if (interactionEntity != null && interactionEntity.isValid()) {
                 interactionEntity.teleport(targetLoc.clone().subtract(0, 0.45, 0));
             }
-        } else if (distSq > 0.04) {
+        } else if (distSq > 0.001 || yawDiff > 1.0f) {
             Location current = displayEntity.getLocation();
             Vector moveVec = targetLoc.toVector().subtract(current.toVector()).multiply(0.35);
             Location newLoc = current.add(moveVec);
-            newLoc.setDirection(owner.getLocation().getDirection());
+            newLoc.setYaw(targetYaw);
+            newLoc.setPitch(0f);
             displayEntity.teleport(newLoc);
             nameTagDisplay.teleport(newLoc.clone().add(0, 0.70, 0));
             if (interactionEntity != null && interactionEntity.isValid()) {

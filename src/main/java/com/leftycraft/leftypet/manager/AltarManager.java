@@ -266,6 +266,7 @@ public class AltarManager {
         ItemDisplay display = headLoc.getWorld().spawn(headLoc, ItemDisplay.class, d -> {
             d.setPersistent(false);
             d.setBillboard(Display.Billboard.FIXED); // Stays in place!
+            d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.HEAD);
             float scale = 1.25f;
             Transformation t = new Transformation(
                     new Vector3f(0f, 0f, 0f),
