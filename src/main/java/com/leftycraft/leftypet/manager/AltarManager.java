@@ -261,8 +261,8 @@ public class AltarManager {
 
         altar.removeEntities();
 
-        // 1. Floating Head: Perfectly centered at Y=1.50 in the middle of the glass chamber (Revisi 4)
-        Location headLoc = lodestoneLoc.clone().add(0.5, 1.50, 0.5);
+        // 1. Floating Head: Positioned at Y=1.20 (lower middle of glass chamber)
+        Location headLoc = lodestoneLoc.clone().add(0.5, 1.20, 0.5);
         ItemDisplay display = headLoc.getWorld().spawn(headLoc, ItemDisplay.class, d -> {
             d.setPersistent(false);
             d.setBillboard(Display.Billboard.FIXED); // Stays in place!
@@ -282,8 +282,8 @@ public class AltarManager {
         });
         altar.setFloatingDisplay(display);
 
-        // 2. Hologram Display: placed at Y=2.25, cleanly above the head and below ceiling slab (Y=3)
-        Location textLoc = lodestoneLoc.clone().add(0.5, 2.25, 0.5);
+        // 2. Hologram Display: placed right above the skull at Y=1.70 (well below roof slabs)
+        Location textLoc = lodestoneLoc.clone().add(0.5, 1.70, 0.5);
         TextDisplay text = textLoc.getWorld().spawn(textLoc, TextDisplay.class, t -> {
             t.setPersistent(false);
             t.setBillboard(Display.Billboard.CENTER);

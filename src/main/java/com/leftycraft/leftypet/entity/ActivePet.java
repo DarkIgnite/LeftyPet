@@ -126,9 +126,9 @@ public class ActivePet {
         double bobbing = Math.sin((ticksLived + owner.getEntityId()) * 0.15) * 0.12;
 
         Location targetLoc = owner.getLocation()
-                .add(side.multiply(1.35))
-                .add(dir.multiply(0.25))
-                .add(0, 1.25 + bobbing, 0);
+                .add(side.multiply(1.80))
+                .add(dir.multiply(-0.15))
+                .add(0, 1.30 + bobbing, 0);
 
         double distSq = displayEntity.getLocation().distanceSquared(targetLoc);
         if (distSq > 576.0) {

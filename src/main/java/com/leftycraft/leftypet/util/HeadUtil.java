@@ -64,8 +64,8 @@ public final class HeadUtil {
                 profileUuid = UUID.randomUUID();
             }
 
-            // Standard Bukkit PlayerProfile
-            org.bukkit.profile.PlayerProfile profile = Bukkit.createPlayerProfile(profileUuid);
+            // Standard Bukkit PlayerProfile with non-null name to ensure isComplete() returns true
+            org.bukkit.profile.PlayerProfile profile = Bukkit.createPlayerProfile(profileUuid, "Pet");
 
             if (hash != null) {
                 try {
