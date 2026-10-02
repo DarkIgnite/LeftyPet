@@ -128,7 +128,7 @@ public class ActivePet {
             return;
         }
 
-        // Following mode: Hover over owner's shoulder
+        // Following mode: Hover beside owner (offset ~1.35 blocks to the right, slightly forward)
         double bobbing = Math.sin((ticksLived + owner.getEntityId()) * 0.15) * 0.12;
 
         Vector dir = owner.getLocation().getDirection().setY(0);
@@ -140,9 +140,9 @@ public class ActivePet {
 
         Vector side = new Vector(-dir.getZ(), 0, dir.getX()); // Perpendicular
         Location targetLoc = owner.getLocation()
-                .add(side.multiply(0.85))
-                .subtract(dir.multiply(0.3))
-                .add(0, 1.35 + bobbing, 0);
+                .add(side.multiply(1.35))
+                .add(dir.multiply(0.20))
+                .add(0, 1.25 + bobbing, 0);
 
         double distSq = displayEntity.getLocation().distanceSquared(targetLoc);
         if (distSq > 576.0) { // > 24 blocks -> teleport instantly

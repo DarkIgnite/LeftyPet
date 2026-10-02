@@ -6,7 +6,6 @@ import com.leftycraft.leftypet.model.PetData;
 import com.leftycraft.leftypet.model.PetSkin;
 import com.leftycraft.leftypet.util.ColorUtil;
 import com.leftycraft.leftypet.util.HeadUtil;
-import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -30,30 +29,35 @@ import java.util.concurrent.ConcurrentHashMap;
 public class AltarManager {
 
     private final LeftyPetPlugin plugin;
+    private final AltarStructureManager structureManager;
     private final Map<Location, PetAltar> altars = new ConcurrentHashMap<>();
     private final NamespacedKey altarKey;
     private final File altarFile;
 
-    private float spinAngle = 0f;
-
     public AltarManager(LeftyPetPlugin plugin) {
         this.plugin = plugin;
+        this.structureManager = new AltarStructureManager();
         this.altarKey = new NamespacedKey(plugin, "is_pet_altar");
         this.altarFile = new File(plugin.getDataFolder(), "altars.yml");
         loadAltars();
         startAltarTicker();
     }
 
+    public AltarStructureManager getStructureManager() {
+        return structureManager;
+    }
+
     public ItemStack createAltarItem() {
         ItemStack item = new ItemStack(Material.LODESTONE);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.displayName(ColorUtil.component("&6&lPet Training Altar"));
-            List<Component> lore = new ArrayList<>();
-            lore.add(ColorUtil.component("&7Tempatkan di tanah dan letakkan"));
-            lore.add(ColorUtil.component("&7pet kamu untuk AFK training!"));
+            meta.displayName(ColorUtil.component("<gradient:#ff9900:#ff5500><b>Pet Training Altar (3x3)</b></gradient>"));
+            List<net.kyori.adventure.text.Component> lore = new ArrayList<>();
+            lore.add(ColorUtil.component("&7Letakkan di area &e3x3 &7terbuka"));
+            lore.add(ColorUtil.component("&7untuk membangun fasilitas AFK training!"));
             lore.add(ColorUtil.component(""));
-            lore.add(ColorUtil.component("&eKlik kanan &7untuk interaksi."));
+            lore.add(ColorUtil.component("&eAltar Level: &f1 &7(-10% waktu upgrade)"));
+            lore.add(ColorUtil.component("&bBisa di-upgrade &7hingga Level 3 (-30%)"));
             meta.lore(lore);
             meta.getPersistentDataContainer().set(altarKey, PersistentDataType.BOOLEAN, true);
             item.setItemMeta(meta);
@@ -70,15 +74,27 @@ public class AltarManager {
         return altarKey;
     }
 
-    public void registerAltar(UUID altarId, UUID ownerUuid, Location loc, long finishTimestamp, int targetLevel) {
-        PetAltar altar = new PetAltar(altarId, ownerUuid, loc, finishTimestamp, targetLevel);
+    public void registerAltar(UUID altarId, UUID ownerUuid, Location loc, int level) {
+        PetAltar altar = new PetAltar(altarId, ownerUuid, loc, level, 0L, 0, false);
         altars.put(loc.getBlock().getLocation(), altar);
-        spawnAltarDisplays(altar);
         saveAltars();
+    }
+
+    public Map<Location, PetAltar> getAltarsMap() {
+        return Collections.unmodifiableMap(altars);
     }
 
     public PetAltar getAltarAt(Location loc) {
         return altars.get(loc.getBlock().getLocation());
+    }
+
+    public PetAltar getAltarByOwner(UUID ownerUuid) {
+        for (PetAltar altar : altars.values()) {
+            if (altar.getOwnerUuid().equals(ownerUuid)) {
+                return altar;
+            }
+        }
+        return null;
     }
 
     public void removeAltar(Location loc) {
@@ -89,55 +105,104 @@ public class AltarManager {
         }
     }
 
+    public void dismantleAltar(Player player, PetAltar altar) {
+        if (!altar.getOwnerUuid().equals(player.getUniqueId()) && !player.hasPermission("leftypet.admin")) {
+            player.sendMessage(ColorUtil.component("<gradient:#ff5f6d:#ffc371>[LeftyPet] Ini bukan altar milikmu!</gradient>"));
+            return;
+        }
+
+        if (altar.isTraining()) {
+            cancelTraining(player);
+        }
+
+        Location loc = altar.getLocation();
+        altar.removeEntities();
+        structureManager.removeStructure(loc);
+        removeAltar(loc);
+
+        // Give back altar item
+        loc.getWorld().dropItemNaturally(loc.clone().add(0.5, 0.5, 0.5), createAltarItem());
+        player.sendMessage(ColorUtil.component("<gradient:#43e97b:#38f9d7><b>[LeftyPet]</b> Altar 3x3 berhasil dibongkar dan dikembalikan ke inventory!</gradient>"));
+        player.playSound(loc, Sound.BLOCK_ANVIL_DESTROY, 0.7f, 1.2f);
+    }
+
     public void startTraining(Player player, Location altarLoc) {
         UUID uuid = player.getUniqueId();
         PetData data = plugin.getPetManager().getPetData(uuid);
 
         if (data.isTraining()) {
-            player.sendMessage(plugin.getConfigManager().getMessage("altar-already-training"));
+            player.sendMessage(ColorUtil.component("<gradient:#ff5f6d:#ffc371>[LeftyPet] Pet kamu sudah sedang training di altar!</gradient>"));
             return;
         }
 
+        PetAltar altar = getAltarAt(altarLoc);
+        if (altar == null) return;
+
         int maxLvl = plugin.getConfigManager().getMaxLevel();
         if (data.getLevel() >= maxLvl) {
-            String msg = plugin.getConfigManager().getMessage("altar-max-level")
-                    .replace("{maxLevel}", String.valueOf(maxLvl));
-            player.sendMessage(msg);
+            player.sendMessage(ColorUtil.component("<gradient:#f6d365:#fda085>[LeftyPet] Pet kamu sudah mencapai Level Maksimal (" + maxLvl + ")!</gradient>"));
             return;
         }
 
         int currentLevel = data.getLevel();
         int targetLevel = currentLevel + 1;
-        int durationSec = plugin.getConfigManager().getUpgradeDuration(currentLevel);
-        long finishTime = System.currentTimeMillis() + (durationSec * 1000L);
+        int baseSec = plugin.getConfigManager().getUpgradeDuration(currentLevel);
+        int finalSec = (int) Math.round(baseSec * altar.getTimeMultiplier());
+        long finishTime = System.currentTimeMillis() + (finalSec * 1000L);
 
-        UUID altarId = UUID.randomUUID();
+        altar.setTraining(true);
+        altar.setFinishTimestamp(finishTime);
+        altar.setTargetLevel(targetLevel);
+
         data.setTraining(true);
-        data.setCurrentAltarId(altarId);
+        data.setCurrentAltarId(altar.getAltarId());
         plugin.getPetManager().despawnPet(uuid);
 
-        registerAltar(altarId, uuid, altarLoc, finishTime, targetLevel);
+        spawnAltarDisplays(altar);
+        saveAltars();
 
-        String timeStr = formatDuration(durationSec);
-        String msg = plugin.getConfigManager().getMessage("altar-started")
-                .replace("{targetLevel}", String.valueOf(targetLevel))
-                .replace("{time}", timeStr);
-        player.sendMessage(msg);
+        String timeStr = formatDuration(finalSec);
+        player.sendMessage(ColorUtil.component("<gradient:#43e97b:#38f9d7><b>[LeftyPet]</b> Pet berhasil diletakkan di Altar! Memulai upgrade ke <b>Level "
+                + targetLevel + "</b> (" + timeStr + ") dengan diskon efisiensi <b>-" + (int) altar.getTimeReductionPercent() + "%</b>!</gradient>"));
         player.playSound(altarLoc, Sound.BLOCK_BEACON_ACTIVATE, 0.8f, 1.3f);
+    }
+
+    public void cancelTraining(Player player) {
+        UUID uuid = player.getUniqueId();
+        PetData data = plugin.getPetManager().getPetData(uuid);
+
+        PetAltar altar = null;
+        for (PetAltar a : altars.values()) {
+            if (a.getOwnerUuid().equals(uuid) && a.isTraining()) {
+                altar = a;
+                break;
+            }
+        }
+
+        if (altar != null) {
+            altar.setTraining(false);
+            altar.removeEntities();
+            saveAltars();
+        }
+
+        data.setTraining(false);
+        data.setCurrentAltarId(null);
+
+        // Re-summon pet beside player
+        plugin.getPetManager().summonPet(player);
+
+        player.sendMessage(ColorUtil.component("<gradient:#f6d365:#fda085><b>[LeftyPet]</b> Training dibatalkan! Pet kamu telah kembali ke sampingmu.</gradient>"));
+        player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 0.7f, 1.2f);
     }
 
     public void claimTraining(Player player, PetAltar altar) {
         UUID uuid = player.getUniqueId();
         if (!altar.getOwnerUuid().equals(uuid)) {
-            player.sendMessage(plugin.getConfigManager().getMessage("prefix") + "§cIni bukan altar training milikmu!");
+            player.sendMessage(ColorUtil.component("<gradient:#ff5f6d:#ffc371>[LeftyPet] Ini bukan altar training milikmu!</gradient>"));
             return;
         }
 
         if (!altar.isFinished()) {
-            String msg = plugin.getConfigManager().getMessage("altar-in-progress")
-                    .replace("{time}", altar.getFormattedRemainingTime());
-            player.sendMessage(msg);
-            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
             return;
         }
 
@@ -147,27 +212,27 @@ public class AltarManager {
         data.setTraining(false);
         data.setCurrentAltarId(null);
 
-        removeAltar(altar.getLocation());
+        altar.setTraining(false);
+        altar.removeEntities();
+        saveAltars();
 
-        String msg = plugin.getConfigManager().getMessage("altar-claimed")
-                .replace("{level}", String.valueOf(data.getLevel()));
-        player.sendMessage(msg);
+        player.sendMessage(ColorUtil.component("<gradient:#ff9900:#ff00cc><b>[LeftyPet] SELAMAT!</b> Pet kamu berhasil di-upgrade ke <b>Level " + data.getLevel() + "</b>!</gradient>"));
 
-        // Fanfare effects
+        // Fanfare
         player.getWorld().playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1.0f);
-        player.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, altar.getLocation().add(0.5, 1.2, 0.5), 40, 0.4, 0.4, 0.4, 0.2);
+        player.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, altar.getLocation().clone().add(0.5, 1.5, 0.5), 45, 0.5, 0.5, 0.5, 0.2);
 
         // Auto summon
         plugin.getPetManager().summonPet(player);
     }
 
     private void spawnAltarDisplays(PetAltar altar) {
-        Location baseLoc = altar.getLocation().clone().add(0.5, 1.2, 0.5);
+        Location baseLoc = altar.getLocation().clone().add(0.5, 1.4, 0.5);
         if (!baseLoc.isWorldLoaded() || !baseLoc.getChunk().isLoaded()) return;
 
         altar.removeEntities();
 
-        // 1. Floating Head on Altar
+        // 1. Floating Head inside Chamber
         ItemDisplay display = baseLoc.getWorld().spawn(baseLoc, ItemDisplay.class, d -> {
             d.setPersistent(false);
             d.setBillboard(Display.Billboard.CENTER);
@@ -207,14 +272,14 @@ public class AltarManager {
 
         String statusLine;
         if (altar.isFinished()) {
-            statusLine = "&a&lUPGRADE SELESAI!\n&7(Klik kanan untuk klaim)";
+            statusLine = "<gradient:#43e97b:#38f9d7><b>UPGRADE SELESAI!</b></gradient>\n<gray>(Klik kanan untuk klaim)</gray>";
         } else {
-            statusLine = "&eSisa Waktu: &b" + altar.getFormattedRemainingTime();
+            statusLine = "<yellow>Sisa Waktu: </yellow><gradient:#00f2fe:#4facfe><b>" + altar.getFormattedRemainingTime() + "</b></gradient>";
         }
 
-        String full = "&6&lPET TRAINING ALTAR\n" +
-                "&7Pemilik: &f" + ownerName + "\n" +
-                "&bTarget: &eLevel " + altar.getTargetLevel() + "\n" +
+        String full = "<gradient:#ff9900:#ff5500><b>PET TRAINING ALTAR (Lv." + altar.getAltarLevel() + ")</b></gradient>\n" +
+                "<gray>Pemilik: </gray><white>" + ownerName + "</white>\n" +
+                "<aqua>Target: </aqua><yellow>Level " + altar.getTargetLevel() + "</yellow>\n" +
                 statusLine;
 
         text.text(ColorUtil.component(full));
@@ -222,8 +287,9 @@ public class AltarManager {
 
     private void startAltarTicker() {
         Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            spinAngle += 0.08f;
             for (PetAltar altar : altars.values()) {
+                if (!altar.isTraining()) continue;
+
                 Location loc = altar.getLocation();
                 if (!loc.isWorldLoaded() || !loc.getChunk().isLoaded()) continue;
 
@@ -238,21 +304,19 @@ public class AltarManager {
                     altar.getFloatingDisplay().teleport(dLoc);
                 }
 
-                // Update text every 20 ticks
+                // Update text
                 updateAltarHologram(altar);
 
-                // Spawn subtle training runes
-                loc.getWorld().spawnParticle(Particle.ENCHANT, loc.clone().add(0.5, 1.2, 0.5), 2, 0.2, 0.2, 0.2, 0.02);
+                // Training particles
+                loc.getWorld().spawnParticle(Particle.ENCHANT, loc.clone().add(0.5, 1.4, 0.5), 2, 0.2, 0.2, 0.2, 0.02);
             }
-        }, 20L, 20L); // Every 1 second
+        }, 20L, 20L); // 1 second
     }
 
     private String formatDuration(int seconds) {
         long min = seconds / 60;
         long sec = seconds % 60;
-        if (min > 0) {
-            return min + "m " + sec + "s";
-        }
+        if (min > 0) return min + "m " + sec + "s";
         return sec + "s";
     }
 
@@ -267,11 +331,13 @@ public class AltarManager {
                 UUID altarId = UUID.fromString(key);
                 UUID ownerUuid = UUID.fromString(sec.getString(key + ".owner"));
                 Location loc = sec.getLocation(key + ".location");
-                long finishTime = sec.getLong(key + ".finish");
-                int targetLvl = sec.getInt(key + ".target-level");
+                int altarLvl = sec.getInt(key + ".altar-level", 1);
+                long finishTime = sec.getLong(key + ".finish", 0L);
+                int targetLvl = sec.getInt(key + ".target-level", 1);
+                boolean isTrain = sec.getBoolean(key + ".is-training", false);
 
                 if (loc != null) {
-                    PetAltar altar = new PetAltar(altarId, ownerUuid, loc, finishTime, targetLvl);
+                    PetAltar altar = new PetAltar(altarId, ownerUuid, loc, altarLvl, finishTime, targetLvl, isTrain);
                     altars.put(loc.getBlock().getLocation(), altar);
                 }
             } catch (Exception e) {
@@ -286,8 +352,10 @@ public class AltarManager {
             String key = "altars." + altar.getAltarId().toString();
             cfg.set(key + ".owner", altar.getOwnerUuid().toString());
             cfg.set(key + ".location", altar.getLocation());
+            cfg.set(key + ".altar-level", altar.getAltarLevel());
             cfg.set(key + ".finish", altar.getFinishTimestamp());
             cfg.set(key + ".target-level", altar.getTargetLevel());
+            cfg.set(key + ".is-training", altar.isTraining());
         }
         try {
             cfg.save(altarFile);

@@ -4,7 +4,7 @@
 # ==============================================================================
 
 settings:
-  # Base scale of the Display Entity pet (1.0 = normal player head, 1.3 = big cute floating head)
+  # Base scale of the Display Entity pet (1.0 = normal player head, 1.35 = big cute floating head)
   pet-scale: 1.35
   # Smooth float interpolation duration in ticks
   interpolation-duration: 3
@@ -47,16 +47,16 @@ energy:
 # Pet Classes
 classes:
   FIGHTER:
-    display-name: "&c&lFIGHTER"
+    display-name: "<gradient:#ff416c:#ff4b2b><b>FIGHTER</b></gradient>"
     icon: "DIAMOND_SWORD"
     description:
-      - "&7Spesialis pertempuran jarak dekat/jauh."
+      - "&7Spesialis pertempuran jarak dekat & jauh."
       - "&e+50% &7Attack Damage"
       - "&e-30% &7Attack Cooldown"
     damage-multiplier: 1.5
     speed-multiplier: 1.0
   SUPPORT:
-    display-name: "&a&lSUPPORT"
+    display-name: "<gradient:#11998e:#38ef7d><b>SUPPORT</b></gradient>"
     icon: "GOLDEN_APPLE"
     description:
       - "&7Memberikan regenerasi HP saat player sekarat."
@@ -64,7 +64,7 @@ classes:
     damage-multiplier: 0.8
     speed-multiplier: 1.0
   LOOTER:
-    display-name: "&6&lLOOTER"
+    display-name: "<gradient:#f7971e:#ffd200><b>LOOTER</b></gradient>"
     icon: "HOPPER"
     description:
       - "&7Otomatis mengambil drop item di sekitar."
@@ -72,7 +72,7 @@ classes:
     damage-multiplier: 0.8
     speed-multiplier: 1.0
   TRAVELER:
-    display-name: "&b&lTRAVELER"
+    display-name: "<gradient:#00c6ff:#0072ff><b>TRAVELER</b></gradient>"
     icon: "SADDLE"
     description:
       - "&7Spesialis tunggangan (Mount)."
@@ -81,64 +81,64 @@ classes:
     damage-multiplier: 0.7
     speed-multiplier: 1.4
 
-# Available Custom Head Skins (Base64 Value)
+# Available Custom Head Skins (HTTPS Base64 Value)
 skins:
   spirit:
-    display-name: "&b&lSpirit Soul"
-    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMTRhMGYzOGQ0MDQ4Njk5ZTE1ZTNmYzhlYWRlNmY4MmI5YmNlYmNmMGRmNGEzMTAxNTE0YmUxZTU0ZjM1MSJ9fX0="
+    display-name: "<gradient:#00f2fe:#4facfe><b>Spirit Soul</b></gradient>"
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzE0YTBmMzhkNDA0ODY5OWUxNWUzZmM4ZWFkZTZmODJiOWJjZWJjZjBkZjRhMzEwMTUxNGJlMWU1NGYzNTEifX19"
   slime:
-    display-name: "&a&lSlime King"
-    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODkxMjI4ZGYzODQ4MWY0MTkyM2NkZDQxMTc0ZGY2ZGE0MTk5ODFlNzgxYWFmNWQxZDVhYmFlZDYxOTg3MWEifX19"
+    display-name: "<gradient:#56ab2f:#a8e063><b>Slime King</b></gradient>"
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzg5MTIyOGRmMzg0ODFmNDE5MjNjZGQ0MTE3NGRmNmRhNDE5OTgxZTc4MWFhZjVkMWQ1YWJhZWQ2MTk4NzFhIn19fQ=="
   dragon:
-    display-name: "&c&lFlame Dragon"
-    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZDRiNmFjYzNmODcxMTM2MmU2MTliYmZkOTBkMmNkMmQxYTM3ZTk5YmE4ODY5MWNhOTBiOGVhNWY2NDY0OCJ9fX0="
+    display-name: "<gradient:#f12711:#f5af19><b>Flame Dragon</b></gradient>"
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2Q0YjZhY2MzZjg3MTEzNjJlNjE5YmJmZDkwZDJjZDJkMWEzN2U5OWJhODg2OTFjYTkwYjhlYTVmNjQ2NDgifX19"
   panda:
-    display-name: "&f&lBaby Panda"
-    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODU4OTgwODhkODg1OTVlMzYxM2Y3ODJjYzgxODk2NjFiYjNlODc5MTg3ZTE3Zjc1ZjYxNWM3YjdiNzhlMzExIn19fQ=="
+    display-name: "<gradient:#e0eafc:#cfdef3><b>Baby Panda</b></gradient>"
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzg1ODk4MDg4ZDg4NTk1ZTM2MTNmNzgyY2M4MTg5NjYxYmIzZTg3OTE4N2UxN2Y3NWY2MTVjN2I3YmU3OGUzMTEifX19"
   robot:
-    display-name: "&9&lCyber Robot"
-    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTcwMmZlNjRhMzQ4ZDRhZWRlZjhlMjVhNDRjMzc4Y2MwOWQxYWY0YTFkYzc3Njk5NDQ3MzA0YjRhYjU2YyJ9fX0="
+    display-name: "<gradient:#4b6cb7:#182848><b>Cyber Robot</b></gradient>"
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzk3MDJmZTY0YTM0OGQ0YWVkZWY4ZTI1YTQ0YzM3OGNjMDlkMWFmNGExZGM3NzY5OTQ0NzMwNGI0YWI1NmMifX19"
   demon:
-    display-name: "&4&lShadow Demon"
-    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNmI1YTA1OGY0OGMzMTUxZDNlYWY2N2E1YTI3ZjRlOTkyM2Y3NWQ4ZjU2YjJjZjViNGZlY2FhNTc1MjFlYTYifX19"
+    display-name: "<gradient:#8a2387:#e94057><b>Shadow Demon</b></gradient>"
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzZiNWEwNThmNDhjMzE1MWQzZWFmNjdhNWEyN2Y0ZTk5MjNmNzVkOGY1NmIyY2Y1YjRmZWNhYTU3NTIxZWE2In19fQ=="
   angel:
-    display-name: "&e&lGolden Angel"
-    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmM4NmU0MWYyZTNhZGMxZWIyMzg0YzNhNWQ0OTI3NmVkNTRjZDYyMmVlYzY3N2I2Nzk1ZGNjZjgxYjA5In19fQ=="
+    display-name: "<gradient:#ffe259:#ffa751><b>Golden Angel</b></gradient>"
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2JjODZlNDFmMmUzYWRjMWViMjM4NGMzYTVkNDkyNzZlZDU0Y2Q2MjJlZWM2NzdiNjc5NWRjY2Y4MWIwOSJ9fX0="
 
 # Particle Trails
 trails:
   FLAME:
-    display-name: "&6Flame Trail"
+    display-name: "<gradient:#ff8c00:#e52d27>Flame Trail</gradient>"
     icon: "BLAZE_POWDER"
   SOUL_FIRE_FLAME:
-    display-name: "&bSoul Fire Trail"
+    display-name: "<gradient:#00c6ff:#0072ff>Soul Fire Trail</gradient>"
     icon: "SOUL_TORCH"
   HEART:
-    display-name: "&cHeart Trail"
+    display-name: "<gradient:#ff758c:#ff7eb3>Heart Trail</gradient>"
     icon: "POPPY"
   ENCHANT:
-    display-name: "&dMagic Glyph Trail"
+    display-name: "<gradient:#a18cd1:#fbc2eb>Magic Glyph Trail</gradient>"
     icon: "ENCHANTING_TABLE"
   HAPPY_VILLAGER:
-    display-name: "&aEmerald Sparkle"
+    display-name: "<gradient:#11998e:#38ef7d>Emerald Sparkle</gradient>"
     icon: "EMERALD"
   END_ROD:
-    display-name: "&fEnd Rod Stardust"
+    display-name: "<gradient:#e0eafc:#cfdef3>End Rod Stardust</gradient>"
     icon: "END_ROD"
 
 messages:
-  prefix: "&8[&bLeftyPet&8] &r"
-  pet-summoned: "&aPet kamu berhasil dipanggil!"
-  pet-dismissed: "&ePet kamu disimpan ke alam spiritual."
-  pet-fainted: "&cPet kamu kehabisan energi dan tertidur pingsan! Beri makan untuk membangunkannya."
-  pet-fed: "&aKamu memberi makan pet! Energi bertambah &e+{amount}% &a(Sekarang: &b{current}%&a)."
-  pet-mounted: "&aKamu menaiki pet! Gunakan &eW-A-S-D &auntuk mengendalikan, dan &eSpasi &auntuk melompat/dash."
-  pet-dismounted: "&eKamu turun dari pet."
-  mount-level-too-low: "&cPet kamu minimal harus Level &e{level} &cuntuk bisa dinaiki!"
-  altar-placed: "&aPet Training Altar berhasil ditempatkan! Klik kanan altar sambil memanggil pet untuk mulai training."
-  altar-started: "&aPet kamu diletakkan di Altar! Memulai proses upgrade ke Level &e{targetLevel} &a(&e{time}&a)."
-  altar-claimed: "&6&lSELAMAT! &aPet kamu berhasil di-upgrade ke Level &e{level}&a!"
-  altar-in-progress: "&eAltar sedang melatih pet! Sisa waktu: &b{time}&e."
-  altar-already-training: "&cPet kamu sudah berada di dalam altar training lain!"
-  altar-max-level: "&ePet kamu sudah mencapai Level Maksimal ({maxLevel})!"
-  pet-renamed: "&aNama pet kamu berhasil diubah menjadi: &r{name}"
+  prefix: "<gradient:#00f2fe:#4facfe><b>[LeftyPet]</b></gradient> "
+  pet-summoned: "<gradient:#43e97b:#38f9d7>Pet kamu berhasil dipanggil!</gradient>"
+  pet-dismissed: "<gradient:#f6d365:#fda085>Pet kamu disimpan ke alam spiritual.</gradient>"
+  pet-fainted: "<gradient:#ff5f6d:#ffc371>Pet kamu kehabisan energi dan tertidur pingsan! Beri makan untuk membangunkannya.</gradient>"
+  pet-fed: "<gradient:#43e97b:#38f9d7>Kamu memberi makan pet! Energi bertambah</gradient> <yellow>+{amount}%</yellow> <gray>(Sekarang: <aqua>{current}%</aqua>)</gray>"
+  pet-mounted: "<gradient:#43e97b:#38f9d7>Kamu menaiki pet!</gradient> <yellow>W-A-S-D</yellow> <gray>untuk berjalan, dan</gray> <yellow>Spasi</yellow> <gray>untuk lompat/dash.</gray>"
+  pet-dismounted: "<gradient:#f6d365:#fda085>Kamu turun dari pet.</gradient>"
+  mount-level-too-low: "<gradient:#ff5f6d:#ffc371>Pet kamu minimal harus <b>Level {level}</b> untuk bisa dinaiki!</gradient>"
+  altar-placed: "<gradient:#43e97b:#38f9d7>Pet Training Altar (3x3) berhasil dibangun!</gradient> <gray>Klik kanan lodestone untuk membuka menu altar.</gray>"
+  altar-started: "<gradient:#43e97b:#38f9d7>Pet kamu diletakkan di Altar! Memulai proses upgrade ke <b>Level {targetLevel}</b> ({time}).</gradient>"
+  altar-claimed: "<gradient:#ff9900:#ff00cc><b>SELAMAT!</b> Pet kamu berhasil di-upgrade ke <b>Level {level}</b>!</gradient>"
+  altar-in-progress: "<gradient:#f6d365:#fda085>Altar sedang melatih pet! Sisa waktu: <b>{time}</b>.</gradient>"
+  altar-already-training: "<gradient:#ff5f6d:#ffc371>Pet kamu sudah berada di dalam altar training lain!</gradient>"
+  altar-max-level: "<gradient:#f6d365:#fda085>Pet kamu sudah mencapai Level Maksimal ({maxLevel})!</gradient>"
+  pet-renamed: "<gradient:#43e97b:#38f9d7>Nama pet kamu berhasil diubah menjadi: </gradient>{name}"

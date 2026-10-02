@@ -29,7 +29,7 @@ public class PetCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("§cPerintah ini hanya bisa dijalankan oleh player di dalam game!");
+            sender.sendMessage(ColorUtil.component("<gradient:#ff5f6d:#ffc371>Perintah ini hanya bisa dijalankan oleh player di dalam game!</gradient>"));
             return true;
         }
 
@@ -46,9 +46,9 @@ public class PetCommand implements CommandExecutor, TabCompleter {
             case "dismiss", "hide" -> {
                 if (plugin.getPetManager().isPetSummoned(player.getUniqueId())) {
                     plugin.getPetManager().despawnPet(player.getUniqueId());
-                    player.sendMessage(plugin.getConfigManager().getMessage("pet-dismissed"));
+                    player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("pet-dismissed")));
                 } else {
-                    player.sendMessage(plugin.getConfigManager().getMessage("prefix") + "§ePet kamu memang sedang tidak dipanggil.");
+                    player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<yellow>Pet kamu memang sedang tidak dipanggil.</yellow>"));
                 }
             }
             case "mount", "ride" -> {
@@ -56,7 +56,7 @@ public class PetCommand implements CommandExecutor, TabCompleter {
             }
             case "rename" -> {
                 if (args.length < 2) {
-                    player.sendMessage(plugin.getConfigManager().getMessage("prefix") + "§cGunakan: /pet rename <nama baru>");
+                    player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<red>Gunakan: /pet rename <nama baru></red>"));
                     return true;
                 }
                 StringBuilder nameBuilder = new StringBuilder();
@@ -74,36 +74,36 @@ public class PetCommand implements CommandExecutor, TabCompleter {
 
                 String msg = plugin.getConfigManager().getMessage("pet-renamed")
                         .replace("{name}", ColorUtil.colorize(newName));
-                player.sendMessage(msg);
+                player.sendMessage(ColorUtil.component(msg));
             }
             case "class" -> {
                 if (args.length < 2) {
-                    player.sendMessage(plugin.getConfigManager().getMessage("prefix") + "§cPilih kelas: FIGHTER, SUPPORT, LOOTER, TRAVELER");
+                    player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<yellow>Pilih kelas: FIGHTER, SUPPORT, LOOTER, TRAVELER</yellow>"));
                     return true;
                 }
                 try {
                     PetClass pc = PetClass.valueOf(args[1].toUpperCase());
                     PetData data = plugin.getPetManager().getPetData(player.getUniqueId());
                     data.setPetClass(pc);
-                    player.sendMessage(plugin.getConfigManager().getMessage("prefix") + "§aKelas pet diubah ke: " + pc.getDisplayName());
+                    player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<green>Kelas pet diubah ke: </green>" + pc.getDisplayName()));
                 } catch (IllegalArgumentException e) {
-                    player.sendMessage(plugin.getConfigManager().getMessage("prefix") + "§cKelas tidak valid! Pilihan: FIGHTER, SUPPORT, LOOTER, TRAVELER");
+                    player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<red>Kelas tidak valid! Pilihan: FIGHTER, SUPPORT, LOOTER, TRAVELER</red>"));
                 }
             }
             case "altar" -> {
                 player.getInventory().addItem(plugin.getAltarManager().createAltarItem());
-                player.sendMessage(plugin.getConfigManager().getMessage("prefix") + "§aKamu menerima 1x Pet Training Altar! Letakkan di tanah untuk mulai AFK training.");
+                player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<gradient:#43e97b:#38f9d7>Kamu menerima 1x Pet Training Altar (3x3)! Letakkan di area 3x3 terbuka.</gradient>"));
             }
             case "help" -> {
-                player.sendMessage("§8§m----------------§r §b§lLeftyPet Commands §8§m----------------");
-                player.sendMessage("§b/pet §7- Buka menu GUI Pet");
-                player.sendMessage("§b/pet summon §7- Panggil pet ke samping bahumu");
-                player.sendMessage("§b/pet dismiss §7- Simpan pet ke alam spiritual");
-                player.sendMessage("§b/pet mount §7- Naiki pet (unlocked Lv 3+)");
-                player.sendMessage("§b/pet rename <nama> §7- Beri nama pet kamu");
-                player.sendMessage("§b/pet class <class> §7- Pilih class spesialisasi pet");
-                player.sendMessage("§b/pet altar §7- Dapatkan Altar training AFK");
-                player.sendMessage("§8§m--------------------------------------------------");
+                player.sendMessage(ColorUtil.component("<gradient:#00f2fe:#4facfe><b>---------------- [LeftyPet Commands] ----------------</b></gradient>"));
+                player.sendMessage(ColorUtil.component("<aqua>/pet</aqua> <gray>- Buka menu GUI Pet</gray>"));
+                player.sendMessage(ColorUtil.component("<aqua>/pet summon</aqua> <gray>- Panggil pet ke samping bahumu</gray>"));
+                player.sendMessage(ColorUtil.component("<aqua>/pet dismiss</aqua> <gray>- Simpan pet ke alam spiritual</gray>"));
+                player.sendMessage(ColorUtil.component("<aqua>/pet mount</aqua> <gray>- Naiki pet (unlocked Lv 3+)</gray>"));
+                player.sendMessage(ColorUtil.component("<aqua>/pet rename &lt;nama&gt;</aqua> <gray>- Beri nama pet kamu</gray>"));
+                player.sendMessage(ColorUtil.component("<aqua>/pet class &lt;class&gt;</aqua> <gray>- Pilih class spesialisasi pet</gray>"));
+                player.sendMessage(ColorUtil.component("<aqua>/pet altar</aqua> <gray>- Dapatkan Altar training AFK (3x3)</gray>"));
+                player.sendMessage(ColorUtil.component("<gradient:#00f2fe:#4facfe><b>-----------------------------------------------------</b></gradient>"));
             }
             default -> {
                 PetMenu.open(player, plugin);

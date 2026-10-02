@@ -68,6 +68,10 @@ public class PetInteractListener implements Listener {
             PetMenu.handleClick(event, plugin);
         } else if (title.contains("Pilih Kosmetik")) {
             CosmeticMenu.handleClick(event, plugin);
+        } else if (title.contains("Batalkan Training?")) {
+            com.leftycraft.leftypet.gui.AltarCancelMenu.handleClick(event, plugin);
+        } else if (title.contains("Pengaturan Altar")) {
+            com.leftycraft.leftypet.gui.AltarMenu.handleClick(event, plugin);
         }
     }
 }

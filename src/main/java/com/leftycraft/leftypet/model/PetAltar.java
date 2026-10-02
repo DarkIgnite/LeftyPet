@@ -11,19 +11,23 @@ public class PetAltar {
     private final UUID altarId;
     private final UUID ownerUuid;
     private final Location location;
+    private int altarLevel;
     private long finishTimestamp;
     private int targetLevel;
+    private boolean isTraining;
 
     // Transient entities in world
     private transient ItemDisplay floatingDisplay;
     private transient TextDisplay hologramDisplay;
 
-    public PetAltar(UUID altarId, UUID ownerUuid, Location location, long finishTimestamp, int targetLevel) {
+    public PetAltar(UUID altarId, UUID ownerUuid, Location location, int altarLevel, long finishTimestamp, int targetLevel, boolean isTraining) {
         this.altarId = altarId;
         this.ownerUuid = ownerUuid;
         this.location = location;
+        this.altarLevel = Math.max(1, Math.min(3, altarLevel));
         this.finishTimestamp = finishTimestamp;
         this.targetLevel = targetLevel;
+        this.isTraining = isTraining;
     }
 
     public UUID getAltarId() {
@@ -36,6 +40,26 @@ public class PetAltar {
 
     public Location getLocation() {
         return location;
+    }
+
+    public int getAltarLevel() {
+        return altarLevel;
+    }
+
+    public void setAltarLevel(int altarLevel) {
+        this.altarLevel = Math.max(1, Math.min(3, altarLevel));
+    }
+
+    public double getTimeReductionPercent() {
+        return switch (altarLevel) {
+            case 2 -> 20.0;
+            case 3 -> 30.0;
+            default -> 10.0;
+        };
+    }
+
+    public double getTimeMultiplier() {
+        return 1.0 - (getTimeReductionPercent() / 100.0);
     }
 
     public long getFinishTimestamp() {
@@ -54,15 +78,25 @@ public class PetAltar {
         this.targetLevel = targetLevel;
     }
 
+    public boolean isTraining() {
+        return isTraining;
+    }
+
+    public void setTraining(boolean training) {
+        isTraining = training;
+    }
+
     public boolean isFinished() {
-        return System.currentTimeMillis() >= finishTimestamp;
+        return isTraining && System.currentTimeMillis() >= finishTimestamp;
     }
 
     public long getRemainingSeconds() {
+        if (!isTraining) return 0;
         return Math.max(0, (finishTimestamp - System.currentTimeMillis()) / 1000);
     }
 
     public String getFormattedRemainingTime() {
+        if (!isTraining) return "&7Tidak ada pet";
         long seconds = getRemainingSeconds();
         if (seconds <= 0) {
             return "&a&lSELESAI!";
