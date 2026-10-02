@@ -132,10 +132,21 @@ public class ActivePet {
                 .add(0, 1.30 + bobbing, 0);
 
         double distSq = displayEntity.getLocation().distanceSquared(targetLoc);
-        // Player heads on ItemDisplay have the skull face on the back, so adding 180 flips it to face forward in player POV
-        float targetYaw = (owner.getLocation().getYaw() + 180f) % 360f;
+
+        // Calculate target facing direction:
+        // When player looks towards pet (dot > 0.45), pet looks directly at player (eye contact)
+        // Otherwise, pet faces forward in player's POV
+        float targetYaw;
+        if (dot > 0.45) {
+            Vector petToPlayer = owner.getEyeLocation().toVector().subtract(displayEntity.getLocation().toVector());
+            float angleToPlayer = (float) Math.toDegrees(Math.atan2(-petToPlayer.getX(), petToPlayer.getZ()));
+            targetYaw = (angleToPlayer + 180f + 360f) % 360f;
+        } else {
+            targetYaw = (owner.getLocation().getYaw() + 180f + 360f) % 360f;
+        }
+
         float currentYaw = displayEntity.getLocation().getYaw();
-        float yawDiff = Math.abs(currentYaw - targetYaw);
+        float yawDiff = Math.abs((currentYaw - targetYaw + 540f) % 360f - 180f);
 
         if (distSq > 576.0) {
             targetLoc.setYaw(targetYaw);

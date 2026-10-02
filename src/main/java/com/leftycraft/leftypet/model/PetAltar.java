@@ -12,7 +12,7 @@ public class PetAltar {
     private final UUID ownerUuid;
     private final Location location;
     private int altarLevel;
-    private long finishTimestamp;
+    private int remainingSeconds;
     private int targetLevel;
     private boolean isTraining;
 
@@ -20,14 +20,18 @@ public class PetAltar {
     private transient ItemDisplay floatingDisplay;
     private transient TextDisplay hologramDisplay;
 
-    public PetAltar(UUID altarId, UUID ownerUuid, Location location, int altarLevel, long finishTimestamp, int targetLevel, boolean isTraining) {
+    public PetAltar(UUID altarId, UUID ownerUuid, Location location, int altarLevel, int remainingSeconds, int targetLevel, boolean isTraining) {
         this.altarId = altarId;
         this.ownerUuid = ownerUuid;
         this.location = location;
         this.altarLevel = Math.max(1, Math.min(3, altarLevel));
-        this.finishTimestamp = finishTimestamp;
+        this.remainingSeconds = Math.max(0, remainingSeconds);
         this.targetLevel = targetLevel;
         this.isTraining = isTraining;
+    }
+
+    public PetAltar(UUID altarId, UUID ownerUuid, Location location, int altarLevel, long finishTimestamp, int targetLevel, boolean isTraining) {
+        this(altarId, ownerUuid, location, altarLevel, (int) Math.max(0, (finishTimestamp - System.currentTimeMillis()) / 1000L), targetLevel, isTraining);
     }
 
     public UUID getAltarId() {
@@ -63,11 +67,26 @@ public class PetAltar {
     }
 
     public long getFinishTimestamp() {
-        return finishTimestamp;
+        return System.currentTimeMillis() + (remainingSeconds * 1000L);
     }
 
     public void setFinishTimestamp(long finishTimestamp) {
-        this.finishTimestamp = finishTimestamp;
+        this.remainingSeconds = (int) Math.max(0, (finishTimestamp - System.currentTimeMillis()) / 1000L);
+    }
+
+    public int getRemainingSeconds() {
+        if (!isTraining) return 0;
+        return Math.max(0, remainingSeconds);
+    }
+
+    public void setRemainingSeconds(int remainingSeconds) {
+        this.remainingSeconds = Math.max(0, remainingSeconds);
+    }
+
+    public void decrementRemainingSeconds() {
+        if (this.remainingSeconds > 0) {
+            this.remainingSeconds--;
+        }
     }
 
     public int getTargetLevel() {
@@ -87,17 +106,12 @@ public class PetAltar {
     }
 
     public boolean isFinished() {
-        return isTraining && System.currentTimeMillis() >= finishTimestamp;
-    }
-
-    public long getRemainingSeconds() {
-        if (!isTraining) return 0;
-        return Math.max(0, (finishTimestamp - System.currentTimeMillis()) / 1000);
+        return isTraining && remainingSeconds <= 0;
     }
 
     public String getFormattedRemainingTime() {
         if (!isTraining) return "&7Tidak ada pet";
-        long seconds = getRemainingSeconds();
+        int seconds = getRemainingSeconds();
         if (seconds <= 0) {
             return "&a&lSELESAI!";
         }

@@ -167,7 +167,7 @@ public class AltarManager {
         long finishTime = System.currentTimeMillis() + (finalSec * 1000L);
 
         altar.setTraining(true);
-        altar.setFinishTimestamp(finishTime);
+        altar.setRemainingSeconds(finalSec);
         altar.setTargetLevel(targetLevel);
 
         data.setTraining(true);
@@ -295,16 +295,19 @@ public class AltarManager {
         updateAltarHologram(altar);
     }
 
-    private void updateAltarHologram(PetAltar altar) {
+    public void updateAltarHologram(PetAltar altar) {
         TextDisplay text = altar.getHologramDisplay();
         if (text == null || !text.isValid()) return;
 
         OfflinePlayer owner = Bukkit.getOfflinePlayer(altar.getOwnerUuid());
         String ownerName = owner.getName() != null ? owner.getName() : "Player";
+        boolean isOnline = owner.isOnline();
 
         String statusLine;
         if (altar.isFinished()) {
             statusLine = "<gradient:#43e97b:#38f9d7><b>ᴜᴘɢʀᴀᴅᴇ sᴇʟᴇsᴀɪ!</b></gradient>\n<gray>(ᴋʟɪᴋ ᴋᴀɴᴀɴ ᴜɴᴛᴜᴋ ᴋʟᴀɪᴍ)</gray>";
+        } else if (!isOnline) {
+            statusLine = "<gradient:#ff416c:#ff4b2b><b>● ᴘʟᴀʏᴇʀ ᴏғғʟɪɴᴇ (ᴛᴇʀᴊᴇᴅᴀ)</b></gradient>\n<gray>sɪsᴀ ᴡᴀᴋᴛᴜ: </gray><yellow><b>" + altar.getFormattedRemainingTime() + "</b></yellow>";
         } else {
             statusLine = "<yellow>sɪsᴀ ᴡᴀᴋᴛᴜ: </yellow><gradient:#00f2fe:#4facfe><b>" + altar.getFormattedRemainingTime() + "</b></gradient>";
         }
@@ -337,6 +340,19 @@ public class AltarManager {
                     Location dLoc = altar.getFloatingDisplay().getLocation();
                     dLoc.setYaw((dLoc.getYaw() + 3.0f) % 360f);
                     altar.getFloatingDisplay().teleport(dLoc);
+                }
+
+                Player owner = Bukkit.getPlayer(altar.getOwnerUuid());
+                boolean isOnline = (owner != null && owner.isOnline());
+
+                // Altar training ONLY progresses while player is online!
+                if (isOnline && !altar.isFinished()) {
+                    altar.decrementRemainingSeconds();
+                    if (altar.isFinished()) {
+                        owner.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                                "<gradient:#43e97b:#38f9d7><b>ᴜᴘɢʀᴀᴅᴇ sᴇʟᴇsᴀɪ!</b> Pet kamu di altar sudah siap diklaim.</gradient>"));
+                        owner.playSound(owner.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.2f);
+                    }
                 }
 
                 // Update text
@@ -379,12 +395,20 @@ public class AltarManager {
                 UUID ownerUuid = UUID.fromString(sec.getString(key + ".owner"));
                 Location loc = sec.getLocation(key + ".location");
                 int altarLvl = sec.getInt(key + ".altar-level", 1);
-                long finishTime = sec.getLong(key + ".finish", 0L);
+                
+                int remainingSec;
+                if (sec.contains(key + ".remaining-seconds")) {
+                    remainingSec = sec.getInt(key + ".remaining-seconds", 0);
+                } else {
+                    long finishTime = sec.getLong(key + ".finish", 0L);
+                    remainingSec = (int) Math.max(0, (finishTime - System.currentTimeMillis()) / 1000L);
+                }
+
                 int targetLvl = sec.getInt(key + ".target-level", 1);
                 boolean isTrain = sec.getBoolean(key + ".is-training", false);
 
                 if (loc != null) {
-                    PetAltar altar = new PetAltar(altarId, ownerUuid, loc, altarLvl, finishTime, targetLvl, isTrain);
+                    PetAltar altar = new PetAltar(altarId, ownerUuid, loc, altarLvl, remainingSec, targetLvl, isTrain);
                     altars.put(loc.getBlock().getLocation(), altar);
                 }
             } catch (Exception e) {
@@ -400,7 +424,7 @@ public class AltarManager {
             cfg.set(key + ".owner", altar.getOwnerUuid().toString());
             cfg.set(key + ".location", altar.getLocation());
             cfg.set(key + ".altar-level", altar.getAltarLevel());
-            cfg.set(key + ".finish", altar.getFinishTimestamp());
+            cfg.set(key + ".remaining-seconds", altar.getRemainingSeconds());
             cfg.set(key + ".target-level", altar.getTargetLevel());
             cfg.set(key + ".is-training", altar.isTraining());
         }

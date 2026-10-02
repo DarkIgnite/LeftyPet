@@ -33,12 +33,26 @@ public class PlayerListener implements Listener {
                 });
             }
         });
+
+        // Refresh altar display if player owns an altar
+        com.leftycraft.leftypet.model.PetAltar altar = plugin.getAltarManager().getAltarByOwner(player.getUniqueId());
+        if (altar != null) {
+            plugin.getAltarManager().updateAltarHologram(altar);
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         plugin.getPetManager().unloadPlayer(player.getUniqueId());
+
+        com.leftycraft.leftypet.model.PetAltar altar = plugin.getAltarManager().getAltarByOwner(player.getUniqueId());
+        if (altar != null) {
+            plugin.getAltarManager().saveAltars();
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                plugin.getAltarManager().updateAltarHologram(altar);
+            }, 1L);
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
