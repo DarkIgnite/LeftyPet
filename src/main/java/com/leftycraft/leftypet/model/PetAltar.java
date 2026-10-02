@@ -115,14 +115,18 @@ public class PetAltar {
         if (seconds <= 0) {
             return "&a&lSELESAI!";
         }
-        long minutes = seconds / 60;
-        long sec = seconds % 60;
-        if (minutes >= 60) {
-            long hours = minutes / 60;
-            minutes = minutes % 60;
-            return String.format("%02dh %02dm %02ds", hours, minutes, sec);
+        int hours = seconds / 3600;
+        int minutes = (seconds % 3600) / 60;
+        int sec = seconds % 60;
+        if (hours >= 24) {
+            int days = hours / 24;
+            hours = hours % 24;
+            return String.format("%dh %02dj %02dm %02dd", days, hours, minutes, sec);
         }
-        return String.format("%02dm %02ds", minutes, sec);
+        if (hours > 0) {
+            return String.format("%02dj %02dm %02dd", hours, minutes, sec);
+        }
+        return String.format("%02dm %02dd", minutes, sec);
     }
 
     public ItemDisplay getFloatingDisplay() {

@@ -56,6 +56,11 @@ public class AltarMenu {
                 int targetLvl = currentLvl + 1;
                 int baseSec = plugin.getConfigManager().getUpgradeDuration(currentLvl);
                 int finalSec = (int) Math.round(baseSec * altar.getTimeMultiplier());
+                double cost = plugin.getConfigManager().getUpgradeCost(currentLvl);
+                String costStr = plugin.getEconomyManager().format(cost);
+                boolean canAfford = plugin.getEconomyManager().hasEnough(player, cost);
+                String costColor = canAfford ? "&a" : "&c";
+                String costLore = (cost > 0) ? ("&7• ʙɪᴀʏᴀ: " + costColor + "$" + costStr + (canAfford ? "" : " &c(ᴛɪᴅᴀᴋ ᴄᴜᴋᴜᴘ!)")) : "&7• ʙɪᴀʏᴀ: &aɢʀᴀᴛɪs";
 
                 inv.setItem(11, PetMenu.createItem(Material.EMERALD_BLOCK, true, "<gradient:#a8ff78:#78ffd6><b>ᴍᴜʟᴀɪ ᴛʀᴀɪɴɪɴɢ ᴘᴇᴛ</b></gradient>",
                         "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
@@ -63,6 +68,7 @@ public class AltarMenu {
                         "&7• ᴅᴜʀᴀsɪ sᴛᴀɴᴅᴀʀ: &7" + formatSec(baseSec),
                         "&7• ᴅɪsᴋᴏɴ ᴀʟᴛᴀʀ: &a-" + (int) altar.getTimeReductionPercent() + "% (ʟᴠ." + altar.getAltarLevel() + ")",
                         "&7• ᴡᴀᴋᴛᴜ ᴛʀᴀɪɴɪɴɢ: &e<b>" + formatSec(finalSec) + "</b>",
+                        costLore,
                         "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
                         "&e▶ ᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴍᴇᴍᴀsᴜᴋᴋᴀɴ ᴘᴇᴛ ᴋᴇ ᴀʟᴛᴀʀ!"));
             }
@@ -193,9 +199,12 @@ public class AltarMenu {
     }
 
     private static String formatSec(int seconds) {
-        long min = seconds / 60;
-        long sec = seconds % 60;
-        if (min > 0) return min + "m " + sec + "s";
-        return sec + "s";
+        if (seconds <= 0) return "0d";
+        int h = seconds / 3600;
+        int m = (seconds % 3600) / 60;
+        int s = seconds % 60;
+        if (h > 0) return h + "j " + m + "m " + s + "d";
+        if (m > 0) return m + "m " + s + "d";
+        return s + "d";
     }
 }

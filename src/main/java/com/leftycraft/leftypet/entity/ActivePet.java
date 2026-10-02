@@ -106,6 +106,52 @@ public class ActivePet {
             updateNameTag();
         }
 
+        // Milestone Passive Effects: Every 40 ticks apply cumulative potion effects based on level
+        if (ticksLived % 40 == 0 && !data.isFainted() && !data.isTraining()) {
+            int lvl = data.getLevel();
+            // Lv 10+: Speed I
+            if (lvl >= 10) {
+                owner.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 80, 0, false, false, true));
+            }
+            // Lv 20+: Haste I
+            if (lvl >= 20) {
+                owner.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, 80, 0, false, false, true));
+            }
+            // Lv 30+: Night Vision
+            if (lvl >= 30) {
+                owner.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 0, false, false, true));
+            }
+            // Lv 40+: Resistance I
+            if (lvl >= 40) {
+                owner.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 80, 0, false, false, true));
+            }
+            // Lv 50+: Strength I
+            if (lvl >= 50) {
+                owner.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 80, 0, false, false, true));
+            }
+            // Lv 60+: Luck
+            if (lvl >= 60) {
+                owner.addPotionEffect(new PotionEffect(PotionEffectType.LUCK, 80, 0, false, false, true));
+            }
+            // Lv 70+: Fire Resistance
+            if (lvl >= 70) {
+                owner.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 80, 0, false, false, true));
+            }
+            // Lv 80+: Regeneration I
+            if (lvl >= 80) {
+                owner.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 80, 0, false, false, true));
+            }
+            // Lv 90+: Speed II (upgrade from I)
+            if (lvl >= 90) {
+                owner.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 80, 1, false, false, true));
+            }
+            // Lv 100: Strength II + Absorption (Mythic Transcendence full aura)
+            if (lvl >= 100) {
+                owner.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 80, 1, false, false, true));
+                owner.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 80, 1, false, false, true));
+            }
+        }
+
         // Skill VII: Overdrive (Lv 70+) - Passive +1% energy regen every 10 seconds (200 ticks)
         if (ticksLived % 200 == 0 && data.getLevel() >= 70 && !data.isFainted() && !data.isTraining()) {
             if (data.getEnergy() < 100.0) {
@@ -114,11 +160,6 @@ public class ActivePet {
             }
         }
 
-        // Skill X: Mythic Transcendence (Lv 100) - Permanent Speed I & Strength I passive aura
-        if (ticksLived % 40 == 0 && data.getLevel() >= 100 && !data.isFainted() && !data.isTraining()) {
-            owner.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SPEED, 80, 0, false, false, true));
-            owner.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.STRENGTH, 80, 0, false, false, true));
-        }
 
         spawnParticleTrail();
 

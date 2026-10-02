@@ -252,11 +252,12 @@ public class PetRoadmapMenu {
 
     private static String formatSec(int seconds) {
         if (seconds <= 0) return "ɪɴsᴛᴀɴ";
-        int m = seconds / 60;
+        int h = seconds / 3600;
+        int m = (seconds % 3600) / 60;
         int s = seconds % 60;
-        if (m > 0 && s > 0) return m + "m " + s + "s";
-        if (m > 0) return m + "m";
-        return s + "s";
+        if (h > 0) return h + "j " + m + "m " + s + "d";
+        if (m > 0) return m + "m " + s + "d";
+        return s + "d";
     }
 
     private static ItemStack createFiller(Material mat) {

@@ -33,12 +33,14 @@ public class AltarManager {
     private final AltarStructureManager structureManager;
     private final Map<Location, PetAltar> altars = new ConcurrentHashMap<>();
     private final NamespacedKey altarKey;
+    private final NamespacedKey altarLevelKey;
     private final File altarFile;
 
     public AltarManager(LeftyPetPlugin plugin) {
         this.plugin = plugin;
         this.structureManager = new AltarStructureManager(plugin);
         this.altarKey = new NamespacedKey(plugin, "is_pet_altar");
+        this.altarLevelKey = new NamespacedKey(plugin, "pet_altar_level");
         this.altarFile = new File(plugin.getDataFolder(), "altars.yml");
         loadAltars();
         startAltarTicker();
@@ -49,21 +51,37 @@ public class AltarManager {
     }
 
     public ItemStack createAltarItem() {
+        return createAltarItem(1);
+    }
+
+    public ItemStack createAltarItem(int level) {
+        int lvl = Math.max(1, Math.min(3, level));
         ItemStack item = new ItemStack(Material.LODESTONE);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.displayName(ColorUtil.component("<gradient:#ff9900:#ff5500><b>ᴘᴇᴛ ᴛʀᴀɪɴɪɴɢ ᴀʟᴛᴀʀ (3x3)</b></gradient>"));
+            meta.displayName(ColorUtil.component("<gradient:#ff9900:#ff5500><b>ᴘᴇᴛ ᴛʀᴀɪɴɪɴɢ ᴀʟᴛᴀʀ [ʟᴠ." + lvl + "] (3x3)</b></gradient>"));
             List<net.kyori.adventure.text.Component> lore = new ArrayList<>();
             lore.add(ColorUtil.component("&7ʟᴇᴛᴀᴋᴋᴀɴ ᴅɪ ᴀʀᴇᴀ &e3x3 &7ᴛᴇʀʙᴜᴋᴀ"));
             lore.add(ColorUtil.component("&7ᴜɴᴛᴜᴋ ᴍᴇᴍʙᴀɴɢᴜɴ ғᴀsɪʟɪᴛᴀs ᴀғᴋ ᴛʀᴀɪɴɪɴɢ!"));
             lore.add(ColorUtil.component(""));
-            lore.add(ColorUtil.component("&eᴀʟᴛᴀʀ ʟᴇᴠᴇʟ: &f1 &7(-10% ᴡᴀᴋᴛᴜ ᴜᴘɢʀᴀᴅᴇ)"));
-            lore.add(ColorUtil.component("&bʙɪsᴀ ᴅɪ-ᴜᴘɢʀᴀᴅᴇ &7ʜɪɴɢɢᴀ ʟᴇᴠᴇʟ 3 (-30%)"));
+            lore.add(ColorUtil.component("&eᴀʟᴛᴀʀ ʟᴇᴠᴇʟ: &f" + lvl + " &7(-" + (lvl * 10) + "% ᴡᴀᴋᴛᴜ ᴜᴘɢʀᴀᴅᴇ)"));
+            if (lvl < 3) {
+                lore.add(ColorUtil.component("&bʙɪsᴀ ᴅɪ-ᴜᴘɢʀᴀᴅᴇ &7ʜɪɴɢɢᴀ ʟᴇᴠᴇʟ 3 (-30%)"));
+            } else {
+                lore.add(ColorUtil.component("&a✔ ʟᴇᴠᴇʟ ᴍᴀᴋsɪᴍᴀʟ (-30% ᴡᴀᴋᴛᴜ ᴜᴘɢʀᴀᴅᴇ)"));
+            }
             meta.lore(lore);
             meta.getPersistentDataContainer().set(altarKey, PersistentDataType.BOOLEAN, true);
+            meta.getPersistentDataContainer().set(altarLevelKey, PersistentDataType.INTEGER, lvl);
             item.setItemMeta(meta);
         }
         return item;
+    }
+
+    public int getAltarItemLevel(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return 1;
+        Integer lvl = item.getItemMeta().getPersistentDataContainer().get(altarLevelKey, PersistentDataType.INTEGER);
+        return (lvl != null) ? Math.max(1, Math.min(3, lvl)) : 1;
     }
 
     public boolean isAltarItem(ItemStack item) {
@@ -128,9 +146,9 @@ public class AltarManager {
         structureManager.removeStructure(loc);
         removeAltar(loc);
 
-        // Put directly into inventory
-        player.getInventory().addItem(createAltarItem());
-        player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<gradient:#43e97b:#38f9d7>ᴀʟᴛᴀʀ 3x3 ʙᴇʀʜᴀsɪʟ ᴅɪʙᴏɴɢᴋᴀʀ ᴅᴀɴ ᴅɪᴍᴀsᴜᴋᴋᴀɴ ᴋᴇ ɪɴᴠᴇɴᴛᴏʀʏ!</gradient>"));
+        // Put directly into inventory keeping altar level
+        player.getInventory().addItem(createAltarItem(altar.getAltarLevel()));
+        player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<gradient:#43e97b:#38f9d7>ᴀʟᴛᴀʀ [ʟᴠ." + altar.getAltarLevel() + "] 3x3 ʙᴇʀʜᴀsɪʟ ᴅɪʙᴏɴɢᴋᴀʀ ᴅᴀɴ ᴅɪᴍᴀsᴜᴋᴋᴀɴ ᴋᴇ ɪɴᴠᴇɴᴛᴏʀʏ!</gradient>"));
         player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_DESTROY, 0.7f, 1.2f);
     }
 
@@ -162,9 +180,27 @@ public class AltarManager {
 
         int currentLevel = data.getLevel();
         int targetLevel = currentLevel + 1;
+
+        double cost = plugin.getConfigManager().getUpgradeCost(currentLevel);
+        if (cost > 0.0 && !plugin.getEconomyManager().hasEnough(player, cost)) {
+            String formattedCost = plugin.getEconomyManager().format(cost);
+            String formattedBal = plugin.getEconomyManager().format(plugin.getEconomyManager().getBalance(player));
+            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                    "<gradient:#ff5f6d:#ffc371>ᴜᴀɴɢ ᴋᴀᴍᴜ ᴛɪᴅᴀᴋ ᴄᴜᴋᴜᴘ! ʙɪᴀʏᴀ ᴜᴘɢʀᴀᴅᴇ: </gradient><yellow>$" + formattedCost + "</yellow> <gray>(sᴀʟᴅᴏ: <red>$" + formattedBal + "</red>)</gray>"));
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
+            return;
+        }
+
         int baseSec = plugin.getConfigManager().getUpgradeDuration(currentLevel);
         int finalSec = (int) Math.round(baseSec * altar.getTimeMultiplier());
         long finishTime = System.currentTimeMillis() + (finalSec * 1000L);
+
+        // Deduct money
+        if (cost > 0.0) {
+            plugin.getEconomyManager().withdraw(player, cost);
+            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                    "<gray>ʙɪᴀʏᴀ ᴜᴘɢʀᴀᴅᴇ ᴛᴇʀᴘᴏᴛᴏɴɢ: </gray><red>-$" + plugin.getEconomyManager().format(cost) + "</red>"));
+        }
 
         altar.setTraining(true);
         altar.setRemainingSeconds(finalSec);
@@ -198,6 +234,12 @@ public class AltarManager {
         }
 
         if (altar != null) {
+            double cost = plugin.getConfigManager().getUpgradeCost(data.getLevel());
+            if (cost > 0.0) {
+                plugin.getEconomyManager().deposit(player, cost);
+                player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                        "<gray>ʙɪᴀʏᴀ ᴜᴘɢʀᴀᴅᴇ ᴅɪᴋᴇᴍʙᴀʟɪᴋᴀɴ: </gray><green>+$" + plugin.getEconomyManager().format(cost) + "</green>"));
+            }
             altar.setTraining(false);
             altar.removeEntities();
             saveAltars();
@@ -377,10 +419,12 @@ public class AltarManager {
     }
 
     private String formatDuration(int seconds) {
-        long min = seconds / 60;
-        long sec = seconds % 60;
-        if (min > 0) return min + "m " + sec + "s";
-        return sec + "s";
+        int hours = seconds / 3600;
+        int min = (seconds % 3600) / 60;
+        int sec = seconds % 60;
+        if (hours > 0) return hours + "j " + min + "m " + sec + "d";
+        if (min > 0) return min + "m " + sec + "d";
+        return sec + "d";
     }
 
     public void loadAltars() {

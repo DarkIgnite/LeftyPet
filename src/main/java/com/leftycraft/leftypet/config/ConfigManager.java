@@ -26,6 +26,9 @@ public class ConfigManager {
     private final Map<String, String> trails = new LinkedHashMap<>();
 
     private double energyDrainPerAttack = 1.5;
+    private boolean economyEnabled = true;
+    private double upgradeBaseCost = 1000.0;
+    private double upgradeCostPerLevel = 500.0;
 
     public ConfigManager(LeftyPetPlugin plugin) {
         this.plugin = plugin;
@@ -39,6 +42,11 @@ public class ConfigManager {
         petScale = (float) config.getDouble("settings.pet-scale", 1.35);
         interpolationDuration = config.getInt("settings.interpolation-duration", 3);
         maxLevel = config.getInt("settings.max-level", 10);
+
+        // Economy
+        economyEnabled = config.getBoolean("economy.enabled", true);
+        upgradeBaseCost = config.getDouble("economy.base-cost", 1000.0);
+        upgradeCostPerLevel = config.getDouble("economy.cost-per-level", 500.0);
 
         // Upgrade durations
         upgradeDurations.clear();
@@ -165,5 +173,22 @@ public class ConfigManager {
 
     public String getRawMessage(String path) {
         return plugin.getConfig().getString("messages." + path, "");
+    }
+
+    public boolean isEconomyEnabled() {
+        return economyEnabled;
+    }
+
+    public double getUpgradeBaseCost() {
+        return upgradeBaseCost;
+    }
+
+    public double getUpgradeCostPerLevel() {
+        return upgradeCostPerLevel;
+    }
+
+    public double getUpgradeCost(int currentLevel) {
+        if (!economyEnabled) return 0.0;
+        return upgradeBaseCost + (currentLevel * upgradeCostPerLevel);
     }
 }

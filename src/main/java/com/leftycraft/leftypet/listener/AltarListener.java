@@ -57,12 +57,13 @@ public class AltarListener implements Listener {
             return;
         }
 
+        int placedLevel = plugin.getAltarManager().getAltarItemLevel(event.getItemInHand());
         UUID altarId = UUID.randomUUID();
-        plugin.getAltarManager().registerAltar(altarId, player.getUniqueId(), loc, 1);
+        plugin.getAltarManager().registerAltar(altarId, player.getUniqueId(), loc, placedLevel);
 
         // Build with animation (Revisi 16)
-        plugin.getAltarManager().getStructureManager().buildStructureAnimated(loc, 1, () -> {
-            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<gradient:#43e97b:#38f9d7>ᴘᴇᴛ ᴛʀᴀɪɴɪɴɢ ᴀʟᴛᴀʀ (3x3) ʙᴇʀʜᴀsɪʟ ᴅɪʙᴀɴɢᴜɴ! ᴋʟɪᴋ ᴋᴀɴᴀɴ ʟᴏᴅᴇsᴛᴏɴᴇ ᴜɴᴛᴜᴋ ᴍᴇᴍʙᴜᴋᴀ ᴍᴇɴᴜ.</gradient>"));
+        plugin.getAltarManager().getStructureManager().buildStructureAnimated(loc, placedLevel, () -> {
+            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<gradient:#43e97b:#38f9d7>ᴘᴇᴛ ᴛʀᴀɪɴɪɴɢ ᴀʟᴛᴀʀ [ʟᴠ." + placedLevel + "] (3x3) ʙᴇʀʜᴀsɪʟ ᴅɪʙᴀɴɢᴜɴ! ᴋʟɪᴋ ᴋᴀɴᴀɴ ʟᴏᴅᴇsᴛᴏɴᴇ ᴜɴᴛᴜᴋ ᴍᴇᴍʙᴜᴋᴀ ᴍᴇɴᴜ.</gradient>"));
         });
     }
 

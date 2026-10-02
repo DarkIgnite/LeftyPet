@@ -5,6 +5,7 @@ api-version: '1.21'
 author: DarkIgnite
 description: Modern lightweight Display Entity Pet plugin with Mounts, Combat, and AFK Training Altars.
 website: https://github.com/DarkIgnite/LeftyPet
+softdepend: [Vault, MythicMobs]
 
 commands:
   pet:

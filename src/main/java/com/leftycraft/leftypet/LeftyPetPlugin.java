@@ -19,6 +19,7 @@ public final class LeftyPetPlugin extends JavaPlugin {
     private PetManager petManager;
     private CombatManager combatManager;
     private AltarManager altarManager;
+    private com.leftycraft.leftypet.manager.EconomyManager economyManager;
 
     @Override
     public void onEnable() {
@@ -29,6 +30,7 @@ public final class LeftyPetPlugin extends JavaPlugin {
         configManager.loadConfig();
 
         // 2. Initialize Managers
+        economyManager = new com.leftycraft.leftypet.manager.EconomyManager(this);
         petManager = new PetManager(this);
         combatManager = new CombatManager(this);
         altarManager = new AltarManager(this);
@@ -97,5 +99,9 @@ public final class LeftyPetPlugin extends JavaPlugin {
 
     public AltarManager getAltarManager() {
         return altarManager;
+    }
+
+    public com.leftycraft.leftypet.manager.EconomyManager getEconomyManager() {
+        return economyManager;
     }
 }

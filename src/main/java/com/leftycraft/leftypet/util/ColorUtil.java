@@ -84,6 +84,9 @@ public final class ColorUtil {
         // First convert HTML entities &lt; and &gt; so &l is not mistakenly parsed as <b>
         String s = input.replace("&lt;", "[").replace("&gt;", "]");
 
+        // Strip Variation Selectors (U+FE0F / U+FE0E) which cause "VS 16" square boxes in Minecraft
+        s = s.replace("\uFE0F", "").replace("\uFE0E", "");
+
         // 1. Hex codes: &#123456 or §#123456 -> <#123456>
         s = s.replaceAll("[&§]#([0-9a-fA-F]{6})", "<#$1>");
 

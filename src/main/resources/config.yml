@@ -41,6 +41,13 @@ energy:
     ENCHANTED_GOLDEN_APPLE: 100
     SWEET_BERRIES: 8
 
+# Pet Upgrade Economy (Vault)
+# Formula: base-cost + (currentLevel * cost-per-level)
+economy:
+  enabled: true
+  base-cost: 1000.0
+  cost-per-level: 500.0
+
 # Pet Classes
 classes:
   FIGHTER:
