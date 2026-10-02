@@ -24,7 +24,9 @@ public class AltarMenu {
 
     public static void open(Player player, PetAltar altar, LeftyPetPlugin plugin) {
         OPEN_ALTARS.put(player.getUniqueId(), altar);
-        Inventory inv = Bukkit.createInventory(null, 27, ColorUtil.component(TITLE));
+        com.leftycraft.leftypet.gui.holder.AltarMenuHolder holder = new com.leftycraft.leftypet.gui.holder.AltarMenuHolder(altar);
+        Inventory inv = Bukkit.createInventory(holder, 27, ColorUtil.component(TITLE));
+        holder.setInventory(inv);
 
         ItemStack filler = PetMenu.createItem(Material.BLACK_STAINED_GLASS_PANE, " ");
         for (int i = 0; i < 27; i++) {

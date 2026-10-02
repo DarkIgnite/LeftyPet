@@ -17,7 +17,9 @@ public class AltarCancelMenu {
     public static final String TITLE = "§8[§bʟᴇғᴛʏᴘᴇᴛ§8] §0ʙᴀᴛᴀʟᴋᴀɴ ᴛʀᴀɪɴɪɴɢ?";
 
     public static void open(Player player, PetAltar altar, LeftyPetPlugin plugin) {
-        Inventory inv = Bukkit.createInventory(null, 27, ColorUtil.component(TITLE));
+        com.leftycraft.leftypet.gui.holder.AltarCancelMenuHolder holder = new com.leftycraft.leftypet.gui.holder.AltarCancelMenuHolder(altar);
+        Inventory inv = Bukkit.createInventory(holder, 27, ColorUtil.component(TITLE));
+        holder.setInventory(inv);
 
         ItemStack filler = PetMenu.createItem(Material.GRAY_STAINED_GLASS_PANE, " ");
         for (int i = 0; i < 27; i++) {

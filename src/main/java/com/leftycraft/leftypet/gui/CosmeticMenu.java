@@ -26,7 +26,9 @@ public class CosmeticMenu {
 
     public static void open(Player player, LeftyPetPlugin plugin) {
         PetData data = plugin.getPetManager().getPetData(player.getUniqueId());
-        Inventory inv = Bukkit.createInventory(null, 36, ColorUtil.component(TITLE));
+        com.leftycraft.leftypet.gui.holder.CosmeticMenuHolder holder = new com.leftycraft.leftypet.gui.holder.CosmeticMenuHolder();
+        Inventory inv = Bukkit.createInventory(holder, 36, ColorUtil.component(TITLE));
+        holder.setInventory(inv);
 
         ItemStack filler = PetMenu.createItem(Material.GRAY_STAINED_GLASS_PANE, " ");
         for (int i = 0; i < 36; i++) {

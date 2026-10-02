@@ -29,7 +29,9 @@ public class PetMenu {
         ActivePet activePet = plugin.getPetManager().getActivePet(player.getUniqueId());
         boolean isSummoned = (activePet != null && activePet.isValid());
 
-        Inventory inv = Bukkit.createInventory(null, 27, ColorUtil.component(TITLE));
+        com.leftycraft.leftypet.gui.holder.PetMenuHolder holder = new com.leftycraft.leftypet.gui.holder.PetMenuHolder();
+        Inventory inv = Bukkit.createInventory(holder, 27, ColorUtil.component(TITLE));
+        holder.setInventory(inv);
 
         // Border
         ItemStack filler = createItem(Material.BLACK_STAINED_GLASS_PANE, " ");
