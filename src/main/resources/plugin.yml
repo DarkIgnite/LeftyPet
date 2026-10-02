@@ -1,0 +1,27 @@
+name: LeftyPet
+version: '1.0.0'
+main: com.leftycraft.leftypet.LeftyPetPlugin
+api-version: '1.21'
+author: DarkIgnite
+description: Modern lightweight Display Entity Pet plugin with Mounts, Combat, and AFK Training Altars.
+website: https://github.com/DarkIgnite/LeftyPet
+
+commands:
+  pet:
+    description: Open the pet menu or interact with your pet
+    aliases: [lp, pets]
+    permission: leftypet.use
+    usage: /<command> [summon|dismiss|mount|rename|class|altar|menu]
+  leftypet:
+    description: Admin commands for LeftyPet
+    aliases: [lpa, petadmin]
+    permission: leftypet.admin
+    usage: /<command> [reload|setlevel|setenergy|givealtar]
+
+permissions:
+  leftypet.use:
+    description: Allows players to use pets
+    default: true
+  leftypet.admin:
+    description: Allows admin management for pets
+    default: op
