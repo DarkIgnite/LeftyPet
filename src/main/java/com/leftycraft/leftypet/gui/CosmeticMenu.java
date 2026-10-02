@@ -25,9 +25,12 @@ public class CosmeticMenu {
     private static final Map<Integer, String> SLOT_TO_SKIN = new HashMap<>();
     private static final Map<Integer, String> SLOT_TO_TRAIL = new HashMap<>();
 
-    // Skin slots: Row 1 (slots 9-15) = regular, Row 2 (slots 18-24) = celestial
-    // Trail slots: Row 4 (slots 36-42)
-    // The GUI is now 6 rows (54 slots) to accommodate both skin rows
+    // Row 1 (Regular Skins): slots 10..16 (7 slots, centered)
+    private static final int[] REGULAR_SLOTS = {10, 11, 12, 13, 14, 15, 16};
+    // Row 3 (Celestial Skins): slots 28..34 (7 slots, centered)
+    private static final int[] CELESTIAL_SLOTS = {28, 29, 30, 31, 32, 33, 34};
+    // Row 4 (Trails): slots 37, 38, 39 and 41, 42, 43 (6 slots around center header at 40)
+    private static final int[] TRAIL_SLOTS = {37, 38, 39, 41, 42, 43};
 
     public static void open(Player player, LeftyPetPlugin plugin) {
         PetData data = plugin.getPetManager().getPetData(player.getUniqueId());
@@ -36,28 +39,28 @@ public class CosmeticMenu {
         holder.setInventory(inv);
 
         ItemStack darkFiller = createFiller(Material.BLACK_STAINED_GLASS_PANE);
-        ItemStack grayFiller = createFiller(Material.GRAY_STAINED_GLASS_PANE);
-        ItemStack cyanCorner = createFiller(Material.CYAN_STAINED_GLASS_PANE);
-        ItemStack purpleCorner = createFiller(Material.PURPLE_STAINED_GLASS_PANE);
+        ItemStack cyanBorder = createFiller(Material.CYAN_STAINED_GLASS_PANE);
+        ItemStack purpleBorder = createFiller(Material.PURPLE_STAINED_GLASS_PANE);
+        ItemStack orangeBorder = createFiller(Material.ORANGE_STAINED_GLASS_PANE);
 
+        // Fill all with dark filler first
         for (int i = 0; i < 54; i++) {
             inv.setItem(i, darkFiller);
         }
 
-        // Cyan corners
-        inv.setItem(0, cyanCorner);
-        inv.setItem(8, cyanCorner);
-        inv.setItem(45, cyanCorner);
-        inv.setItem(53, cyanCorner);
+        // ══════════════════════════════════════════════════════
+        // ROW 0: Regular Skin Header & Borders (Slots 0..8)
+        // ══════════════════════════════════════════════════════
+        inv.setItem(0, cyanBorder);
+        inv.setItem(8, cyanBorder);
 
-        // ──── Section 1: Normal Skin Header (Slot 4) ────
         ItemStack skinHeader = new ItemStack(Material.NAME_TAG);
         ItemMeta shMeta = skinHeader.getItemMeta();
         if (shMeta != null) {
-            shMeta.displayName(ColorUtil.component("<gradient:#00f2fe:#4facfe><b>ᴘɪʟɪʜ sᴋɪɴ ᴘᴇᴛ</b></gradient>"));
+            shMeta.displayName(ColorUtil.component("<gradient:#00f2fe:#4facfe><b>sᴋɪɴ ᴘᴇᴛ (ʀᴇɢᴜʟᴀʀ)</b></gradient>"));
             List<Component> lore = List.of(
                     ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"),
-                    ColorUtil.component("&7ᴘɪʟɪʜ sᴋɪɴ ᴋᴇᴘᴀʟᴀ ᴄᴜsᴛᴏᴍ ᴜɴᴛᴜᴋ ᴘᴇᴛ ᴋᴀᴍᴜ!"),
+                    ColorUtil.component("&7Pilih tampilan kepala gratis untuk pet kamu!"),
                     ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>")
             );
             shMeta.lore(lore);
@@ -66,77 +69,114 @@ public class CosmeticMenu {
         }
         inv.setItem(4, skinHeader);
 
-        // ──── Section 2: Celestial Skin Header (Slot 13) ────
+        // ══════════════════════════════════════════════════════
+        // ROW 1: Regular Skins (Slots 10..16), Borders at 9 & 17
+        // ══════════════════════════════════════════════════════
+        inv.setItem(9, cyanBorder);
+        inv.setItem(17, cyanBorder);
+
+        // Separate skins into regular and celestial
+        List<Map.Entry<String, PetSkin>> regularSkins = new ArrayList<>();
+        List<Map.Entry<String, PetSkin>> celestialSkins = new ArrayList<>();
+
+        for (Map.Entry<String, PetSkin> entry : plugin.getConfigManager().getSkins().entrySet()) {
+            if (entry.getValue().hasPermission()) {
+                celestialSkins.add(entry);
+            } else {
+                regularSkins.add(entry);
+            }
+        }
+
+        SLOT_TO_SKIN.clear();
+
+        for (int i = 0; i < regularSkins.size() && i < REGULAR_SLOTS.length; i++) {
+            Map.Entry<String, PetSkin> entry = regularSkins.get(i);
+            String key = entry.getKey();
+            PetSkin skin = entry.getValue();
+            int slot = REGULAR_SLOTS[i];
+
+            ItemStack head = HeadUtil.createCustomHead(skin.getTexture());
+            ItemMeta meta = head.getItemMeta();
+            if (meta != null) {
+                meta.displayName(ColorUtil.component(skin.getDisplayName()));
+                List<Component> lore = new ArrayList<>();
+                lore.add(ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"));
+                boolean isSelected = key.equalsIgnoreCase(data.getSkinKey());
+                if (isSelected) {
+                    lore.add(ColorUtil.component("&a✔ sᴇᴅᴀɴɢ ᴅɪɢᴜɴᴀᴋᴀɴ"));
+                    try { meta.setEnchantmentGlintOverride(true); } catch (Throwable ignored) {}
+                } else {
+                    lore.add(ColorUtil.component("&e▶ ᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴍᴇᴍᴀᴋᴀɪ sᴋɪɴ ɪɴɪ!"));
+                }
+                lore.add(ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"));
+                meta.lore(lore);
+                head.setItemMeta(meta);
+            }
+            inv.setItem(slot, head);
+            SLOT_TO_SKIN.put(slot, key);
+        }
+
+        // ══════════════════════════════════════════════════════
+        // ROW 2: Celestial Header & Divider (Slots 18..26)
+        // ══════════════════════════════════════════════════════
+        for (int i = 18; i <= 26; i++) {
+            inv.setItem(i, purpleBorder);
+        }
+
+        boolean hasCelestial = player.hasPermission("leftypet.celestial");
+
         ItemStack celestialHeader = new ItemStack(Material.NETHER_STAR);
         ItemMeta chMeta = celestialHeader.getItemMeta();
         if (chMeta != null) {
-            chMeta.displayName(ColorUtil.component("<gradient:#ff9a00:#7928ca><b>✦ ᴄᴇʟᴇsᴛɪᴀʟ ᴇxᴄʟᴜsɪᴠᴇ sᴋɪɴ</b></gradient>"));
+            chMeta.displayName(ColorUtil.component("<gradient:#ff9a00:#7928ca><b>✦ sᴋɪɴ ᴄᴇʟᴇsᴛɪᴀʟ (ᴇxᴄʟᴜsɪᴠᴇ) ✦</b></gradient>"));
             List<Component> lore = new ArrayList<>();
             lore.add(ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"));
-            if (player.hasPermission("leftypet.celestial")) {
-                lore.add(ColorUtil.component("&a✔ ʀᴀɴᴋ ᴄᴇʟᴇsᴛɪᴀʟ ᴅɪᴅᴇᴛᴇᴋsɪ! sᴇᴍᴜᴀ sᴋɪɴ ᴛᴇʀʙᴜᴋᴀ."));
+            lore.add(ColorUtil.component("&7Koleksi 7 skin kosmetik mistis rank Celestial!"));
+            if (hasCelestial) {
+                lore.add(ColorUtil.component("&a✔ ʀᴀɴᴋ ᴄᴇʟᴇsᴛɪᴀʟ ᴀᴋᴛɪғ! sᴇᴍᴜᴀ sᴋɪɴ ᴛᴇʀʙᴜᴋᴀ."));
             } else {
-                lore.add(ColorUtil.component("&c🔒 ʜᴀɴʏᴀ ᴜɴᴛᴜᴋ ʀᴀɴᴋ &6&lCELESTIAL&c!"));
-                lore.add(ColorUtil.component("&7ɢᴜɴᴀᴋᴀɴ &e/ranks &7ᴜɴᴛᴜᴋ ᴜᴘɢʀᴀᴅᴇ ʀᴀɴᴋᴍᴜ."));
+                lore.add(ColorUtil.component("&c🔒 ᴋʜᴜsᴜs ᴜɴᴛᴜᴋ ʀᴀɴᴋ &6&lCELESTIAL&c!"));
+                lore.add(ColorUtil.component("&7ᴜᴘɢʀᴀᴅᴇ ʀᴀɴᴋᴍᴜ ᴅɪ: &e/ranks"));
             }
             lore.add(ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"));
             chMeta.lore(lore);
             try { chMeta.setEnchantmentGlintOverride(true); } catch (Throwable ignored) {}
             celestialHeader.setItemMeta(chMeta);
         }
-        inv.setItem(13, celestialHeader);
+        inv.setItem(22, celestialHeader);
 
-        // ──── Populate Skins ────
-        SLOT_TO_SKIN.clear();
-        int regularSlot = 9;   // Row 1: slots 9-15 (7 regular skins)
-        int celestialSlot = 18; // Row 2: slots 18-24 (7 celestial skins)
+        // ══════════════════════════════════════════════════════
+        // ROW 3: Celestial Skins (Slots 28..34), Borders at 27 & 35
+        // ══════════════════════════════════════════════════════
+        inv.setItem(27, purpleBorder);
+        inv.setItem(35, purpleBorder);
 
-        // Gray divider for celestial row header area
-        for (int i = 17; i >= 9; i--) {
-            // will be filled by skins
-        }
-
-        for (Map.Entry<String, PetSkin> entry : plugin.getConfigManager().getSkins().entrySet()) {
+        for (int i = 0; i < celestialSkins.size() && i < CELESTIAL_SLOTS.length; i++) {
+            Map.Entry<String, PetSkin> entry = celestialSkins.get(i);
             String key = entry.getKey();
             PetSkin skin = entry.getValue();
-            boolean isCelestial = skin.hasPermission();
-            boolean hasAccess = !isCelestial || player.hasPermission(skin.getRequiredPermission());
+            int slot = CELESTIAL_SLOTS[i];
 
-            int targetSlot;
-            if (isCelestial) {
-                if (celestialSlot > 24) continue;
-                targetSlot = celestialSlot++;
-            } else {
-                if (regularSlot > 15) continue;
-                targetSlot = regularSlot++;
-            }
+            boolean hasAccess = hasCelestial || (!skin.hasPermission() || player.hasPermission(skin.getRequiredPermission()));
+            boolean isSelected = key.equalsIgnoreCase(data.getSkinKey());
 
-            ItemStack head;
-            if (!hasAccess) {
-                // Show as locked barrier
-                head = new ItemStack(Material.GRAY_STAINED_GLASS);
-                ItemMeta lockMeta = head.getItemMeta();
-                if (lockMeta != null) {
-                    lockMeta.displayName(ColorUtil.component("<gradient:#ff9a00:#7928ca><b>🔒 " + skin.getDisplayName() + "</b></gradient>"));
-                    List<Component> lore = new ArrayList<>();
-                    lore.add(ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"));
+            // Always display the actual custom head!
+            ItemStack head = HeadUtil.createCustomHead(skin.getTexture());
+            ItemMeta meta = head.getItemMeta();
+            if (meta != null) {
+                List<Component> lore = new ArrayList<>();
+                lore.add(ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"));
+
+                if (!hasAccess) {
+                    meta.displayName(ColorUtil.component(skin.getDisplayName() + " <red>[🔒 ʟᴏᴄᴋᴇᴅ]</red>"));
                     lore.add(ColorUtil.component("&c🔒 ᴇxᴄʟᴜsɪᴠᴇ ᴜɴᴛᴜᴋ ʀᴀɴᴋ &6&lCELESTIAL"));
-                    lore.add(ColorUtil.component("&7ᴜᴘɢʀᴀᴅᴇ ʀᴀɴᴋᴍᴜ ᴅɪ &e/ranks &7ᴜɴᴛᴜᴋ ᴍᴇᴍʙᴜᴋᴀ sᴋɪɴ ɪɴɪ!"));
+                    lore.add(ColorUtil.component("&7Kamu belum memiliki rank ini!"));
+                    lore.add(ColorUtil.component("&7Upgrade rank kamu di &e/ranks &7untuk membuka skin ini."));
                     lore.add(ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"));
-                    lockMeta.lore(lore);
-                    head.setItemMeta(lockMeta);
-                }
-            } else {
-                head = HeadUtil.createCustomHead(skin.getTexture());
-                ItemMeta meta = head.getItemMeta();
-                if (meta != null) {
+                    lore.add(ColorUtil.component("&c✖ ᴋʟɪᴋ ᴜɴᴛᴜᴋ ɪɴғᴏ ʀᴀɴᴋ ᴄᴇʟᴇsᴛɪᴀʟ"));
+                } else {
                     meta.displayName(ColorUtil.component(skin.getDisplayName()));
-                    List<Component> lore = new ArrayList<>();
-                    lore.add(ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"));
-                    if (isCelestial) {
-                        lore.add(ColorUtil.component("<gradient:#ff9a00:#7928ca>✦ ᴄᴇʟᴇsᴛɪᴀʟ ᴇxᴄʟᴜsɪᴠᴇ</gradient>"));
-                    }
-                    boolean isSelected = key.equalsIgnoreCase(data.getSkinKey());
+                    lore.add(ColorUtil.component("<gradient:#ff9a00:#7928ca>✦ ᴄᴇʟᴇsᴛɪᴀʟ ᴇxᴄʟᴜsɪᴠᴇ</gradient>"));
                     if (isSelected) {
                         lore.add(ColorUtil.component("&a✔ sᴇᴅᴀɴɢ ᴅɪɢᴜɴᴀᴋᴀɴ"));
                         try { meta.setEnchantmentGlintOverride(true); } catch (Throwable ignored) {}
@@ -144,22 +184,19 @@ public class CosmeticMenu {
                         lore.add(ColorUtil.component("&e▶ ᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴍᴇᴍᴀᴋᴀɪ sᴋɪɴ ɪɴɪ!"));
                     }
                     lore.add(ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"));
-                    meta.lore(lore);
-                    head.setItemMeta(meta);
                 }
+                meta.lore(lore);
+                head.setItemMeta(meta);
             }
-            inv.setItem(targetSlot, head);
-            if (hasAccess) {
-                SLOT_TO_SKIN.put(targetSlot, key);
-            }
+            inv.setItem(slot, head);
+            SLOT_TO_SKIN.put(slot, key);
         }
 
-        // ──── Section 3: Trail Divider (Row 3, slots 27-35) ────
-        for (int i = 27; i <= 35; i++) {
-            inv.setItem(i, grayFiller);
-        }
-        inv.setItem(27, purpleCorner);
-        inv.setItem(35, purpleCorner);
+        // ══════════════════════════════════════════════════════
+        // ROW 4: Particle Trails (Slots 37..39, 40 Header, 41..43)
+        // ══════════════════════════════════════════════════════
+        inv.setItem(36, orangeBorder);
+        inv.setItem(44, orangeBorder);
 
         ItemStack trailHeader = new ItemStack(Material.BLAZE_POWDER);
         ItemMeta thMeta = trailHeader.getItemMeta();
@@ -167,18 +204,16 @@ public class CosmeticMenu {
             thMeta.displayName(ColorUtil.component("<gradient:#f7971e:#ffd200><b>ᴘɪʟɪʜ ᴇғᴇᴋ ᴘᴀʀᴛɪᴋᴇʟ</b></gradient>"));
             List<Component> lore = List.of(
                     ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"),
-                    ColorUtil.component("&7ᴘɪʟɪʜ ᴇғᴇᴋ ᴘᴀʀᴛɪᴋᴇʟ ᴛʀᴀɪʟ ʏᴀɴɢ ᴍᴇɴɢɪᴋᴜᴛɪ ᴘᴇᴛ!"),
+                    ColorUtil.component("&7Pilih efek partikel trail yang mengikuti pet!"),
                     ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>")
             );
             thMeta.lore(lore);
             try { thMeta.setEnchantmentGlintOverride(true); } catch (Throwable ignored) {}
             trailHeader.setItemMeta(thMeta);
         }
-        inv.setItem(31, trailHeader);
+        inv.setItem(40, trailHeader);
 
-        // ──── Section 4: Trails row (Slots 36 to 41) ────
         SLOT_TO_TRAIL.clear();
-        int trailSlot = 36;
         Map<String, Material> trailIcons = Map.of(
                 "FLAME", Material.BLAZE_POWDER,
                 "SOUL_FIRE_FLAME", Material.SOUL_TORCH,
@@ -188,10 +223,12 @@ public class CosmeticMenu {
                 "END_ROD", Material.END_ROD
         );
 
-        for (Map.Entry<String, String> entry : plugin.getConfigManager().getTrails().entrySet()) {
-            if (trailSlot > 44) break;
+        List<Map.Entry<String, String>> trailEntries = new ArrayList<>(plugin.getConfigManager().getTrails().entrySet());
+        for (int i = 0; i < trailEntries.size() && i < TRAIL_SLOTS.length; i++) {
+            Map.Entry<String, String> entry = trailEntries.get(i);
             String key = entry.getKey();
             String name = entry.getValue();
+            int slot = TRAIL_SLOTS[i];
             Material mat = trailIcons.getOrDefault(key, Material.BLAZE_POWDER);
 
             boolean isSelected = key.equalsIgnoreCase(data.getTrailKey());
@@ -211,17 +248,21 @@ public class CosmeticMenu {
                 meta.lore(lore);
                 item.setItemMeta(meta);
             }
-            inv.setItem(trailSlot, item);
-            SLOT_TO_TRAIL.put(trailSlot, key);
-            trailSlot++;
+            inv.setItem(slot, item);
+            SLOT_TO_TRAIL.put(slot, key);
         }
 
-        // Slot 49: Back Button
+        // ══════════════════════════════════════════════════════
+        // ROW 5: Footer & Back Button (Slot 49), Corners 45 & 53
+        // ══════════════════════════════════════════════════════
+        inv.setItem(45, cyanBorder);
+        inv.setItem(53, cyanBorder);
+
         ItemStack back = new ItemStack(Material.ARROW);
         ItemMeta backMeta = back.getItemMeta();
         if (backMeta != null) {
             backMeta.displayName(ColorUtil.component("<red><b>« ᴋᴇᴍʙᴀʟɪ ᴋᴇ ᴘᴇᴛ ᴅᴀsʜʙᴏᴀʀᴅ</b></red>"));
-            List<Component> lore = List.of(ColorUtil.component("&7ᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴋᴇᴍʙᴀʟɪ ᴋᴇ ᴍᴇɴᴜ ᴜᴛᴀᴍᴀ."));
+            List<Component> lore = List.of(ColorUtil.component("&7Klik untuk kembali ke menu utama."));
             backMeta.lore(lore);
             back.setItemMeta(backMeta);
         }
@@ -254,16 +295,34 @@ public class CosmeticMenu {
             return;
         }
 
+        if (slot == 22) {
+            if (!player.hasPermission("leftypet.celestial")) {
+                player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                        "<gradient:#ff9a00:#7928ca><b>✦ sᴋɪɴ ᴄᴇʟᴇsᴛɪᴀʟ ᴇxᴄʟᴜsɪᴠᴇ!</b></gradient> " +
+                        "<gray>ᴜᴘɢʀᴀᴅᴇ ʀᴀɴᴋᴍᴜ ᴅɪ <yellow>/ranks</yellow> ᴜɴᴛᴜᴋ ᴍᴇᴍʙᴜᴋᴀ sᴇᴍᴜᴀ sᴋɪɴ ᴇxᴄʟᴜsɪᴠᴇ ɪɴɪ!</gray>"));
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
+            } else {
+                player.playSound(player.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_CHIME, 0.7f, 1.4f);
+            }
+            return;
+        }
+
+        if (slot == 4 || slot == 40) {
+            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 0.5f, 1.5f);
+            return;
+        }
+
         if (SLOT_TO_SKIN.containsKey(slot)) {
             String skinKey = SLOT_TO_SKIN.get(slot);
             PetSkin skin = plugin.getConfigManager().getSkin(skinKey);
+            if (skin == null) return;
 
-            // Double-check permission (in case map was built with access but permission was revoked)
-            if (skin != null && skin.hasPermission() && !player.hasPermission(skin.getRequiredPermission())) {
+            // Check Celestial rank permission
+            if (skin.hasPermission() && !player.hasPermission(skin.getRequiredPermission())) {
                 player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
                         "<gradient:#ff9a00:#7928ca><b>🔒 sᴋɪɴ ɪɴɪ ᴇxᴄʟᴜsɪᴠᴇ ᴜɴᴛᴜᴋ ʀᴀɴᴋ CELESTIAL!</b></gradient> " +
-                        "<gray>ᴜᴘɢʀᴀᴅᴇ ᴅɪ <yellow>/ranks</yellow>.</gray>"));
-                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
+                        "<gray>ᴜᴘɢʀᴀᴅᴇ ʀᴀɴᴋᴍᴜ ᴅɪ <yellow>/ranks</yellow> ᴜɴᴛᴜᴋ ᴍᴇᴍʙᴜᴋᴀ sᴋɪɴ ɪɴɪ!</gray>"));
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
                 return;
             }
 
@@ -272,7 +331,8 @@ public class CosmeticMenu {
             if (pet != null) {
                 pet.updateSkin();
             }
-            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.7f, 1.4f);
+
+            player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.7f, 1.4f);
             player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<gradient:#43e97b:#38f9d7>sᴋɪɴ ᴘᴇᴛ ʙᴇʀʜᴀsɪʟ ᴅɪɢᴀɴᴛɪ!</gradient>"));
             open(player, plugin);
             return;
@@ -281,7 +341,7 @@ public class CosmeticMenu {
         if (SLOT_TO_TRAIL.containsKey(slot)) {
             String trailKey = SLOT_TO_TRAIL.get(slot);
             data.setTrailKey(trailKey);
-            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.7f, 1.4f);
+            player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.7f, 1.4f);
             player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<gradient:#43e97b:#38f9d7>ᴇғᴇᴋ ᴛʀᴀɪʟ ᴘᴇᴛ ʙᴇʀʜᴀsɪʟ ᴅɪɢᴀɴᴛɪ!</gradient>"));
             open(player, plugin);
         }
