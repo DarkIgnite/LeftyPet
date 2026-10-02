@@ -30,7 +30,7 @@ public class CombatListener implements Listener {
                 if (pet != null) {
                     if (event.getEntity().equals(pet.getDisplayEntity()) ||
                             event.getEntity().equals(pet.getNameTagDisplay()) ||
-                            event.getEntity().equals(pet.getSeatEntity())) {
+                            event.getEntity().equals(pet.getInteractionEntity())) {
                         event.setCancelled(true);
 
                         // If owner shifts + punches pet -> open PetMenu (Revisi 7)
@@ -48,12 +48,12 @@ public class CombatListener implements Listener {
     public void onPlayerAttack(EntityDamageByEntityEvent event) {
         if (event.getDamager() instanceof Player player && event.getEntity() instanceof Monster monster) {
             ActivePet pet = plugin.getPetManager().getActivePet(player.getUniqueId());
-            if (pet != null && pet.isValid() && !pet.isMounting() && !pet.getData().isFainted()) {
+            if (pet != null && pet.isValid() && !pet.getData().isFainted()) {
                 plugin.getCombatManager().performAttack(player, pet, monster);
             }
         } else if (event.getEntity() instanceof Player player && event.getDamager() instanceof LivingEntity living) {
             ActivePet pet = plugin.getPetManager().getActivePet(player.getUniqueId());
-            if (pet != null && pet.isValid() && !pet.isMounting() && !pet.getData().isFainted()) {
+            if (pet != null && pet.isValid() && !pet.getData().isFainted()) {
                 plugin.getCombatManager().performAttack(player, pet, living);
             }
         }

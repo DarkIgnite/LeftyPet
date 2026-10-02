@@ -1,7 +1,5 @@
 package com.leftycraft.leftypet.util;
 
-import com.destroystokyo.paper.profile.PlayerProfile;
-import com.destroystokyo.paper.profile.ProfileProperty;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -80,13 +78,8 @@ public final class HeadUtil {
                 }
             }
 
-            // Set both standard Bukkit owner profile and Paper player profile property
+            // Set standard Bukkit owner profile
             meta.setOwnerProfile(profile);
-
-            if (profile instanceof com.destroystokyo.paper.profile.PlayerProfile paperProfile) {
-                paperProfile.setProperty(new ProfileProperty("textures", cleanB64));
-                meta.setPlayerProfile(paperProfile);
-            }
         } catch (Exception e) {
             Bukkit.getLogger().warning("[LeftyPet] Error creating custom head: " + e.getMessage());
         }

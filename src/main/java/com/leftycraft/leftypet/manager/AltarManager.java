@@ -138,6 +138,13 @@ public class AltarManager {
         UUID uuid = player.getUniqueId();
         PetData data = plugin.getPetManager().getPetData(uuid);
 
+        if (!plugin.getPetManager().isPetSummoned(uuid)) {
+            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                    "<gradient:#ff5f6d:#ffc371>ᴘᴇᴛ ᴋᴀᴍᴜ ʜᴀʀᴜs ᴅɪᴘᴀɴɢɢɪʟ ᴛᴇʀʟᴇʙɪʜ ᴅᴀʜᴜʟᴜ sᴇʙᴇʟᴜᴍ ʙɪsᴀ ᴅɪ-ᴜᴘɢʀᴀᴅᴇ ᴅɪ ᴀʟᴛᴀʀ!</gradient>"));
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
+            return;
+        }
+
         if (data.isTraining()) {
             player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("altar-already-training")));
             return;
@@ -254,12 +261,12 @@ public class AltarManager {
 
         altar.removeEntities();
 
-        // 1. Floating Head: Perfectly centered at Y=1.15 in the middle of the glass chamber
-        Location headLoc = lodestoneLoc.clone().add(0.5, 1.15, 0.5);
+        // 1. Floating Head: Perfectly centered at Y=1.50 in the middle of the glass chamber (Revisi 4)
+        Location headLoc = lodestoneLoc.clone().add(0.5, 1.50, 0.5);
         ItemDisplay display = headLoc.getWorld().spawn(headLoc, ItemDisplay.class, d -> {
             d.setPersistent(false);
             d.setBillboard(Display.Billboard.FIXED); // Stays in place!
-            float scale = 1.2f;
+            float scale = 1.25f;
             Transformation t = new Transformation(
                     new Vector3f(0f, 0f, 0f),
                     new AxisAngle4f(0f, 0f, 1f, 0f),
@@ -275,8 +282,8 @@ public class AltarManager {
         });
         altar.setFloatingDisplay(display);
 
-        // 2. Hologram Display: placed at Y=2.05, above the head with zero overlap, below ceiling slab (Y=3)
-        Location textLoc = lodestoneLoc.clone().add(0.5, 2.05, 0.5);
+        // 2. Hologram Display: placed at Y=2.25, cleanly above the head and below ceiling slab (Y=3)
+        Location textLoc = lodestoneLoc.clone().add(0.5, 2.25, 0.5);
         TextDisplay text = textLoc.getWorld().spawn(textLoc, TextDisplay.class, t -> {
             t.setPersistent(false);
             t.setBillboard(Display.Billboard.CENTER);
@@ -303,7 +310,7 @@ public class AltarManager {
 
         String full = "<gradient:#ff9900:#ff5500><b>ᴘᴇᴛ ᴛʀᴀɪɴɪɴɢ ᴀʟᴛᴀʀ (ʟᴠ." + altar.getAltarLevel() + ")</b></gradient>\n" +
                 "<gray>ᴘᴇᴍɪʟɪᴋ: </gray><white>" + ownerName + "</white>\n" +
-                "<aqua>ᴛᴀʀɢᴇᴛ: </aqua><yellow>ʟᴇᴠᴇʟ " + altar.getTargetLevel() + "</yellow>\n" +
+                "<aqua>ᴛᴀʀɢᴇᴛ: </aqua>" + ColorUtil.getLevelTag(altar.getTargetLevel()) + "\n" +
                 statusLine;
 
         text.text(ColorUtil.component(full));

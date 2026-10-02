@@ -81,8 +81,11 @@ public final class ColorUtil {
     public static String convertToMiniMessage(String input) {
         if (input == null || input.isEmpty()) return "";
 
+        // First convert HTML entities &lt; and &gt; so &l is not mistakenly parsed as <b>
+        String s = input.replace("&lt;", "[").replace("&gt;", "]");
+
         // 1. Hex codes: &#123456 or §#123456 -> <#123456>
-        String s = input.replaceAll("[&§]#([0-9a-fA-F]{6})", "<#$1>");
+        s = s.replaceAll("[&§]#([0-9a-fA-F]{6})", "<#$1>");
 
         // 2. Spigot hex format: &x&r&r&g&g&b&b or §x§r§r§g§g§b§b -> <#rrggbb>
         s = s.replaceAll("[&§]x[&§]([0-9a-fA-F])[&§]([0-9a-fA-F])[&§]([0-9a-fA-F])[&§]([0-9a-fA-F])[&§]([0-9a-fA-F])[&§]([0-9a-fA-F])", "<#$1$2$3$4$5$6>");
@@ -115,6 +118,25 @@ public final class ColorUtil {
         s = s.replace("§", "");
 
         return s;
+    }
+
+    /**
+     * Returns rich, vibrant gradient & bold level tags across different tiers (Revisi 4).
+     */
+    public static String getLevelTag(int level) {
+        if (level >= 10) {
+            return "<gradient:#ff00cc:#333399><b>[ʟᴠ." + level + " ᴍᴀx]</b></gradient>";
+        } else if (level >= 8) {
+            return "<gradient:#ff416c:#ff4b2b><b>[ʟᴠ." + level + "]</b></gradient>";
+        } else if (level >= 6) {
+            return "<gradient:#f7971e:#ffd200><b>[ʟᴠ." + level + "]</b></gradient>";
+        } else if (level >= 4) {
+            return "<gradient:#00c6ff:#0072ff><b>[ʟᴠ." + level + "]</b></gradient>";
+        } else if (level >= 2) {
+            return "<gradient:#a8ff78:#78ffd6><b>[ʟᴠ." + level + "]</b></gradient>";
+        } else {
+            return "<gradient:#e0eafc:#cfdef3><b>[ʟᴠ.1]</b></gradient>";
+        }
     }
 
     /**

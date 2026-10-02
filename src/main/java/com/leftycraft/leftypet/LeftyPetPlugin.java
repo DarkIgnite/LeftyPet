@@ -6,7 +6,6 @@ import com.leftycraft.leftypet.config.ConfigManager;
 import com.leftycraft.leftypet.listener.*;
 import com.leftycraft.leftypet.manager.AltarManager;
 import com.leftycraft.leftypet.manager.CombatManager;
-import com.leftycraft.leftypet.manager.MountManager;
 import com.leftycraft.leftypet.manager.PetManager;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginManager;
@@ -19,7 +18,6 @@ public final class LeftyPetPlugin extends JavaPlugin {
     private ConfigManager configManager;
     private PetManager petManager;
     private CombatManager combatManager;
-    private MountManager mountManager;
     private AltarManager altarManager;
 
     @Override
@@ -33,7 +31,6 @@ public final class LeftyPetPlugin extends JavaPlugin {
         // 2. Initialize Managers
         petManager = new PetManager(this);
         combatManager = new CombatManager(this);
-        mountManager = new MountManager(this);
         altarManager = new AltarManager(this);
 
         // 3. Register Listeners
@@ -42,7 +39,6 @@ public final class LeftyPetPlugin extends JavaPlugin {
         pm.registerEvents(new PetInteractListener(this), this);
         pm.registerEvents(new CombatListener(this), this);
         pm.registerEvents(new AltarListener(this), this);
-        pm.registerEvents(new MountInputListener(this), this);
 
         // 4. Register Commands
         PetCommand petCommand = new PetCommand(this);
@@ -97,10 +93,6 @@ public final class LeftyPetPlugin extends JavaPlugin {
 
     public CombatManager getCombatManager() {
         return combatManager;
-    }
-
-    public MountManager getMountManager() {
-        return mountManager;
     }
 
     public AltarManager getAltarManager() {

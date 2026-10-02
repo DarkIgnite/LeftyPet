@@ -17,8 +17,6 @@ public class ConfigManager {
     private float petScale = 1.35f;
     private int interpolationDuration = 3;
     private int maxLevel = 10;
-    private int mountUnlockLevel = 3;
-    private int doubleJumpUnlockLevel = 5;
 
     private final Map<Integer, Integer> upgradeDurations = new HashMap<>();
     private final Map<Material, Double> foodRestoreMap = new EnumMap<>(Material.class);
@@ -28,7 +26,6 @@ public class ConfigManager {
     private final Map<String, String> trails = new LinkedHashMap<>();
 
     private double energyDrainPerAttack = 1.5;
-    private double energyDrainPerRiding = 0.5;
 
     public ConfigManager(LeftyPetPlugin plugin) {
         this.plugin = plugin;
@@ -42,8 +39,6 @@ public class ConfigManager {
         petScale = (float) config.getDouble("settings.pet-scale", 1.35);
         interpolationDuration = config.getInt("settings.interpolation-duration", 3);
         maxLevel = config.getInt("settings.max-level", 10);
-        mountUnlockLevel = config.getInt("settings.mount-unlock-level", 3);
-        doubleJumpUnlockLevel = config.getInt("settings.double-jump-unlock-level", 5);
 
         // Upgrade durations
         upgradeDurations.clear();
@@ -60,7 +55,6 @@ public class ConfigManager {
 
         // Energy settings
         energyDrainPerAttack = config.getDouble("energy.drain-per-attack", 1.5);
-        energyDrainPerRiding = config.getDouble("energy.drain-per-riding-tick-interval", 0.5);
 
         foodRestoreMap.clear();
         ConfigurationSection foodSec = config.getConfigurationSection("energy.food-restore");
@@ -116,14 +110,6 @@ public class ConfigManager {
         return maxLevel;
     }
 
-    public int getMountUnlockLevel() {
-        return mountUnlockLevel;
-    }
-
-    public int getDoubleJumpUnlockLevel() {
-        return doubleJumpUnlockLevel;
-    }
-
     public int getUpgradeDuration(int currentLevel) {
         return upgradeDurations.getOrDefault(currentLevel, 30 * currentLevel);
     }
@@ -142,10 +128,6 @@ public class ConfigManager {
 
     public double getEnergyDrainPerAttack() {
         return energyDrainPerAttack;
-    }
-
-    public double getEnergyDrainPerRiding() {
-        return energyDrainPerRiding;
     }
 
     public Map<String, PetSkin> getSkins() {

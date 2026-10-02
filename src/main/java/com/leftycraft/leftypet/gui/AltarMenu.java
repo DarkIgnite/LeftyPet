@@ -118,6 +118,12 @@ public class AltarMenu {
         switch (slot) {
             case 11 -> {
                 player.closeInventory();
+                if (!plugin.getPetManager().isPetSummoned(player.getUniqueId())) {
+                    player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                            "<gradient:#ff5f6d:#ffc371>ᴘᴇᴛ ᴋᴀᴍᴜ ʜᴀʀᴜs ᴅɪᴘᴀɴɢɢɪʟ ᴛᴇʀʟᴇʙɪʜ ᴅᴀʜᴜʟᴜ sᴇʙᴇʟᴜᴍ ʙɪsᴀ ᴅɪ-ᴜᴘɢʀᴀᴅᴇ ᴅɪ ᴀʟᴛᴀʀ!</gradient>"));
+                    player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
+                    return;
+                }
                 plugin.getAltarManager().startTraining(player, altar.getLocation());
             }
             case 15 -> {

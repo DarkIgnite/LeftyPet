@@ -10,10 +10,6 @@ settings:
   interpolation-duration: 3
   # Maximum pet level
   max-level: 10
-  # Minimum level required to ride/mount the pet
-  mount-unlock-level: 3
-  # Minimum level required for double jump / boost dash while riding
-  double-jump-unlock-level: 5
 
 # AFK Altar Upgrade Durations (in seconds)
 # Formula: Level X -> Level X + 1
@@ -32,7 +28,6 @@ upgrade-durations:
 energy:
   max-energy: 100
   drain-per-attack: 1.5
-  drain-per-riding-tick-interval: 0.5 # drained every 10 seconds while riding
   # Amount of energy restored by foods
   food-restore:
     COOKED_BEEF: 30
@@ -73,11 +68,11 @@ classes:
     speed-multiplier: 1.0
   TRAVELER:
     display-name: "<gradient:#00c6ff:#0072ff><b>TRAVELER</b></gradient>"
-    icon: "SADDLE"
+    icon: "FEATHER"
     description:
-      - "&7Spesialis tunggangan (Mount)."
-      - "&e+40% &7Mount Speed"
-      - "&7Bebas fall damage saat menunggangi pet."
+      - "&7Spesialis penjelajahan & kecepatan."
+      - "&ePassive Aura &7Speed II untuk pemilik."
+      - "&e+40% &7Pet Movement Speed"
     damage-multiplier: 0.7
     speed-multiplier: 1.4
 
@@ -127,14 +122,11 @@ trails:
     icon: "END_ROD"
 
 messages:
-  prefix: "<gradient:#00f2fe:#4facfe><b>[LeftyPet]</b></gradient> "
+  prefix: "<gradient:#00f2fe:#4facfe><b>[ʟᴇғᴛʏᴘᴇᴛ]</b></gradient> "
   pet-summoned: "<gradient:#43e97b:#38f9d7>Pet kamu berhasil dipanggil!</gradient>"
   pet-dismissed: "<gradient:#f6d365:#fda085>Pet kamu disimpan ke alam spiritual.</gradient>"
   pet-fainted: "<gradient:#ff5f6d:#ffc371>Pet kamu kehabisan energi dan tertidur pingsan! Beri makan untuk membangunkannya.</gradient>"
   pet-fed: "<gradient:#43e97b:#38f9d7>Kamu memberi makan pet! Energi bertambah</gradient> <yellow>+{amount}%</yellow> <gray>(Sekarang: <aqua>{current}%</aqua>)</gray>"
-  pet-mounted: "<gradient:#43e97b:#38f9d7>Kamu menaiki pet!</gradient> <yellow>W-A-S-D</yellow> <gray>untuk berjalan, dan</gray> <yellow>Spasi</yellow> <gray>untuk lompat/dash.</gray>"
-  pet-dismounted: "<gradient:#f6d365:#fda085>Kamu turun dari pet.</gradient>"
-  mount-level-too-low: "<gradient:#ff5f6d:#ffc371>Pet kamu minimal harus <b>Level {level}</b> untuk bisa dinaiki!</gradient>"
   altar-placed: "<gradient:#43e97b:#38f9d7>Pet Training Altar (3x3) berhasil dibangun!</gradient> <gray>Klik kanan lodestone untuk membuka menu altar.</gray>"
   altar-started: "<gradient:#43e97b:#38f9d7>Pet kamu diletakkan di Altar! Memulai proses upgrade ke <b>Level {targetLevel}</b> ({time}).</gradient>"
   altar-claimed: "<gradient:#ff9900:#ff00cc><b>SELAMAT!</b> Pet kamu berhasil di-upgrade ke <b>Level {level}</b>!</gradient>"

@@ -16,7 +16,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.EntityDismountEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 
@@ -41,7 +40,11 @@ public class AltarListener implements Listener {
         PetAltar existing = plugin.getAltarManager().getAltarByOwner(player.getUniqueId());
         if (existing != null) {
             event.setCancelled(true);
-            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<gradient:#ff5f6d:#ffc371>ᴋᴀᴍᴜ sᴜᴅᴀʜ ᴍᴇᴍɪʟɪᴋɪ 1 ᴀʟᴛᴀʀ ᴀᴋᴛɪғ! ʙᴏɴɢᴋᴀʀ ᴀʟᴛᴀʀ ʟᴀᴍᴀᴍᴜ ᴛᴇʀʟᴇʙɪʜ ᴅᴀʜᴜʟᴜ.</gradient>"));
+            Location exLoc = existing.getLocation();
+            String worldName = exLoc.getWorld() != null ? exLoc.getWorld().getName() : "world";
+            String coords = String.format("X: %d, Y: %d, Z: %d (%s)", exLoc.getBlockX(), exLoc.getBlockY(), exLoc.getBlockZ(), worldName);
+            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                    "<gradient:#ff5f6d:#ffc371>ᴋᴀᴍᴜ sᴜᴅᴀʜ ᴍᴇᴍɪʟɪᴋɪ 1 ᴀʟᴛᴀʀ ᴀᴋᴛɪғ ᴅɪ: </gradient><yellow>" + coords + "</yellow><gray>! ʙᴏɴɢᴋᴀʀ ᴀʟᴛᴀʀ ʟᴀᴍᴀᴍᴜ ᴛᴇʀʟᴇʙɪʜ ᴅᴀʜᴜʟᴜ.</gray>"));
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
             return;
         }
@@ -130,13 +133,6 @@ public class AltarListener implements Listener {
             }
 
             plugin.getAltarManager().dismantleAltar(player, altar);
-        }
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onDismount(EntityDismountEvent event) {
-        if (event.getEntity() instanceof Player player) {
-            plugin.getMountManager().stopMount(player);
         }
     }
 }

@@ -46,10 +46,9 @@ public class PetInteractListener implements Listener {
         ActivePet pet = plugin.getPetManager().getActivePet(player.getUniqueId());
         if (pet == null || !pet.isValid()) return;
 
-        // Check if player clicked their pet interaction hitbox, display, or seat
+        // Check if player clicked their pet interaction hitbox or display
         boolean isPetEntity = clicked.equals(pet.getInteractionEntity())
-                || clicked.equals(pet.getDisplayEntity())
-                || clicked.equals(pet.getSeatEntity());
+                || clicked.equals(pet.getDisplayEntity());
 
         if (isPetEntity) {
             event.setCancelled(true);
@@ -61,22 +60,8 @@ public class PetInteractListener implements Listener {
                 return;
             }
 
-            // 2. If sneaking -> open GUI (Shift + Klik Kanan)
-            if (player.isSneaking()) {
-                PetMenu.open(player, plugin);
-                return;
-            }
-
-            // 3. If can mount -> toggle mount, otherwise open menu
-            if (plugin.getMountManager().canMount(pet.getData())) {
-                if (pet.isMounting()) {
-                    plugin.getMountManager().stopMount(player);
-                } else {
-                    plugin.getMountManager().startMount(player);
-                }
-            } else {
-                PetMenu.open(player, plugin);
-            }
+            // 2. Open Pet Dashboard GUI
+            PetMenu.open(player, plugin);
         }
     }
 

@@ -36,9 +36,9 @@ public class PetAdminCommand implements CommandExecutor, TabCompleter {
         if (args.length == 0) {
             sender.sendMessage(ColorUtil.component("<gradient:#00f2fe:#4facfe><b>---------------- [ʟᴇғᴛʏᴘᴇᴛ ᴀᴅᴍɪɴ] ----------------</b></gradient>"));
             sender.sendMessage(ColorUtil.component("<aqua>/leftypet reload</aqua> <gray>- ʀᴇʟᴏᴀᴅ ᴋᴏɴғɪɢᴜʀᴀsɪ ᴘʟᴜɢɪɴ</gray>"));
-            sender.sendMessage(ColorUtil.component("<aqua>/leftypet setlevel &lt;player&gt; &lt;level&gt;</aqua> <gray>- ᴀᴛᴜʀ ʟᴇᴠᴇʟ ᴘᴇᴛ ᴘʟᴀʏᴇʀ</gray>"));
-            sender.sendMessage(ColorUtil.component("<aqua>/leftypet setenergy &lt;player&gt; &lt;amount&gt;</aqua> <gray>- ᴀᴛᴜʀ ᴇɴᴇʀɢɪ ᴘᴇᴛ ᴘʟᴀʏᴇʀ</gray>"));
-            sender.sendMessage(ColorUtil.component("<aqua>/leftypet givealtar &lt;player&gt;</aqua> <gray>- ʙᴇʀɪᴋᴀɴ ᴀʟᴛᴀʀ ᴋᴇ ᴘʟᴀʏᴇʀ</gray>"));
+            sender.sendMessage(ColorUtil.component("<aqua>/leftypet setlevel [player] [level]</aqua> <gray>- ᴀᴛᴜʀ ʟᴇᴠᴇʟ ᴘᴇᴛ ᴘʟᴀʏᴇʀ</gray>"));
+            sender.sendMessage(ColorUtil.component("<aqua>/leftypet setenergy [player] [amount]</aqua> <gray>- ᴀᴛᴜʀ ᴇɴᴇʀɢɪ ᴘᴇᴛ ᴘʟᴀʏᴇʀ</gray>"));
+            sender.sendMessage(ColorUtil.component("<aqua>/leftypet givealtar [player]</aqua> <gray>- ʙᴇʀɪᴋᴀɴ ᴀʟᴛᴀʀ ᴋᴇ ᴘʟᴀʏᴇʀ</gray>"));
             sender.sendMessage(ColorUtil.component("<gradient:#00f2fe:#4facfe><b>--------------------------------------------------</b></gradient>"));
             return true;
         }
@@ -51,7 +51,7 @@ public class PetAdminCommand implements CommandExecutor, TabCompleter {
             }
             case "setlevel" -> {
                 if (args.length < 3) {
-                    sender.sendMessage(ColorUtil.component("<red>ɢᴜɴᴀᴋᴀɴ: /leftypet setlevel &lt;player&gt; &lt;level&gt;</red>"));
+                    sender.sendMessage(ColorUtil.component("<red>ɢᴜɴᴀᴋᴀɴ: /leftypet setlevel [player] [level]</red>"));
                     return true;
                 }
                 Player target = Bukkit.getPlayer(args[1]);
@@ -69,14 +69,14 @@ public class PetAdminCommand implements CommandExecutor, TabCompleter {
                         pet.updateNameTag();
                     }
                     sender.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                            "<gradient:#43e97b:#38f9d7>ʙᴇʀʜᴀsɪʟ ᴍᴇɴɢᴀᴛᴜʀ ʟᴇᴠᴇʟ ᴘᴇᴛ ᴍɪʟɪᴋ <yellow>" + target.getName() + "</yellow> ᴋᴇ ʟᴇᴠᴇʟ <yellow>" + lvl + "</yellow>!</gradient>"));
+                            "<gradient:#43e97b:#38f9d7>ʙᴇʀʜᴀsɪʟ ᴍᴇɴɢᴀᴛᴜʀ ʟᴇᴠᴇʟ ᴘᴇᴛ ᴍɪʟɪᴋ <yellow>" + target.getName() + "</yellow> ᴋᴇ: </gradient>" + ColorUtil.getLevelTag(lvl) + "!"));
                 } catch (NumberFormatException e) {
                     sender.sendMessage(ColorUtil.component("<red>ʟᴇᴠᴇʟ ʜᴀʀᴜs ʙᴇʀᴜᴘᴀ ᴀɴɢᴋᴀ ʙᴜʟᴀᴛ!</red>"));
                 }
             }
             case "setenergy" -> {
                 if (args.length < 3) {
-                    sender.sendMessage(ColorUtil.component("<red>ɢᴜɴᴀᴋᴀɴ: /leftypet setenergy &lt;player&gt; &lt;amount&gt;</red>"));
+                    sender.sendMessage(ColorUtil.component("<red>ɢᴜɴᴀᴋᴀɴ: /leftypet setenergy [player] [amount]</red>"));
                     return true;
                 }
                 Player target = Bukkit.getPlayer(args[1]);

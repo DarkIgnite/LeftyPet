@@ -46,7 +46,7 @@ public class PetMenu {
         if (headMeta != null) {
             headMeta.displayName(ColorUtil.component(data.getName()));
             List<Component> lore = new ArrayList<>();
-            lore.add(ColorUtil.component("&7ʟᴇᴠᴇʟ: &e" + data.getLevel() + " &7/ &e" + plugin.getConfigManager().getMaxLevel()));
+            lore.add(ColorUtil.component("&7ʟᴇᴠᴇʟ: " + ColorUtil.getLevelTag(data.getLevel())));
             lore.add(ColorUtil.component("&7ᴇɴᴇʀɢɪ: " + data.getEnergyProgressBar() + " &f" + (int) data.getEnergy() + "%"));
             lore.add(ColorUtil.component("&7ᴋᴇʟᴀs: " + data.getPetClass().getDisplayName()));
             double classMult = plugin.getConfigManager().getClassDamageMultiplier(data.getPetClass());
@@ -69,18 +69,10 @@ public class PetMenu {
                     "&7ᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴍᴇᴍᴜɴᴄᴜʟᴋᴀɴ ᴘᴇᴛ", "&7ᴅɪ sᴀᴍᴘɪɴɢ ʙᴀʜᴜᴍᴜ!"));
         }
 
-        // Slot 12: Mount (Saddle)
-        boolean canMount = plugin.getMountManager().canMount(data);
-        if (canMount) {
-            boolean isRiding = isSummoned && activePet.isMounting();
-            inv.setItem(12, createItem(Material.SADDLE, isRiding ? "&e&lᴛᴜʀᴜɴ ᴅᴀʀɪ ᴘᴇᴛ" : "&a&lɴᴀɪᴋɪ ᴘᴇᴛ (ᴍᴏᴜɴᴛ)",
-                    "&7ɢᴜɴᴀᴋᴀɴ &eᴡ-ᴀ-s-ᴅ &7ᴜɴᴛᴜᴋ ʙᴇʀᴊᴀʟᴀɴ!",
-                    "&7ᴛᴇᴋᴀɴ &esʜɪғᴛ &7ᴜɴᴛᴜᴋ ᴛᴜʀᴜɴ."));
-        } else {
-            inv.setItem(12, createItem(Material.BARRIER, "&c&lᴍᴏᴜɴᴛ ᴛᴇʀᴋᴜɴᴄɪ",
-                    "&7ʙɪsᴀ ᴅɪɴᴀɪᴋɪ ᴍᴜʟᴀɪ &eʟᴇᴠᴇʟ " + plugin.getConfigManager().getMountUnlockLevel() + "&7!",
-                    "&7ʟᴇᴠᴇʟ ᴘᴇᴛ ᴋᴀᴍᴜ: &e" + data.getLevel()));
-        }
+        // Slot 12: Rename Pet
+        inv.setItem(12, createItem(Material.NAME_TAG, "&e&lɢᴀɴᴛɪ ɴᴀᴍᴀ ᴘᴇᴛ",
+                "&7ᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴍᴇɴɢᴜʙᴀʜ ɴᴀᴍᴀ ᴘᴇᴛ ᴋᴀᴍᴜ!",
+                "&eᴘᴇʀɪɴᴛᴀʜ: &f/pet rename [nama baru]"));
 
         // Slot 14: Cosmetic Selector
         inv.setItem(14, createItem(Material.PAINTING, "&d&lᴋᴜsᴛᴏᴍɪsᴀsɪ ᴋᴏsᴍᴇᴛɪᴋ",
@@ -92,12 +84,7 @@ public class PetMenu {
                 "&c• Fighter &7(+Damage)",
                 "&a• Support &7(Healing Aura)",
                 "&6• Looter &7(Auto Pickup & EXP)",
-                "&b• Traveler &7(+Mount Speed)"));
-
-        // Slot 19: Rename Pet (Revisi 9)
-        inv.setItem(19, createItem(Material.NAME_TAG, "&e&lɢᴀɴᴛɪ ɴᴀᴍᴀ ᴘᴇᴛ",
-                "&7ᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴍᴇɴɢᴜʙᴀʜ ɴᴀᴍᴀ ᴘᴇᴛ ᴋᴀᴍᴜ!",
-                "&eᴘᴇʀɪɴᴛᴀʜ: &f/pet rename <nama baru>"));
+                "&b• Traveler &7(+Speed Aura)"));
 
         // Slot 22: Altar Info
         inv.setItem(22, createItem(Material.LODESTONE, "&6&lᴛʀᴀɪɴɪɴɢ ᴀʟᴛᴀʀ (3x3)",
@@ -119,24 +106,18 @@ public class PetMenu {
             case 10 -> { // Summon / Dismiss
                 if (plugin.getPetManager().isPetSummoned(player.getUniqueId())) {
                     plugin.getPetManager().despawnPet(player.getUniqueId());
-                    player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("pet-dismissed")));
+                    ColorUtil.sendMessage(player, plugin.getConfigManager().getMessage("pet-dismissed"));
                     player.playSound(player.getLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 0.6f, 1.4f);
                 } else {
                     plugin.getPetManager().summonPet(player);
                 }
                 open(player, plugin);
             }
-            case 12 -> { // Mount
-                if (!plugin.getMountManager().canMount(data)) {
-                    player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
-                    return;
-                }
-                ActivePet active = plugin.getPetManager().getActivePet(player.getUniqueId());
-                if (active == null) {
-                    plugin.getPetManager().summonPet(player);
-                }
+            case 12 -> { // Rename Info
                 player.closeInventory();
-                plugin.getMountManager().startMount(player);
+                ColorUtil.sendMessage(player, plugin.getConfigManager().getMessage("prefix") +
+                        "<gradient:#43e97b:#38f9d7>ɢᴜɴᴀᴋᴀɴ ᴘᴇʀɪɴᴛᴀʜ: <yellow>/pet rename [nama baru]</yellow> ᴜɴᴛᴜᴋ ᴍᴇɴɢᴜʙᴀʜ ɴᴀᴍᴀ ᴘᴇᴛ ᴋᴀᴍᴜ!</gradient>");
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.7f, 1.2f);
             }
             case 14 -> { // Cosmetics
                 player.closeInventory();
@@ -150,21 +131,15 @@ public class PetMenu {
                 if (pet != null) {
                     pet.updateNameTag();
                 }
-                player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                        "<green>ᴋᴇʟᴀs ᴘᴇᴛ ᴅɪᴜʙᴀʜ ᴋᴇ: </green>" + data.getPetClass().getDisplayName()));
+                ColorUtil.sendMessage(player, plugin.getConfigManager().getMessage("prefix") +
+                        "<green>ᴋᴇʟᴀs ᴘᴇᴛ ᴅɪᴜʙᴀʜ ᴋᴇ: </green>" + data.getPetClass().getDisplayName());
                 player.playSound(player.getLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 0.7f, 1.4f);
                 open(player, plugin);
             }
-            case 19 -> { // Rename
-                player.closeInventory();
-                player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                        "<gradient:#43e97b:#38f9d7>ɢᴜɴᴀᴋᴀɴ ᴘᴇʀɪɴᴛᴀʜ: <yellow>/pet rename &lt;nama baru&gt;</yellow> ᴜɴᴛᴜᴋ ᴍᴇɴɢᴜʙᴀʜ ɴᴀᴍᴀ ᴘᴇᴛ ᴋᴀᴍᴜ!</gradient>"));
-                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.7f, 1.2f);
-            }
             case 22 -> { // Altar Info
                 player.closeInventory();
-                player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                        "<yellow>ɢᴜɴᴀᴋᴀɴ ᴘᴇʀɪɴᴛᴀʜ <aqua>/pet altar</aqua> ᴜɴᴛᴜᴋ ᴍᴇɴᴅᴀᴘᴀᴛᴋᴀɴ ʙʟᴏᴋ ᴀʟᴛᴀʀ 3x3!</yellow>"));
+                ColorUtil.sendMessage(player, plugin.getConfigManager().getMessage("prefix") +
+                        "<yellow>ɢᴜɴᴀᴋᴀɴ ᴘᴇʀɪɴᴛᴀʜ <aqua>/pet altar</aqua> ᴜɴᴛᴜᴋ ᴍᴇɴᴅᴀᴘᴀᴛᴋᴀɴ ʙʟᴏᴋ ᴀʟᴛᴀʀ 3x3!</yellow>");
             }
         }
     }

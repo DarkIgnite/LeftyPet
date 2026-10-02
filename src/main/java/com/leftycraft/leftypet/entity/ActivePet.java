@@ -36,11 +36,9 @@ public class ActivePet {
 
     private ItemDisplay displayEntity;
     private TextDisplay nameTagDisplay;
-    private ArmorStand seatEntity;
     private Interaction interactionEntity;
 
     private int ticksLived = 0;
-    private boolean isMounting = false;
     private float smoothedYaw = 0f;
     private long lastSupportHeal = 0;
     private long lastLooterPickup = 0;
@@ -96,18 +94,6 @@ public class ActivePet {
             inter.setResponsive(true);
         });
 
-        // 4. Spawn Seat Entity (ArmorStand for mounting)
-        seatEntity = spawnLoc.getWorld().spawn(spawnLoc, ArmorStand.class, stand -> {
-            stand.setPersistent(false);
-            stand.setVisible(false);
-            stand.setGravity(false);
-            stand.setSmall(true);
-            stand.setInvulnerable(true);
-            stand.setMarker(false);
-            stand.setBasePlate(false);
-            stand.setArms(false);
-        });
-
         updateNameTag();
     }
 
@@ -120,22 +106,6 @@ public class ActivePet {
         }
 
         spawnParticleTrail();
-
-        if (isMounting && seatEntity != null && seatEntity.isValid()) {
-            if (seatEntity.getPassengers().isEmpty() || !seatEntity.getPassengers().contains(owner)) {
-                dismount();
-                return;
-            }
-
-            if (ticksLived % 200 == 0) {
-                data.drainEnergy(plugin.getConfigManager().getEnergyDrainPerRiding());
-                if (data.isFainted()) {
-                    dismount();
-                    owner.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("pet-fainted")));
-                }
-            }
-            return;
-        }
 
         // Following mode: Smoothed orbit so player can turn to look at pet without pet fleeing
         float playerYaw = owner.getLocation().getYaw();
@@ -186,6 +156,10 @@ public class ActivePet {
         if (data.getPetClass() == PetClass.LOOTER && !data.isFainted()) {
             handleLooterVacuum();
         }
+
+        if (data.getPetClass() == PetClass.TRAVELER && !data.isFainted()) {
+            owner.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 40, 0, false, false, true));
+        }
     }
 
     private void handleSupportAura() {
@@ -231,7 +205,7 @@ public class ActivePet {
         if (nameTagDisplay == null || !nameTagDisplay.isValid()) return;
 
         String faintedTag = data.isFainted() ? " <red>[ᴘɪɴɢsᴀɴ]</red>" : "";
-        String line1 = "<yellow>[ʟᴠ." + data.getLevel() + "]</yellow> <white>" + data.getName() + "</white>" + faintedTag;
+        String line1 = ColorUtil.getLevelTag(data.getLevel()) + " <white>" + data.getName() + "</white>" + faintedTag;
         String line2 = "<gray>ᴋᴇʟᴀs: </gray>" + data.getPetClass().getDisplayName();
         String line3 = "<green>ᴇɴᴇʀɢɪ: </green>" + data.getEnergyProgressBar() + " <white>" + (int) data.getEnergy() + "%</white>";
 
@@ -246,35 +220,12 @@ public class ActivePet {
         displayEntity.setItemStack(head);
     }
 
-    public void mount() {
-        if (seatEntity == null || !seatEntity.isValid()) return;
-        isMounting = true;
-        seatEntity.teleport(owner.getLocation(), io.papermc.paper.entity.TeleportFlag.EntityState.RETAIN_PASSENGERS);
-        seatEntity.addPassenger(owner);
-    }
-
-    public void dismount() {
-        isMounting = false;
-        if (seatEntity != null && seatEntity.isValid()) {
-            seatEntity.removePassenger(owner);
-        }
-    }
-
-    public boolean isMounting() {
-        return isMounting;
-    }
-
-    public void setMounting(boolean mounting) {
-        this.isMounting = mounting;
-    }
-
     public boolean isValid() {
         return displayEntity != null && displayEntity.isValid() &&
                 nameTagDisplay != null && nameTagDisplay.isValid();
     }
 
     public void despawn() {
-        dismount();
         if (displayEntity != null && displayEntity.isValid()) {
             displayEntity.remove();
         }
@@ -284,13 +235,9 @@ public class ActivePet {
         if (interactionEntity != null && interactionEntity.isValid()) {
             interactionEntity.remove();
         }
-        if (seatEntity != null && seatEntity.isValid()) {
-            seatEntity.remove();
-        }
         displayEntity = null;
         nameTagDisplay = null;
         interactionEntity = null;
-        seatEntity = null;
     }
 
     public ItemDisplay getDisplayEntity() {
@@ -303,10 +250,6 @@ public class ActivePet {
 
     public Interaction getInteractionEntity() {
         return interactionEntity;
-    }
-
-    public ArmorStand getSeatEntity() {
-        return seatEntity;
     }
 
     public Player getOwner() {

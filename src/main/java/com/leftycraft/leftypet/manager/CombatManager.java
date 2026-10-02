@@ -30,7 +30,6 @@ public class CombatManager {
             for (Player player : Bukkit.getOnlinePlayers()) {
                 ActivePet pet = plugin.getPetManager().getActivePet(player.getUniqueId());
                 if (pet == null || !pet.isValid()) continue;
-                if (pet.isMounting()) continue;
 
                 PetData data = pet.getData();
                 if (data.isFainted() || data.getEnergy() < 2.0) continue;
