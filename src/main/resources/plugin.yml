@@ -26,3 +26,6 @@ permissions:
   leftypet.admin:
     description: Allows admin management for pets
     default: op
+  leftypet.celestial:
+    description: Unlocks Celestial exclusive pet skins and Altar Level 4 upgrade (schematic structure)
+    default: false

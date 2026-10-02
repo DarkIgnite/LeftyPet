@@ -92,7 +92,8 @@ public class ConfigManager {
             for (String key : skinSec.getKeys(false)) {
                 String dName = skinSec.getString(key + ".display-name", key);
                 String tex = skinSec.getString(key + ".texture", "");
-                skins.put(key, new PetSkin(key, dName, tex));
+                String perm = skinSec.getString(key + ".permission", null);
+                skins.put(key, new PetSkin(key, dName, tex, perm));
             }
         }
 

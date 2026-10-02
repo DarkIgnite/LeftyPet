@@ -16,8 +16,14 @@ public class PetData {
     private UUID currentAltarId;
 
     public PetData(UUID ownerUuid) {
+        this(ownerUuid, null);
+    }
+
+    public PetData(UUID ownerUuid, String ownerName) {
         this.ownerUuid = ownerUuid;
-        this.name = "<gradient:#00f2fe:#4facfe>Spirit Companion</gradient>";
+        this.name = (ownerName != null && !ownerName.isBlank())
+                ? ownerName + "'s Companion"
+                : "Spirit Companion";
         this.level = 1;
         this.energy = 100.0;
         this.petClass = PetClass.FIGHTER;

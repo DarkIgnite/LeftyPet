@@ -113,11 +113,22 @@ public class PetManager {
 
     public PetData loadPetDataFromFile(UUID uuid) {
         File file = new File(dataFolder, uuid.toString() + ".yml");
-        PetData data = new PetData(uuid);
+
+        // Determine the player's name for the default pet name
+        String playerName = null;
+        org.bukkit.OfflinePlayer offlinePlayer = org.bukkit.Bukkit.getOfflinePlayer(uuid);
+        if (offlinePlayer.getName() != null) {
+            playerName = offlinePlayer.getName();
+        }
+
+        PetData data = new PetData(uuid, playerName);
 
         if (file.exists()) {
             FileConfiguration cfg = YamlConfiguration.loadConfiguration(file);
-            data.setName(cfg.getString("name", "&bSpirit Companion"));
+            String savedName = cfg.getString("name", null);
+            if (savedName != null) {
+                data.setName(savedName);
+            }
             data.setLevel(cfg.getInt("level", 1));
             data.setEnergy(cfg.getDouble("energy", 100.0));
             try {

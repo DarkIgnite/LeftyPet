@@ -55,7 +55,7 @@ public class AltarManager {
     }
 
     public ItemStack createAltarItem(int level) {
-        int lvl = Math.max(1, Math.min(3, level));
+        int lvl = Math.max(1, Math.min(4, level));
         ItemStack item = new ItemStack(Material.LODESTONE);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
@@ -64,11 +64,12 @@ public class AltarManager {
             lore.add(ColorUtil.component("&7ʟᴇᴛᴀᴋᴋᴀɴ ᴅɪ ᴀʀᴇᴀ &e3x3 &7ᴛᴇʀʙᴜᴋᴀ"));
             lore.add(ColorUtil.component("&7ᴜɴᴛᴜᴋ ᴍᴇᴍʙᴀɴɢᴜɴ ғᴀsɪʟɪᴛᴀs ᴀғᴋ ᴛʀᴀɪɴɪɴɢ!"));
             lore.add(ColorUtil.component(""));
-            lore.add(ColorUtil.component("&eᴀʟᴛᴀʀ ʟᴇᴠᴇʟ: &f" + lvl + " &7(-" + (lvl * 10) + "% ᴡᴀᴋᴛᴜ ᴜᴘɢʀᴀᴅᴇ)"));
-            if (lvl < 3) {
-                lore.add(ColorUtil.component("&bʙɪsᴀ ᴅɪ-ᴜᴘɢʀᴀᴅᴇ &7ʜɪɴɢɢᴀ ʟᴇᴠᴇʟ 3 (-30%)"));
-            } else {
-                lore.add(ColorUtil.component("&a✔ ʟᴇᴠᴇʟ ᴍᴀᴋsɪᴍᴀʟ (-30% ᴡᴀᴋᴛᴜ ᴜᴘɢʀᴀᴅᴇ)"));
+            int discount = (lvl == 4) ? 50 : (lvl * 10);
+            lore.add(ColorUtil.component("&eᴀʟᴛᴀʀ ʟᴇᴠᴇʟ: &f" + lvl + " &7(-" + discount + "% ᴡᴀᴋᴛᴜ ᴜᴘɢʀᴀᴅᴇ)"));
+            if (lvl == 4) {
+                lore.add(ColorUtil.component("<gradient:#ff9a00:#7928ca>✦ CELESTIAL EXCLUSIVE - Max Level!</gradient>"));
+            } else if (lvl < 4) {
+                lore.add(ColorUtil.component("&bʙɪsᴀ ᴅɪ-ᴜᴘɢʀᴀᴅᴇ &7ʜɪɴɢɢᴀ ʟᴇᴠᴇʟ 4 (-50%)"));
             }
             meta.lore(lore);
             meta.getPersistentDataContainer().set(altarKey, PersistentDataType.BOOLEAN, true);
@@ -81,7 +82,7 @@ public class AltarManager {
     public int getAltarItemLevel(ItemStack item) {
         if (item == null || !item.hasItemMeta()) return 1;
         Integer lvl = item.getItemMeta().getPersistentDataContainer().get(altarLevelKey, PersistentDataType.INTEGER);
-        return (lvl != null) ? Math.max(1, Math.min(3, lvl)) : 1;
+        return (lvl != null) ? Math.max(1, Math.min(4, lvl)) : 1;
     }
 
     public boolean isAltarItem(ItemStack item) {

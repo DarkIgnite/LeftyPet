@@ -108,6 +108,35 @@ skins:
   angel:
     display-name: "<gradient:#ffe259:#ffa751><b>Golden Angel</b></gradient>"
     texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzlhMjMxMGNmNTBhNTY3YmNhZTQyMGViMDY5NzgzNzBkMDM5MTMxMDcwZTMxMTkxYjRjMzM2Y2U2MmQyM2VkN2QifX19"
+  # ──────────── CELESTIAL EXCLUSIVE (leftypet.celestial) ────────────
+  celestial_phoenix:
+    display-name: "<gradient:#ff9a00:#ff6a00><b>☽ Celestial Phoenix</b></gradient>"
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2Y3ZGZmZjE4ZmY1MDVhM2VmNzZjNGY2ZjZiZWIzMTM2NjY5ZDJhMGFlZTg2ZmE0MTYwYzRiZmNhNTQxYjExMiJ9fX0="
+    permission: "leftypet.celestial"
+  celestial_nebula:
+    display-name: "<gradient:#7b2ff7:#f107a3><b>★ Nebula Specter</b></gradient>"
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2E3ZTZkZmRmYjE1ODliNWU0NDFiYjEzNDkwNDEzODM0NDc5ZWJmNWVhNzBkNWVlNmNlMzMxZWZhZWMwYzliNTIifX19"
+    permission: "leftypet.celestial"
+  celestial_void:
+    display-name: "<gradient:#1a1a2e:#16213e><b>✦ Void Wraith</b></gradient>"
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzFiMDlhMzc1MjUxMGU5MTRiMGJkYzkwOTZiMzkyYmIzNTlmN2E4ZThhOTU2NmEwMmU3ZjY2ZmFmZjhkNmY4OWUifX19"
+    permission: "leftypet.celestial"
+  celestial_sakura:
+    display-name: "<gradient:#ff758c:#ff7eb3><b>✿ Sakura Spirit</b></gradient>"
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2RkYzEzMTQ4ZDU3OGU5YzNlZGFhMWE0Zjc3OGZkZTFkMDBlYzEwMTkzYTZkNGQ5Yjg4OTliYzU4OWFjYjYwIn19fQ=="
+    permission: "leftypet.celestial"
+  celestial_thunder:
+    display-name: "<gradient:#f7971e:#ffd200><b>⚡ Thunder God</b></gradient>"
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2ExYjUyMzhjYjZjNDE4NWZiMTBhN2E2MzlhMDY2ZDk2NzM0YTc4ZjFkNTE5NGMwOGRjMWQwMGFiNWI4YjI2NCJ9fX0="
+    permission: "leftypet.celestial"
+  celestial_cosmos:
+    display-name: "<gradient:#00f2fe:#4facfe><b>✧ Cosmic Entity</b></gradient>"
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzRhNGU0MmViMTVhMDg4MTNhNmE2ZjYxZjEwYWEyODgwMTlmYTBmYWUxMDZhMjk1M2RkYjQ2Zjc3ZWUyZDc3ZiJ9fX0="
+    permission: "leftypet.celestial"
+  celestial_demon_king:
+    display-name: "<gradient:#ff0000:#7928ca><b>👑 Demon King</b></gradient>"
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzFhZjc2MGM5OTM5NWMwN2RhNTkwODY3YThkNjZjOTVmN2ZmNzNiYzExNjkwZjVlMzcxMGYyMDQyMWQ3MjVlZCJ9fX0="
+    permission: "leftypet.celestial"
 
 # Particle Trails
 trails:
