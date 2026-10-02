@@ -111,7 +111,13 @@ public class ConfigManager {
     }
 
     public int getUpgradeDuration(int currentLevel) {
-        return upgradeDurations.getOrDefault(currentLevel, 30 * currentLevel);
+        if (upgradeDurations.containsKey(currentLevel)) {
+            return upgradeDurations.get(currentLevel);
+        }
+        if (currentLevel > 10) {
+            return 5400 + ((currentLevel - 10) * 1800);
+        }
+        return 30 * currentLevel;
     }
 
     public double getFoodRestore(Material material) {

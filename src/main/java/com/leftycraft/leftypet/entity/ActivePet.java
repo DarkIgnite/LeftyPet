@@ -106,6 +106,20 @@ public class ActivePet {
             updateNameTag();
         }
 
+        // Skill VII: Overdrive (Lv 70+) - Passive +1% energy regen every 10 seconds (200 ticks)
+        if (ticksLived % 200 == 0 && data.getLevel() >= 70 && !data.isFainted() && !data.isTraining()) {
+            if (data.getEnergy() < 100.0) {
+                data.addEnergy(1.0);
+                displayEntity.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, displayEntity.getLocation().add(0, 0.4, 0), 2, 0.2, 0.2, 0.2, 0.02);
+            }
+        }
+
+        // Skill X: Mythic Transcendence (Lv 100) - Permanent Speed I & Strength I passive aura
+        if (ticksLived % 40 == 0 && data.getLevel() >= 100 && !data.isFainted() && !data.isTraining()) {
+            owner.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SPEED, 80, 0, false, false, true));
+            owner.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.STRENGTH, 80, 0, false, false, true));
+        }
+
         spawnParticleTrail();
 
         // Following mode: Smoothed orbit so player can turn to look at pet without pet fleeing

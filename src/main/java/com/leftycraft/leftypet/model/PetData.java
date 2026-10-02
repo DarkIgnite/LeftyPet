@@ -120,7 +120,7 @@ public class PetData {
      * Calculates base attack damage based on level and class.
      */
     public double getAttackDamage(double classMultiplier) {
-        double base = 2.0 + (level * 1.5);
+        double base = 2.0 + (level * 0.6);
         return base * classMultiplier;
     }
 

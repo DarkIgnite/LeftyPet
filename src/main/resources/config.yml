@@ -9,10 +9,11 @@ settings:
   # Smooth float interpolation duration in ticks
   interpolation-duration: 3
   # Maximum pet level
-  max-level: 10
+  max-level: 100
 
 # AFK Altar Upgrade Durations (in seconds)
 # Formula: Level X -> Level X + 1
+# Levels above 10 scale dynamically (+1800s / 30 mins per level) if not specified below
 upgrade-durations:
   1: 30       # Lv 1 -> Lv 2: 30 seconds
   2: 90       # Lv 2 -> Lv 3: 1 min 30 sec
@@ -22,7 +23,8 @@ upgrade-durations:
   6: 900      # Lv 6 -> Lv 7: 15 mins
   7: 1500     # Lv 7 -> Lv 8: 25 mins
   8: 2400     # Lv 8 -> Lv 9: 40 mins
-  9: 3600     # Lv 9 -> Lv 10: 60 mins
+  9: 3600     # Lv 9 -> Lv 10: 60 mins (1 hour)
+  10: 5400    # Lv 10 -> Lv 11: 90 mins (1.5 hours)
 
 # Pet Energy & Hunger system
 energy:

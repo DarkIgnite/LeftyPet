@@ -23,6 +23,21 @@ public class PetRoadmapMenu {
 
     public static final String TITLE = "§8» §b§lʟᴇғᴛʏᴘᴇᴛ §8| §fʟᴇᴠᴇʟ ʀᴏᴀᴅᴍᴀᴘ";
 
+    record MilestoneInfo(int level, String skillName, String skillIcon, Material material, String description, String hitParticle) {}
+
+    private static final MilestoneInfo[] MILESTONES = {
+        new MilestoneInfo(10, "Swift Strike", "⚡", Material.IRON_SWORD, "Peluang 25% serangan ganda (instant double hit).", "Crit Sparkles & Sweep Attack"),
+        new MilestoneInfo(20, "Vampiric Link", "🩸", Material.REDSTONE, "15% damage pet menyembuhkan HP/Hunger pemilik.", "Soul Flame & Witch Magic"),
+        new MilestoneInfo(30, "Arcane Chain", "⛓️", Material.CHAIN, "Serangan memantul ke 2 mob di sekitar target.", "Electric Spark & Copper Zap"),
+        new MilestoneInfo(40, "Guardian Aegis", "🛡️", Material.SHIELD, "Saat HP < 30%, memberi Resistance II & Absorption II.", "Dragon Breath & Enchant Glyphs"),
+        new MilestoneInfo(50, "Armor Shatter", "💔", Material.ANVIL, "Melemahkan armor musuh (+25% bonus damage player).", "Trial Omen & Heavy Smoke"),
+        new MilestoneInfo(60, "Fortune's Favor", "🍀", Material.EMERALD, "Peluang 35% double EXP dan bonus loot drop.", "Emerald Sparkle & Totem Flash"),
+        new MilestoneInfo(70, "Overdrive", "🔋", Material.REDSTONE_BLOCK, "Konsumsi energi -50% & auto regen energi pasif.", "Sonic Boom & End Rod Stardust"),
+        new MilestoneInfo(80, "Celestial Smite", "☄️", Material.BEACON, "Tiap 5 hit memanggil ledakan petir suci mistik.", "Firework Burst & Flash Shockwave"),
+        new MilestoneInfo(90, "Spectral Clone", "👥", Material.ECHO_SHARD, "Memanggil bayangan spirit untuk menembak bersamaan.", "Cosmic Reverse Portal & Sculk Soul"),
+        new MilestoneInfo(100, "Mythic Transcendence", "👑", Material.NETHER_STAR, "Aura Speed & Strength pasif + Totem of Undying Savior.", "Cherry Blossom Storm, Glow & Reverse Portal")
+    };
+
     public static void open(Player player, LeftyPetPlugin plugin) {
         PetData data = plugin.getPetManager().getPetData(player.getUniqueId());
         PetRoadmapMenuHolder holder = new PetRoadmapMenuHolder();
@@ -55,15 +70,17 @@ public class PetRoadmapMenu {
         ItemStack head = (skin != null) ? HeadUtil.createCustomHead(skin.getTexture()) : new ItemStack(Material.PLAYER_HEAD);
         ItemMeta headMeta = head.getItemMeta();
         if (headMeta != null) {
-            headMeta.displayName(ColorUtil.component("<gradient:#00f2fe:#4facfe><b>ᴘʀᴏɢʀᴇsɪ ʟᴇᴠᴇʟ ᴘᴇᴛ</b></gradient>"));
+            headMeta.displayName(ColorUtil.component("<gradient:#00f2fe:#4facfe><b>ᴘʀᴏɢʀᴇsɪ ʟᴇᴠᴇʟ ᴘᴇᴛ (1-100)</b></gradient>"));
             List<Component> lore = new ArrayList<>();
             lore.add(ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"));
             lore.add(ColorUtil.component("&7ᴘᴇᴛ: &f" + data.getName()));
             lore.add(ColorUtil.component("&7ʟᴇᴠᴇʟ sᴀᴀᴛ ɪɴɪ: " + ColorUtil.getLevelTag(data.getLevel())));
-            lore.add(ColorUtil.component("&7ᴘʀᴏɢʀᴇss: " + getProgressBar(data.getLevel(), 10) + " &e" + (data.getLevel() * 10) + "%"));
+            lore.add(ColorUtil.component("&7ᴘʀᴏɢʀᴇss: " + getProgressBar(data.getLevel(), 100) + " &e" + data.getLevel() + "%"));
             lore.add(ColorUtil.component("&7ᴋᴇʟᴀs ᴘᴇᴛ: " + data.getPetClass().getDisplayName()));
             double classMult = plugin.getConfigManager().getClassDamageMultiplier(data.getPetClass());
             lore.add(ColorUtil.component("&7ᴀᴛᴛᴀᴄᴋ ᴅᴀᴍᴀɢᴇ: &c" + String.format("%.1f", data.getAttackDamage(classMult))));
+            int unlockedSkills = Math.min(10, data.getLevel() / 10);
+            lore.add(ColorUtil.component("&7sᴋɪʟʟ ᴛᴇʀʙᴜᴋᴀ: &a" + unlockedSkills + "/10 ᴍɪʟᴇsᴛᴏɴᴇs"));
             lore.add(ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"));
             lore.add(ColorUtil.component("&7ᴛɪɴɢᴋᴀᴛᴋᴀɴ ʟᴇᴠᴇʟ ᴘᴇᴛ ᴅᴇɴɢᴀɴ ᴍᴇʟᴇᴛᴀᴋᴋᴀɴɴʏᴀ"));
             lore.add(ColorUtil.component("&7ᴅɪ &eᴛʀᴀɪɴɪɴɢ ᴀʟᴛᴀʀ (3x3) &7ᴜɴᴛᴜᴋ ᴀғᴋ ᴛʀᴀɪɴɪɴɢ!"));
@@ -76,30 +93,28 @@ public class PetRoadmapMenu {
         }
         inv.setItem(4, head);
 
-        // 3. Level Nodes: Row 1 (Levels 1 to 5) -> Slots 11, 12, 13, 14, 15
+        // 3. Row 1: Milestones 1 to 5 (Lv 10, 20, 30, 40, 50) -> Slots 11, 12, 13, 14, 15
         int petLevel = data.getLevel();
         int[] row1Slots = {11, 12, 13, 14, 15};
         for (int i = 0; i < 5; i++) {
-            int lvl = i + 1;
-            inv.setItem(row1Slots[i], createLevelNode(lvl, petLevel, plugin));
+            inv.setItem(row1Slots[i], createMilestoneNode(MILESTONES[i], petLevel, plugin));
         }
 
         // 4. Row 2: Connecting Beams (Slots 20 to 24)
         int[] row2Connectors = {20, 21, 22, 23, 24};
         for (int i = 0; i < 5; i++) {
-            int tierLvl = i + 1;
-            Material beamMat = (petLevel >= tierLvl) ? Material.LIME_STAINED_GLASS_PANE
-                    : (petLevel == tierLvl - 1) ? Material.YELLOW_STAINED_GLASS_PANE : Material.GRAY_STAINED_GLASS_PANE;
-            String beamTitle = (petLevel >= tierLvl) ? "&a✔ ᴛɪᴇʀ " + tierLvl + " ᴛᴇʀᴄᴀᴘᴀɪ"
-                    : (petLevel == tierLvl - 1) ? "&e★ sᴇᴅᴀɴɢ ᴍᴇɴᴜᴊᴜ ᴛɪᴇʀ " + tierLvl : "&8🔒 ᴛɪᴇʀ " + tierLvl + " ᴛᴇʀᴋᴜɴᴄɪ";
+            int targetLvl = (i + 1) * 10;
+            Material beamMat = (petLevel >= targetLvl) ? Material.LIME_STAINED_GLASS_PANE
+                    : (petLevel >= targetLvl - 10) ? Material.YELLOW_STAINED_GLASS_PANE : Material.GRAY_STAINED_GLASS_PANE;
+            String beamTitle = (petLevel >= targetLvl) ? "&a✔ ᴛɪᴇʀ " + (i + 1) + " ᴛᴇʀᴄᴀᴘᴀɪ"
+                    : (petLevel >= targetLvl - 10) ? "&e★ sᴇᴅᴀɴɢ ᴍᴇɴᴜᴊᴜ ᴛɪᴇʀ " + (i + 1) : "&8🔒 ᴛɪᴇʀ " + (i + 1) + " ᴛᴇʀᴋᴜɴᴄɪ";
             inv.setItem(row2Connectors[i], createFiller(beamMat, beamTitle));
         }
 
-        // 5. Level Nodes: Row 3 (Levels 6 to 10) -> Slots 29, 30, 31, 32, 33
+        // 5. Row 3: Milestones 6 to 10 (Lv 60, 70, 80, 90, 100) -> Slots 29, 30, 31, 32, 33
         int[] row3Slots = {29, 30, 31, 32, 33};
         for (int i = 0; i < 5; i++) {
-            int lvl = i + 6;
-            inv.setItem(row3Slots[i], createLevelNode(lvl, petLevel, plugin));
+            inv.setItem(row3Slots[i], createMilestoneNode(MILESTONES[i + 5], petLevel, plugin));
         }
 
         // 6. Navigation Footer (Row 5)
@@ -148,10 +163,9 @@ public class PetRoadmapMenu {
         player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_GOLD, 0.6f, 1.2f);
     }
 
-    private static ItemStack createLevelNode(int lvl, int currentPetLevel, LeftyPetPlugin plugin) {
-        int durationSec = (lvl > 1) ? plugin.getConfigManager().getUpgradeDuration(lvl - 1) : 0;
-        double baseDmg = 2.0 + (lvl * 1.5);
-        int perkBonus = lvl * 10;
+    private static ItemStack createMilestoneNode(MilestoneInfo info, int currentPetLevel, LeftyPetPlugin plugin) {
+        int lvl = info.level();
+        double baseDmg = 2.0 + (lvl * 0.6);
 
         Material mat;
         boolean glint;
@@ -160,50 +174,54 @@ public class PetRoadmapMenu {
         lore.add(ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"));
 
         if (currentPetLevel >= lvl) {
-            // UNLOCKED / COMPLETED
-            mat = (lvl == 10) ? Material.NETHER_STAR : Material.EMERALD_BLOCK;
+            // UNLOCKED
+            mat = (lvl == 100) ? Material.NETHER_STAR : info.material();
             glint = true;
-            name = (lvl == 10)
-                    ? "<gradient:#ff00cc:#333399><b>👑 ʟᴇᴠᴇʟ 10 [ᴍᴀx ᴛɪᴇʀ] ✔</b></gradient>"
-                    : "<gradient:#a8ff78:#78ffd6><b>✔ ʟᴇᴠᴇʟ " + lvl + " [ᴛᴇʀᴄᴀᴘᴀɪ]</b></gradient>";
+            name = (lvl == 100)
+                    ? "<gradient:#ff007f:#7928ca:#00dfd8><b>👑 ʟᴇᴠᴇʟ 100 [ᴍʏᴛʜɪᴄ ᴛɪᴇʀ] ✔</b></gradient>"
+                    : "<gradient:#a8ff78:#78ffd6><b>✔ ʟᴇᴠᴇʟ " + lvl + " [" + info.skillIcon() + " " + info.skillName() + "]</b></gradient>";
 
-            lore.add(ColorUtil.component("&a✔ sᴛᴀᴛᴜs: sᴜᴅᴀʜ ᴛᴇʀᴄᴀᴘᴀɪ"));
+            lore.add(ColorUtil.component("&a✔ sᴛᴀᴛᴜs: sᴋɪʟʟ ᴀᴋᴛɪғ & ᴛᴇʀʙᴜᴋᴀ"));
+            lore.add(ColorUtil.component("&e" + info.skillIcon() + " sᴋɪʟʟ: &f<b>" + info.skillName() + "</b>"));
+            lore.add(ColorUtil.component("&7" + info.description()));
+            lore.add(ColorUtil.component(""));
             lore.add(ColorUtil.component("&7• ᴀᴛᴛᴀᴄᴋ ᴅᴀᴍᴀɢᴇ: &c" + String.format("%.1f", baseDmg)));
-            lore.add(ColorUtil.component("&7• ᴇɴᴇʀɢʏ ᴄᴀᴘ: &e100%"));
-            lore.add(ColorUtil.component("&7• ᴘᴇʀᴋ ʙᴏɴᴜs: &b+" + perkBonus + "% sᴛᴀᴛs"));
+            lore.add(ColorUtil.component("&7• ʜɪᴛ ᴘᴀʀᴛɪᴄʟᴇ: &b" + info.hitParticle()));
             lore.add(ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"));
-            lore.add(ColorUtil.component("&aᴘᴇᴛ ᴋᴀᴍᴜ sᴜᴅᴀʜ ᴍᴇɴɢᴜᴀsᴀɪ ʟᴇᴠᴇʟ ɪɴɪ!"));
-        } else if (currentPetLevel == lvl - 1) {
-            // CURRENT TARGET
-            mat = (lvl == 10) ? Material.NETHER_STAR : Material.GOLD_BLOCK;
+            lore.add(ColorUtil.component("&aᴘᴇᴛ ᴋᴀᴍᴜ sᴜᴅᴀʜ ᴍᴇɴɢᴜᴀsᴀɪ ᴋᴇᴋᴜᴀᴛᴀɴ ɪɴɪ!"));
+        } else if (currentPetLevel >= lvl - 10) {
+            // CURRENT TARGET TIER
+            mat = (lvl == 100) ? Material.NETHER_STAR : Material.GOLD_BLOCK;
             glint = true;
-            name = (lvl == 10)
-                    ? "<gradient:#ff00cc:#333399><b>👑 ʟᴇᴠᴇʟ 10 [ᴍᴀx ᴛɪᴇʀ] ★</b></gradient>"
-                    : "<gradient:#f7971e:#ffd200><b>★ ʟᴇᴠᴇʟ " + lvl + " [ᴛᴀʀɢᴇᴛ sᴇʟᴀɴᴊᴜᴛɴʏᴀ]</b></gradient>";
+            name = (lvl == 100)
+                    ? "<gradient:#ff007f:#7928ca><b>👑 ʟᴇᴠᴇʟ 100 [ᴍʏᴛʜɪᴄ ᴛɪᴇʀ] ★</b></gradient>"
+                    : "<gradient:#f7971e:#ffd200><b>★ ʟᴇᴠᴇʟ " + lvl + " [" + info.skillIcon() + " " + info.skillName() + "]</b></gradient>";
 
-            lore.add(ColorUtil.component("&e★ sᴛᴀᴛᴜs: ᴛᴀʀɢᴇᴛ ᴜᴘɢʀᴀᴅᴇ ʙᴇʀɪᴋᴜᴛɴʏᴀ"));
-            lore.add(ColorUtil.component("&7• ᴡᴀᴋᴛᴜ ᴛʀᴀɪɴɪɴɢ: &e" + formatSec(durationSec)));
-            lore.add(ColorUtil.component("&7• ʀᴇᴡᴀʀᴅ ᴅᴀᴍᴀɢᴇ: &c" + String.format("%.1f", baseDmg) + " &a(+1.5)"));
-            lore.add(ColorUtil.component("&7• ʀᴇᴡᴀʀᴅ ʙᴏɴᴜs: &b+" + perkBonus + "% sᴛᴀᴛs"));
+            lore.add(ColorUtil.component("&e★ sᴛᴀᴛᴜs: sᴇᴅᴀɴɢ ᴅɪᴛᴜᴊᴜ (" + currentPetLevel + "/" + lvl + ")"));
+            lore.add(ColorUtil.component("&e" + info.skillIcon() + " sᴋɪʟʟ: &f<b>" + info.skillName() + "</b>"));
+            lore.add(ColorUtil.component("&7" + info.description()));
+            lore.add(ColorUtil.component(""));
+            lore.add(ColorUtil.component("&7• ᴛᴀʀɢᴇᴛ ᴅᴀᴍᴀɢᴇ: &c" + String.format("%.1f", baseDmg)));
+            lore.add(ColorUtil.component("&7• ʜɪᴛ ᴘᴀʀᴛɪᴄʟᴇ: &b" + info.hitParticle()));
             lore.add(ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"));
-            lore.add(ColorUtil.component("&6ʟᴇᴛᴀᴋᴋᴀɴ ᴘᴇᴛ ᴅɪ &eᴛʀᴀɪɴɪɴɢ ᴀʟᴛᴀʀ &6ᴜɴᴛᴜᴋ ᴜᴘɢʀᴀᴅᴇ!"));
+            lore.add(ColorUtil.component("&6ᴜᴘɢʀᴀᴅᴇ ᴘᴇᴛ ᴅɪ &eᴛʀᴀɪɴɪɴɢ ᴀʟᴛᴀʀ &6ᴜɴᴛᴜᴋ ᴍᴇᴍʙᴜᴋᴀ sᴋɪʟʟ!"));
         } else {
             // LOCKED
             mat = Material.GRAY_STAINED_GLASS;
             glint = false;
-            name = (lvl == 10)
-                    ? "&8🔒 ʟᴇᴠᴇʟ 10 [ᴍᴀx ᴛɪᴇʀ]"
-                    : "&7🔒 ʟᴇᴠᴇʟ " + lvl + " &8[ᴛᴇʀᴋᴜɴᴄɪ]";
+            name = "&7🔒 ʟᴇᴠᴇʟ " + lvl + " [" + info.skillIcon() + " " + info.skillName() + "] &8[ᴛᴇʀᴋᴜɴᴄɪ]";
 
             lore.add(ColorUtil.component("&c🔒 sᴛᴀᴛᴜs: ᴛᴇʀᴋᴜɴᴄɪ"));
-            lore.add(ColorUtil.component("&7• sʏᴀʀᴀᴛ: &fᴍᴇɴᴄᴀᴘᴀɪ ʟᴇᴠᴇʟ " + (lvl - 1)));
-            lore.add(ColorUtil.component("&7• ᴡᴀᴋᴛᴜ ᴛʀᴀɪɴɪɴɢ: &8" + formatSec(durationSec)));
-            lore.add(ColorUtil.component("&7• ʀᴇᴡᴀʀᴅ ᴅᴀᴍᴀɢᴇ: &8" + String.format("%.1f", baseDmg)));
+            lore.add(ColorUtil.component("&8" + info.skillIcon() + " sᴋɪʟʟ: &7<b>" + info.skillName() + "</b>"));
+            lore.add(ColorUtil.component("&8" + info.description()));
+            lore.add(ColorUtil.component(""));
+            lore.add(ColorUtil.component("&7• sʏᴀʀᴀᴛ: &fᴍᴇɴᴄᴀᴘᴀɪ ʟᴇᴠᴇʟ " + lvl));
+            lore.add(ColorUtil.component("&7• ʜɪᴛ ᴘᴀʀᴛɪᴄʟᴇ: &8" + info.hitParticle()));
             lore.add(ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"));
-            lore.add(ColorUtil.component("&8ʙᴜᴋᴀ ʟᴇᴠᴇʟ sᴇʙᴇʟᴜᴍɴʏᴀ ᴛᴇʀʟᴇʙɪʜ ᴅᴀʜᴜʟᴜ."));
+            lore.add(ColorUtil.component("&8ʙᴜᴋᴀ ᴛɪᴇʀ sᴇʙᴇʟᴜᴍɴʏᴀ ᴛᴇʀʟᴇʙɪʜ ᴅᴀʜᴜʟᴜ."));
         }
 
-        ItemStack item = new ItemStack(mat, lvl);
+        ItemStack item = new ItemStack(mat);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             meta.displayName(ColorUtil.component(name));
