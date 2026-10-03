@@ -331,15 +331,19 @@ public class AltarManager {
         double cz = lodestoneLoc.getZ() + 0.5;
 
         if (altar.isTraining()) {
-            // Inside the altar chamber, sitting directly above the custom skull (head is at Y=1.55, height 1.92)
-            return new Location(lodestoneLoc.getWorld(), cx, cy + 1.92, cz);
+            // Inside the altar chamber, sitting directly above the custom skull (skull at Y=1.55, text lowered to 1.62)
+            Location loc = new Location(lodestoneLoc.getWorld(), cx, cy + 1.62, cz);
+            loc.setYaw(0f);
+            loc.setPitch(0f);
+            return loc;
         }
 
         // Idle state: Hologram is placed OUTSIDE the 3x3 altar and follows the nearest player's side (N, S, E, W)
+        // Lowered 1 block down (from 1.70 to 0.70)
         Player nearest = null;
         double minDistanceSq = 144.0; // within 12 blocks
         for (Player p : lodestoneLoc.getWorld().getPlayers()) {
-            double dSq = p.getLocation().distanceSquared(new Location(lodestoneLoc.getWorld(), cx, cy + 1.0, cz));
+            double dSq = p.getLocation().distanceSquared(new Location(lodestoneLoc.getWorld(), cx, cy + 0.5, cz));
             if (dSq < minDistanceSq) {
                 minDistanceSq = dSq;
                 nearest = p;
@@ -348,7 +352,8 @@ public class AltarManager {
 
         // Default to South (+Z) if no player nearby
         double offX = 0.0;
-        double offZ = 1.85;
+        double offZ = 1.75;
+        float yaw = 0f; // facing South
 
         if (nearest != null) {
             double dx = nearest.getLocation().getX() - cx;
@@ -357,25 +362,32 @@ public class AltarManager {
             if (Math.abs(dx) > Math.abs(dz)) {
                 // East (+X) or West (-X)
                 if (dx > 0) {
-                    offX = 1.85; // East
+                    offX = 1.75; // East
                     offZ = 0.0;
+                    yaw = 270f; // facing East
                 } else {
-                    offX = -1.85; // West
+                    offX = -1.75; // West
                     offZ = 0.0;
+                    yaw = 90f; // facing West
                 }
             } else {
                 // South (+Z) or North (-Z)
                 if (dz > 0) {
                     offX = 0.0;
-                    offZ = 1.85; // South
+                    offZ = 1.75; // South
+                    yaw = 0f; // facing South
                 } else {
                     offX = 0.0;
-                    offZ = -1.85; // North
+                    offZ = -1.75; // North
+                    yaw = 180f; // facing North
                 }
             }
         }
 
-        return new Location(lodestoneLoc.getWorld(), cx + offX, cy + 1.70, cz + offZ);
+        Location loc = new Location(lodestoneLoc.getWorld(), cx + offX, cy + 0.70, cz + offZ);
+        loc.setYaw(yaw);
+        loc.setPitch(0f);
+        return loc;
     }
 
     public void ensureHologram(PetAltar altar) {
@@ -387,7 +399,7 @@ public class AltarManager {
             Location textLoc = getIdealHologramLocation(altar);
             text = textLoc.getWorld().spawn(textLoc, TextDisplay.class, t -> {
                 t.setPersistent(false);
-                t.setBillboard(Display.Billboard.CENTER);
+                t.setBillboard(altar.isTraining() ? Display.Billboard.CENTER : Display.Billboard.FIXED);
                 t.setDefaultBackground(false);
                 t.setBackgroundColor(org.bukkit.Color.fromARGB(0, 0, 0, 0)); // Transparent background
                 t.setShadowed(true);
@@ -434,7 +446,7 @@ public class AltarManager {
 
         // Follow player perspective (N, S, E, W outside when idle, inside directly above skull when training)
         Location idealLoc = getIdealHologramLocation(altar);
-        if (text.getLocation().distanceSquared(idealLoc) > 0.04) {
+        if (text.getLocation().distanceSquared(idealLoc) > 0.04 || Math.abs(text.getLocation().getYaw() - idealLoc.getYaw()) > 1.0f) {
             text.teleport(idealLoc);
         }
 
@@ -443,16 +455,18 @@ public class AltarManager {
         int discount = (int) altar.getTimeReductionPercent();
 
         if (!altar.isTraining()) {
-            // Idle Altar Hologram: Shows owner and altar level
-            String idleText = "<gradient:#ff9900:#ff5500><b>✦ ᴘᴇᴛ ᴛʀᴀɪɴɪɴɢ ᴀʟᴛᴀʀ ✦</b></gradient>\n" +
-                    "<gray>ᴘᴇᴍɪʟɪᴋ: </gray><white>" + ownerName + "</white>\n" +
-                    "<yellow>ʟᴇᴠᴇʟ: </yellow><gold><b>ʟᴠ." + altar.getAltarLevel() + "</b></gold> <green>(-" + discount + "% ᴡᴀᴋᴛᴜ)</green>\n" +
-                    "<gray>(ᴋʟɪᴋ ᴋᴀɴᴀɴ ʟᴏᴅᴇsᴛᴏɴᴇ ᴜɴᴛᴜᴋ ᴍᴇɴᴜ)</gray>";
+            // Idle Altar Hologram: FIXED billboard, 1 block lower, shortened to concise 2 lines
+            text.setBillboard(Display.Billboard.FIXED);
+
+            String idleText = "<gradient:#ff9900:#ff5500><b>✦ ᴘᴇᴛ ᴀʟᴛᴀʀ [ʟᴠ." + altar.getAltarLevel() + "] ✦</b></gradient>\n" +
+                    "<white>" + ownerName + "</white> <gray>•</gray> <green>-" + discount + "% ᴡᴀᴋᴛᴜ</green>";
             text.text(ColorUtil.component(idleText));
             return;
         }
 
-        // Training Altar Hologram: Merged with training details (no duplicate hologram)
+        // Training Altar Hologram: Merged with training details (no duplicate hologram, Billboard.CENTER)
+        text.setBillboard(Display.Billboard.CENTER);
+
         boolean isOnline = owner.isOnline();
         String statusLine;
         if (altar.isFinished()) {
