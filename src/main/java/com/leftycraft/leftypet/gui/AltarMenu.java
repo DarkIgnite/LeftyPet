@@ -99,15 +99,15 @@ public class AltarMenu {
         // Slot 15: Upgrade Altar
         int nextAltarLvl = altar.getAltarLevel() + 1;
         if (nextAltarLvl <= 4) {
-            boolean isCelestialTier = (nextAltarLvl == 4);
-            boolean hasCelestialPerm = player.hasPermission("leftypet.celestial");
+            boolean isMemberPPTier = (nextAltarLvl == 4);
+            boolean hasMemberPPPerm = player.hasPermission("leftypet.memberplusplus") || player.hasPermission("leftypet.memberpp");
 
-            if (isCelestialTier && !hasCelestialPerm) {
+            if (isMemberPPTier && !hasMemberPPPerm) {
                 // Show locked button
                 inv.setItem(15, PetMenu.createItem(Material.BARRIER, false,
-                        "<gradient:#ff9a00:#7928ca><b>🔒 ᴜᴘɢʀᴀᴅᴇ ᴀʟᴛᴀʀ [ᴄᴇʟᴇsᴛɪᴀʟ] (ʟᴇᴠᴇʟ 4)</b></gradient>",
+                        "<gradient:#ff9a00:#7928ca><b>🔒 ᴜᴘɢʀᴀᴅᴇ ᴀʟᴛᴀʀ [ᴍᴇᴍʙᴇʀ++] (ʟᴇᴠᴇʟ 4)</b></gradient>",
                         "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
-                        "&c🔒 ʜᴀɴʏᴀ ᴜɴᴛᴜᴋ ʀᴀɴᴋ &6&lCELESTIAL!",
+                        "&c🔒 ʜᴀɴʏᴀ ᴜɴᴛᴜᴋ ʀᴀɴᴋ &d&lMEMBER++!",
                         "&7ᴅɪsᴋᴏɴ ᴍᴀᴋsɪᴍᴀʟ: &a-50% ᴡᴀᴋᴛᴜ ᴜᴘɢʀᴀᴅᴇ",
                         "&7ᴅᴀɴ sᴛʀᴜᴋᴛᴜʀ ᴇxᴋʟᴜsɪᴠ ᴅᴀʀɪ sᴄʜᴇᴍᴀᴛɪᴄ!",
                         "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
@@ -118,17 +118,17 @@ public class AltarMenu {
                 else if (nextAltarLvl == 3) costLore = "&7• ʙɪᴀʏᴀ: &e16x Purpur Blocks & 8x Diamonds";
                 else costLore = "&7• ʙɪᴀʏᴀ: &d16x Amethyst Shard & 4x Netherite Ingot";
 
-                String titleColor = isCelestialTier ? "<gradient:#ff9a00:#7928ca>" : "<gradient:#00c6ff:#0072ff>";
-                String titleSuffix = isCelestialTier ? " &6[ᴄᴇʟᴇsᴛɪᴀʟ]</gradient>" : "</gradient>";
-                int discount = isCelestialTier ? 50 : (nextAltarLvl * 10);
+                String titleColor = isMemberPPTier ? "<gradient:#ff9a00:#7928ca>" : "<gradient:#00c6ff:#0072ff>";
+                String titleSuffix = isMemberPPTier ? " &d[ᴍᴇᴍʙᴇʀ++]</gradient>" : "</gradient>";
+                int discount = isMemberPPTier ? 50 : (nextAltarLvl * 10);
 
                 inv.setItem(15, PetMenu.createItem(
-                        isCelestialTier ? Material.NETHER_STAR : Material.ANVIL, true,
+                        isMemberPPTier ? Material.NETHER_STAR : Material.ANVIL, true,
                         titleColor + "<b>ᴜᴘɢʀᴀᴅᴇ ᴀʟᴛᴀʀ (ʟᴇᴠᴇʟ " + nextAltarLvl + ")" + titleSuffix,
                         "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
                         "&7• ᴅɪsᴋᴏɴ ʙᴀʀᴜ: &a-" + discount + "% ᴡᴀᴋᴛᴜ",
                         costLore,
-                        isCelestialTier ? "&6✦ sᴛʀᴜᴋᴛᴜʀ sᴄʜᴇᴍᴀᴛɪᴄ ᴇxᴋʟᴜsɪᴠ!" : "",
+                        isMemberPPTier ? "&d✦ sᴛʀᴜᴋᴛᴜʀ sᴄʜᴇᴍᴀᴛɪᴄ ᴇxᴋʟᴜsɪᴠ!" : "",
                         "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
                         "&e▶ ᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴜᴘɢʀᴀᴅᴇ ᴀʟᴛᴀʀ!"));
             }
@@ -176,10 +176,11 @@ public class AltarMenu {
                 int nextLvl = altar.getAltarLevel() + 1;
                 if (nextLvl > 4) return;
 
-                // Celestial gate for lv4
-                if (nextLvl == 4 && !player.hasPermission("leftypet.celestial")) {
+                // Member++ gate for lv4
+                boolean hasMemberPP = player.hasPermission("leftypet.memberplusplus") || player.hasPermission("leftypet.memberpp");
+                if (nextLvl == 4 && !hasMemberPP) {
                     player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                            "<gradient:#ff9a00:#7928ca><b>🔒 ᴜᴘɢʀᴀᴅᴇ ᴀʟᴛᴀʀ ʟᴇᴠᴇʟ 4 ʜᴀɴʏᴀ ᴜɴᴛᴜᴋ ʀᴀɴᴋ CELESTIAL!</b></gradient> " +
+                            "<gradient:#ff9a00:#7928ca><b>🔒 ᴜᴘɢʀᴀᴅᴇ ᴀʟᴛᴀʀ ʟᴇᴠᴇʟ 4 ʜᴀɴʏᴀ ᴜɴᴛᴜᴋ ʀᴀɴᴋ MEMBER++!</b></gradient> " +
                             "<gray>ᴜᴘɢʀᴀᴅᴇ ʀᴀɴᴋᴍᴜ ᴅɪ <yellow>/ranks</yellow>.</gray>"));
                     player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
                     return;

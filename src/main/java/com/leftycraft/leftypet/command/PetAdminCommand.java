@@ -20,7 +20,7 @@ import java.util.List;
 public class PetAdminCommand implements CommandExecutor, TabCompleter {
 
     private final LeftyPetPlugin plugin;
-    private final List<String> subCommands = Arrays.asList("reload", "setlevel", "setenergy", "givealtar");
+    private final List<String> subCommands = Arrays.asList("reload", "setlevel", "setenergy", "givealtar", "removealtar");
 
     public PetAdminCommand(LeftyPetPlugin plugin) {
         this.plugin = plugin;
@@ -39,6 +39,7 @@ public class PetAdminCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(ColorUtil.component("<aqua>/leftypet setlevel [player] [level]</aqua> <gray>- ᴀᴛᴜʀ ʟᴇᴠᴇʟ ᴘᴇᴛ ᴘʟᴀʏᴇʀ</gray>"));
             sender.sendMessage(ColorUtil.component("<aqua>/leftypet setenergy [player] [amount]</aqua> <gray>- ᴀᴛᴜʀ ᴇɴᴇʀɢɪ ᴘᴇᴛ ᴘʟᴀʏᴇʀ</gray>"));
             sender.sendMessage(ColorUtil.component("<aqua>/leftypet givealtar [player]</aqua> <gray>- ʙᴇʀɪᴋᴀɴ ᴀʟᴛᴀʀ ᴋᴇ ᴘʟᴀʏᴇʀ</gray>"));
+            sender.sendMessage(ColorUtil.component("<aqua>/leftypet removealtar [player]</aqua> <gray>- ʜᴀᴘᴜs ᴀʟᴛᴀʀ ᴍɪʟɪᴋ ᴘʟᴀʏᴇʀ</gray>"));
             sender.sendMessage(ColorUtil.component("<gradient:#00f2fe:#4facfe><b>--------------------------------------------------</b></gradient>"));
             return true;
         }
@@ -108,6 +109,25 @@ public class PetAdminCommand implements CommandExecutor, TabCompleter {
                 target.getInventory().addItem(plugin.getAltarManager().createAltarItem());
                 sender.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
                         "<gradient:#43e97b:#38f9d7>ʙᴇʀʜᴀsɪʟ ᴍᴇᴍʙᴇʀɪᴋᴀɴ ᴀʟᴛᴀʀ ᴋᴇᴘᴀᴅᴀ <yellow>" + target.getName() + "</yellow>!</gradient>"));
+            }
+            case "removealtar" -> {
+                if (args.length < 2) {
+                    sender.sendMessage(ColorUtil.component("<red>ɢᴜɴᴀᴋᴀɴ: /leftypet removealtar [player]</red>"));
+                    return true;
+                }
+                org.bukkit.OfflinePlayer target = Bukkit.getPlayer(args[1]);
+                if (target == null) {
+                    target = Bukkit.getOfflinePlayer(args[1]);
+                }
+                if (target.getName() == null && !target.hasPlayedBefore()) {
+                    sender.sendMessage(ColorUtil.component("<red>ᴘʟᴀʏᴇʀ ᴛɪᴅᴀᴋ ᴅɪᴛᴇᴍᴜᴋᴀɴ!</red>"));
+                    return true;
+                }
+                boolean success = plugin.getAltarManager().dismantleAltarByAdmin(sender, target);
+                if (!success) {
+                    sender.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                            "<gradient:#ff5f6d:#ffc371>ᴘʟᴀʏᴇʀ <yellow>" + (target.getName() != null ? target.getName() : args[1]) + "</yellow> ᴛɪᴅᴀᴋ ᴍᴇᴍɪʟɪᴋɪ ᴀʟᴛᴀʀ ᴀᴋᴛɪғ!</gradient>"));
+                }
             }
             default -> {
                 sender.sendMessage(ColorUtil.component("<red>sᴜʙᴄᴏᴍᴍᴀɴᴅ ᴛɪᴅᴀᴋ ᴅɪᴋᴇᴛᴀʜᴜɪ!</red>"));

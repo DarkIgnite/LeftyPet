@@ -152,6 +152,7 @@ public class PetMenu {
             case 10 -> { // Summon / Dismiss
                 if (plugin.getPetManager().isPetSummoned(player.getUniqueId())) {
                     plugin.getPetManager().despawnPet(player.getUniqueId());
+                    plugin.getPetManager().setSessionDismissed(player.getUniqueId(), true);
                     ColorUtil.sendMessage(player, plugin.getConfigManager().getMessage("pet-dismissed"));
                     player.playSound(player.getLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 0.6f, 1.4f);
                 } else {

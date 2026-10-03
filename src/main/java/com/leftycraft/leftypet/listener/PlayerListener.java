@@ -22,10 +22,11 @@ public class PlayerListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        // Pre-load pet data
+        // Pre-load pet data and auto-summon unless dismissed in current server session
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             PetData data = plugin.getPetManager().getPetData(player.getUniqueId());
-            if (data.isSummoned() && !data.isTraining()) {
+            boolean isDismissed = plugin.getPetManager().isSessionDismissed(player.getUniqueId());
+            if (!isDismissed && !data.isTraining()) {
                 Bukkit.getScheduler().runTask(plugin, () -> {
                     if (player.isOnline()) {
                         plugin.getPetManager().summonPet(player);

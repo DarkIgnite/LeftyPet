@@ -23,7 +23,20 @@ public class PetManager {
     private final LeftyPetPlugin plugin;
     private final Map<UUID, PetData> petDataCache = new ConcurrentHashMap<>();
     private final Map<UUID, ActivePet> activePets = new ConcurrentHashMap<>();
+    private final Set<UUID> sessionDismissedPlayers = ConcurrentHashMap.newKeySet();
     private final File dataFolder;
+
+    public boolean isSessionDismissed(UUID uuid) {
+        return sessionDismissedPlayers.contains(uuid);
+    }
+
+    public void setSessionDismissed(UUID uuid, boolean dismissed) {
+        if (dismissed) {
+            sessionDismissedPlayers.add(uuid);
+        } else {
+            sessionDismissedPlayers.remove(uuid);
+        }
+    }
 
     public PetManager(LeftyPetPlugin plugin) {
         this.plugin = plugin;
@@ -68,6 +81,7 @@ public class PetManager {
         ActivePet activePet = new ActivePet(plugin, player, data);
         activePets.put(uuid, activePet);
         data.setSummoned(true);
+        sessionDismissedPlayers.remove(uuid);
 
         ColorUtil.sendMessage(player, plugin.getConfigManager().getMessage("pet-summoned"));
         player.playSound(player.getLocation(), Sound.ENTITY_ILLUSIONER_PREPARE_MIRROR, 0.7f, 1.4f);

@@ -17,7 +17,7 @@ commands:
     description: Admin commands for LeftyPet
     aliases: [lpa, petadmin]
     permission: leftypet.admin
-    usage: /<command> [reload|setlevel|setenergy|givealtar]
+    usage: /<command> [reload|setlevel|setenergy|givealtar|removealtar]
 
 permissions:
   leftypet.use:
@@ -26,6 +26,9 @@ permissions:
   leftypet.admin:
     description: Allows admin management for pets
     default: op
-  leftypet.celestial:
-    description: Unlocks Celestial exclusive pet skins and Altar Level 4 upgrade (schematic structure)
+  leftypet.memberplusplus:
+    description: Unlocks Member++ exclusive pet skins and Altar Level 4 upgrade
+    default: false
+  leftypet.memberpp:
+    description: Alias for leftypet.memberplusplus
     default: false

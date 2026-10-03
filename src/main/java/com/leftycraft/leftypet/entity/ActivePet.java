@@ -81,6 +81,7 @@ public class ActivePet {
             text.setPersistent(false);
             text.setBillboard(Display.Billboard.CENTER);
             text.setDefaultBackground(false);
+            text.setBackgroundColor(org.bukkit.Color.fromARGB(0, 0, 0, 0)); // 100% transparent background
             text.setSeeThrough(false);
             text.setShadowed(true);
             text.setInterpolationDuration(plugin.getConfigManager().getInterpolationDuration());

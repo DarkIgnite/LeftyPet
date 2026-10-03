@@ -67,7 +67,7 @@ public class AltarManager {
             int discount = (lvl == 4) ? 50 : (lvl * 10);
             lore.add(ColorUtil.component("&eᴀʟᴛᴀʀ ʟᴇᴠᴇʟ: &f" + lvl + " &7(-" + discount + "% ᴡᴀᴋᴛᴜ ᴜᴘɢʀᴀᴅᴇ)"));
             if (lvl == 4) {
-                lore.add(ColorUtil.component("<gradient:#ff9a00:#7928ca>✦ CELESTIAL EXCLUSIVE - Max Level!</gradient>"));
+                lore.add(ColorUtil.component("<gradient:#ff9a00:#ff6a00>✦ MEMBER++ EXCLUSIVE - Max Level!</gradient>"));
             } else if (lvl < 4) {
                 lore.add(ColorUtil.component("&bʙɪsᴀ ᴅɪ-ᴜᴘɢʀᴀᴅᴇ &7ʜɪɴɢɢᴀ ʟᴇᴠᴇʟ 4 (-50%)"));
             }
@@ -211,7 +211,8 @@ public class AltarManager {
         data.setCurrentAltarId(altar.getAltarId());
         plugin.getPetManager().despawnPet(uuid);
 
-        spawnAltarDisplays(altar);
+        spawnFloatingHead(altar);
+        updateAltarHologram(altar);
         saveAltars();
 
         String timeStr = formatDuration(finalSec);
@@ -298,17 +299,37 @@ public class AltarManager {
         plugin.getPetManager().summonPet(player);
     }
 
-    private void spawnAltarDisplays(PetAltar altar) {
+    public void ensureHologram(PetAltar altar) {
         Location lodestoneLoc = altar.getLocation();
         if (!lodestoneLoc.isWorldLoaded() || !lodestoneLoc.getChunk().isLoaded()) return;
 
-        altar.removeEntities();
+        TextDisplay text = altar.getHologramDisplay();
+        if (text == null || !text.isValid()) {
+            Location textLoc = lodestoneLoc.clone().add(0.5, 2.20, 0.5);
+            text = textLoc.getWorld().spawn(textLoc, TextDisplay.class, t -> {
+                t.setPersistent(false);
+                t.setBillboard(Display.Billboard.CENTER);
+                t.setDefaultBackground(false);
+                t.setBackgroundColor(org.bukkit.Color.fromARGB(0, 0, 0, 0)); // Transparent background
+                t.setShadowed(true);
+            });
+            altar.setHologramDisplay(text);
+        }
+    }
 
-        // 1. Floating Head: Positioned at Y=1.20 (lower middle of glass chamber)
-        Location headLoc = lodestoneLoc.clone().add(0.5, 1.20, 0.5);
+    public void spawnFloatingHead(PetAltar altar) {
+        Location lodestoneLoc = altar.getLocation();
+        if (!lodestoneLoc.isWorldLoaded() || !lodestoneLoc.getChunk().isLoaded()) return;
+
+        if (altar.getFloatingDisplay() != null && altar.getFloatingDisplay().isValid()) {
+            altar.getFloatingDisplay().remove();
+        }
+
+        // Floating Head: Positioned at Y=1.55 (exact vertical center of 2-block-high chamber)
+        Location headLoc = lodestoneLoc.clone().add(0.5, 1.55, 0.5);
         ItemDisplay display = headLoc.getWorld().spawn(headLoc, ItemDisplay.class, d -> {
             d.setPersistent(false);
-            d.setBillboard(Display.Billboard.FIXED); // Stays in place!
+            d.setBillboard(Display.Billboard.FIXED);
             d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.HEAD);
             float scale = 1.25f;
             Transformation t = new Transformation(
@@ -325,27 +346,29 @@ public class AltarManager {
             d.setItemStack(head);
         });
         altar.setFloatingDisplay(display);
-
-        // 2. Hologram Display: placed right above the skull at Y=1.70 (well below roof slabs)
-        Location textLoc = lodestoneLoc.clone().add(0.5, 1.70, 0.5);
-        TextDisplay text = textLoc.getWorld().spawn(textLoc, TextDisplay.class, t -> {
-            t.setPersistent(false);
-            t.setBillboard(Display.Billboard.CENTER);
-            t.setDefaultBackground(false);
-            t.setShadowed(true);
-        });
-        altar.setHologramDisplay(text);
-        updateAltarHologram(altar);
     }
 
     public void updateAltarHologram(PetAltar altar) {
+        ensureHologram(altar);
         TextDisplay text = altar.getHologramDisplay();
         if (text == null || !text.isValid()) return;
 
         OfflinePlayer owner = Bukkit.getOfflinePlayer(altar.getOwnerUuid());
         String ownerName = owner.getName() != null ? owner.getName() : "Player";
-        boolean isOnline = owner.isOnline();
+        int discount = (int) altar.getTimeReductionPercent();
 
+        if (!altar.isTraining()) {
+            // Idle Altar Hologram: Shows owner and altar level
+            String idleText = "<gradient:#ff9900:#ff5500><b>✦ ᴘᴇᴛ ᴛʀᴀɪɴɪɴɢ ᴀʟᴛᴀʀ ✦</b></gradient>\n" +
+                    "<gray>ᴘᴇᴍɪʟɪᴋ: </gray><white>" + ownerName + "</white>\n" +
+                    "<yellow>ʟᴇᴠᴇʟ: </yellow><gold><b>ʟᴠ." + altar.getAltarLevel() + "</b></gold> <green>(-" + discount + "% ᴡᴀᴋᴛᴜ)</green>\n" +
+                    "<gray>(ᴋʟɪᴋ ᴋᴀɴᴀɴ ʟᴏᴅᴇsᴛᴏɴᴇ ᴜɴᴛᴜᴋ ᴍᴇɴᴜ)</gray>";
+            text.text(ColorUtil.component(idleText));
+            return;
+        }
+
+        // Training Altar Hologram: Merged with training details (no duplicate hologram)
+        boolean isOnline = owner.isOnline();
         String statusLine;
         if (altar.isFinished()) {
             statusLine = "<gradient:#43e97b:#38f9d7><b>ᴜᴘɢʀᴀᴅᴇ sᴇʟᴇsᴀɪ!</b></gradient>\n<gray>(ᴋʟɪᴋ ᴋᴀɴᴀɴ ᴜɴᴛᴜᴋ ᴋʟᴀɪᴍ)</gray>";
@@ -355,8 +378,9 @@ public class AltarManager {
             statusLine = "<yellow>sɪsᴀ ᴡᴀᴋᴛᴜ: </yellow><gradient:#00f2fe:#4facfe><b>" + altar.getFormattedRemainingTime() + "</b></gradient>";
         }
 
-        String full = "<gradient:#ff9900:#ff5500><b>ᴘᴇᴛ ᴛʀᴀɪɴɪɴɢ ᴀʟᴛᴀʀ (ʟᴠ." + altar.getAltarLevel() + ")</b></gradient>\n" +
+        String full = "<gradient:#ff9900:#ff5500><b>✦ ᴘᴇᴛ ᴛʀᴀɪɴɪɴɢ ᴀʟᴛᴀʀ ✦</b></gradient>\n" +
                 "<gray>ᴘᴇᴍɪʟɪᴋ: </gray><white>" + ownerName + "</white>\n" +
+                "<yellow>ʟᴇᴠᴇʟ: </yellow><gold><b>ʟᴠ." + altar.getAltarLevel() + "</b></gold> <green>(-" + discount + "% ᴡᴀᴋᴛᴜ)</green>\n" +
                 "<aqua>ᴛᴀʀɢᴇᴛ: </aqua>" + ColorUtil.getLevelTag(altar.getTargetLevel()) + "\n" +
                 statusLine;
 
@@ -369,39 +393,82 @@ public class AltarManager {
                 Location loc = altar.getLocation();
                 if (!loc.isWorldLoaded() || !loc.getChunk().isLoaded()) continue;
 
-                // Subtle ambient particles per level (Revisi 15)
+                // Subtle ambient particles per level
                 spawnAltarAmbientParticles(altar);
 
-                if (!altar.isTraining()) continue;
+                // Always ensure hologram exists for all altars
+                ensureHologram(altar);
 
-                if (altar.getFloatingDisplay() == null || !altar.getFloatingDisplay().isValid()) {
-                    spawnAltarDisplays(altar);
-                }
+                if (altar.isTraining()) {
+                    if (altar.getFloatingDisplay() == null || !altar.getFloatingDisplay().isValid()) {
+                        spawnFloatingHead(altar);
+                    }
 
-                // Smooth rotation of head on Y axis
-                if (altar.getFloatingDisplay() != null) {
-                    Location dLoc = altar.getFloatingDisplay().getLocation();
-                    dLoc.setYaw((dLoc.getYaw() + 3.0f) % 360f);
-                    altar.getFloatingDisplay().teleport(dLoc);
-                }
+                    // Smooth rotation of head on Y axis
+                    if (altar.getFloatingDisplay() != null) {
+                        Location dLoc = altar.getFloatingDisplay().getLocation();
+                        dLoc.setYaw((dLoc.getYaw() + 3.0f) % 360f);
+                        altar.getFloatingDisplay().teleport(dLoc);
+                    }
 
-                Player owner = Bukkit.getPlayer(altar.getOwnerUuid());
-                boolean isOnline = (owner != null && owner.isOnline());
+                    Player owner = Bukkit.getPlayer(altar.getOwnerUuid());
+                    boolean isOnline = (owner != null && owner.isOnline());
 
-                // Altar training ONLY progresses while player is online!
-                if (isOnline && !altar.isFinished()) {
-                    altar.decrementRemainingSeconds();
-                    if (altar.isFinished()) {
-                        owner.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                                "<gradient:#43e97b:#38f9d7><b>ᴜᴘɢʀᴀᴅᴇ sᴇʟᴇsᴀɪ!</b> Pet kamu di altar sudah siap diklaim.</gradient>"));
-                        owner.playSound(owner.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.2f);
+                    // Altar training ONLY progresses while player is online!
+                    if (isOnline && !altar.isFinished()) {
+                        altar.decrementRemainingSeconds();
+                        if (altar.isFinished()) {
+                            owner.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                                    "<gradient:#43e97b:#38f9d7><b>ᴜᴘɢʀᴀᴅᴇ sᴇʟᴇsᴀɪ!</b> Pet kamu di altar sudah siap diklaim.</gradient>"));
+                            owner.playSound(owner.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.2f);
+                        }
+                    }
+                } else {
+                    // Remove floating head when not training
+                    if (altar.getFloatingDisplay() != null && altar.getFloatingDisplay().isValid()) {
+                        altar.getFloatingDisplay().remove();
+                        altar.setFloatingDisplay(null);
                     }
                 }
 
-                // Update text
+                // Update text display (unified hologram)
                 updateAltarHologram(altar);
             }
         }, 20L, 20L); // 1 second
+    }
+
+    public boolean dismantleAltarByAdmin(org.bukkit.command.CommandSender sender, OfflinePlayer target) {
+        PetAltar altar = getAltarByOwner(target.getUniqueId());
+        if (altar == null) {
+            return false;
+        }
+
+        if (altar.isTraining()) {
+            Player targetPlayer = target.getPlayer();
+            if (targetPlayer != null && targetPlayer.isOnline()) {
+                cancelTraining(targetPlayer);
+            } else {
+                altar.setTraining(false);
+                altar.removeEntities();
+            }
+        }
+
+        Location loc = altar.getLocation();
+        altar.removeEntities();
+        structureManager.removeStructure(loc);
+        removeAltar(loc);
+
+        sender.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                "<gradient:#43e97b:#38f9d7>ʙᴇʀʜᴀsɪʟ ᴍᴇɴɢʜᴀᴘᴜs ᴀʟᴛᴀʀ ᴍɪʟɪᴋ <yellow>" + (target.getName() != null ? target.getName() : "Player") + "</yellow>!</gradient>"));
+
+        Player onlineTarget = target.getPlayer();
+        if (onlineTarget != null && onlineTarget.isOnline()) {
+            onlineTarget.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                    "<gradient:#ff5f6d:#ffc371>ᴀʟᴛᴀʀ ᴋᴀᴍᴜ ᴛᴇʟᴀʜ ᴅɪʜᴀᴘᴜs ᴏʟᴇʜ ᴀᴅᴍɪɴ!</gradient>"));
+            onlineTarget.playSound(onlineTarget.getLocation(), Sound.BLOCK_ANVIL_DESTROY, 0.7f, 1.2f);
+        }
+
+        return true;
     }
 
     private void spawnAltarAmbientParticles(PetAltar altar) {

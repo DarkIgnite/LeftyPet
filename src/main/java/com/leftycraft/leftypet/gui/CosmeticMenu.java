@@ -123,27 +123,27 @@ public class CosmeticMenu {
             inv.setItem(i, purpleBorder);
         }
 
-        boolean hasCelestial = player.hasPermission("leftypet.celestial");
+        boolean hasMemberPP = player.hasPermission("leftypet.memberplusplus") || player.hasPermission("leftypet.memberpp");
 
-        ItemStack celestialHeader = new ItemStack(Material.NETHER_STAR);
-        ItemMeta chMeta = celestialHeader.getItemMeta();
+        ItemStack memberPPHeader = new ItemStack(Material.NETHER_STAR);
+        ItemMeta chMeta = memberPPHeader.getItemMeta();
         if (chMeta != null) {
-            chMeta.displayName(ColorUtil.component("<gradient:#ff9a00:#7928ca><b>✦ sᴋɪɴ ᴄᴇʟᴇsᴛɪᴀʟ (ᴇxᴄʟᴜsɪᴠᴇ) ✦</b></gradient>"));
+            chMeta.displayName(ColorUtil.component("<gradient:#ff9a00:#7928ca><b>✦ sᴋɪɴ ᴍᴇᴍʙᴇʀ++ (ᴇxᴄʟᴜsɪᴠᴇ) ✦</b></gradient>"));
             List<Component> lore = new ArrayList<>();
             lore.add(ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"));
-            lore.add(ColorUtil.component("&7Koleksi 7 skin kosmetik mistis rank Celestial!"));
-            if (hasCelestial) {
-                lore.add(ColorUtil.component("&a✔ ʀᴀɴᴋ ᴄᴇʟᴇsᴛɪᴀʟ ᴀᴋᴛɪғ! sᴇᴍᴜᴀ sᴋɪɴ ᴛᴇʀʙᴜᴋᴀ."));
+            lore.add(ColorUtil.component("&7Koleksi 7 skin kosmetik mistis rank Member++!"));
+            if (hasMemberPP) {
+                lore.add(ColorUtil.component("&a✔ ʀᴀɴᴋ ᴍᴇᴍʙᴇʀ++ ᴀᴋᴛɪғ! sᴇᴍᴜᴀ sᴋɪɴ ᴛᴇʀʙᴜᴋᴀ."));
             } else {
-                lore.add(ColorUtil.component("&c🔒 ᴋʜᴜsᴜs ᴜɴᴛᴜᴋ ʀᴀɴᴋ &6&lCELESTIAL&c!"));
+                lore.add(ColorUtil.component("&c🔒 ᴋʜᴜsᴜs ᴜɴᴛᴜᴋ ʀᴀɴᴋ &d&lMEMBER++&c!"));
                 lore.add(ColorUtil.component("&7ᴜᴘɢʀᴀᴅᴇ ʀᴀɴᴋᴍᴜ ᴅɪ: &e/ranks"));
             }
             lore.add(ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"));
             chMeta.lore(lore);
             try { chMeta.setEnchantmentGlintOverride(true); } catch (Throwable ignored) {}
-            celestialHeader.setItemMeta(chMeta);
+            memberPPHeader.setItemMeta(chMeta);
         }
-        inv.setItem(22, celestialHeader);
+        inv.setItem(22, memberPPHeader);
 
         // ══════════════════════════════════════════════════════
         // ROW 3: Celestial Skins (Slots 28..34), Borders at 27 & 35
@@ -157,7 +157,7 @@ public class CosmeticMenu {
             PetSkin skin = entry.getValue();
             int slot = CELESTIAL_SLOTS[i];
 
-            boolean hasAccess = hasCelestial || (!skin.hasPermission() || player.hasPermission(skin.getRequiredPermission()));
+            boolean hasAccess = hasMemberPP || (!skin.hasPermission() || player.hasPermission(skin.getRequiredPermission()));
             boolean isSelected = key.equalsIgnoreCase(data.getSkinKey());
 
             // Always display the actual custom head!
@@ -169,14 +169,14 @@ public class CosmeticMenu {
 
                 if (!hasAccess) {
                     meta.displayName(ColorUtil.component(skin.getDisplayName() + " <red>[🔒 ʟᴏᴄᴋᴇᴅ]</red>"));
-                    lore.add(ColorUtil.component("&c🔒 ᴇxᴄʟᴜsɪᴠᴇ ᴜɴᴛᴜᴋ ʀᴀɴᴋ &6&lCELESTIAL"));
+                    lore.add(ColorUtil.component("&c🔒 ᴇxᴄʟᴜsɪᴠᴇ ᴜɴᴛᴜᴋ ʀᴀɴᴋ &d&lMEMBER++"));
                     lore.add(ColorUtil.component("&7Kamu belum memiliki rank ini!"));
                     lore.add(ColorUtil.component("&7Upgrade rank kamu di &e/ranks &7untuk membuka skin ini."));
                     lore.add(ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"));
-                    lore.add(ColorUtil.component("&c✖ ᴋʟɪᴋ ᴜɴᴛᴜᴋ ɪɴғᴏ ʀᴀɴᴋ ᴄᴇʟᴇsᴛɪᴀʟ"));
+                    lore.add(ColorUtil.component("&c✖ ᴋʟɪᴋ ᴜɴᴛᴜᴋ ɪɴғᴏ ʀᴀɴᴋ ᴍᴇᴍʙᴇʀ++"));
                 } else {
                     meta.displayName(ColorUtil.component(skin.getDisplayName()));
-                    lore.add(ColorUtil.component("<gradient:#ff9a00:#7928ca>✦ ᴄᴇʟᴇsᴛɪᴀʟ ᴇxᴄʟᴜsɪᴠᴇ</gradient>"));
+                    lore.add(ColorUtil.component("<gradient:#ff9a00:#7928ca>✦ ᴍᴇᴍʙᴇʀ++ ᴇxᴄʟᴜsɪᴠᴇ</gradient>"));
                     if (isSelected) {
                         lore.add(ColorUtil.component("&a✔ sᴇᴅᴀɴɢ ᴅɪɢᴜɴᴀᴋᴀɴ"));
                         try { meta.setEnchantmentGlintOverride(true); } catch (Throwable ignored) {}
@@ -296,9 +296,10 @@ public class CosmeticMenu {
         }
 
         if (slot == 22) {
-            if (!player.hasPermission("leftypet.celestial")) {
+            boolean hasMemberPP = player.hasPermission("leftypet.memberplusplus") || player.hasPermission("leftypet.memberpp");
+            if (!hasMemberPP) {
                 player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                        "<gradient:#ff9a00:#7928ca><b>✦ sᴋɪɴ ᴄᴇʟᴇsᴛɪᴀʟ ᴇxᴄʟᴜsɪᴠᴇ!</b></gradient> " +
+                        "<gradient:#ff9a00:#7928ca><b>✦ sᴋɪɴ ᴍᴇᴍʙᴇʀ++ ᴇxᴄʟᴜsɪᴠᴇ!</b></gradient> " +
                         "<gray>ᴜᴘɢʀᴀᴅᴇ ʀᴀɴᴋᴍᴜ ᴅɪ <yellow>/ranks</yellow> ᴜɴᴛᴜᴋ ᴍᴇᴍʙᴜᴋᴀ sᴇᴍᴜᴀ sᴋɪɴ ᴇxᴄʟᴜsɪᴠᴇ ɪɴɪ!</gray>"));
                 player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
             } else {
@@ -317,10 +318,12 @@ public class CosmeticMenu {
             PetSkin skin = plugin.getConfigManager().getSkin(skinKey);
             if (skin == null) return;
 
-            // Check Celestial rank permission
-            if (skin.hasPermission() && !player.hasPermission(skin.getRequiredPermission())) {
+            // Check Member++ rank permission
+            boolean hasSkinAccess = !skin.hasPermission() || player.hasPermission(skin.getRequiredPermission()) ||
+                    player.hasPermission("leftypet.memberplusplus") || player.hasPermission("leftypet.memberpp");
+            if (!hasSkinAccess) {
                 player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                        "<gradient:#ff9a00:#7928ca><b>🔒 sᴋɪɴ ɪɴɪ ᴇxᴄʟᴜsɪᴠᴇ ᴜɴᴛᴜᴋ ʀᴀɴᴋ CELESTIAL!</b></gradient> " +
+                        "<gradient:#ff9a00:#7928ca><b>🔒 sᴋɪɴ ɪɴɪ ᴇxᴄʟᴜsɪᴠᴇ ᴜɴᴛᴜᴋ ʀᴀɴᴋ MEMBER++!</b></gradient> " +
                         "<gray>ᴜᴘɢʀᴀᴅᴇ ʀᴀɴᴋᴍᴜ ᴅɪ <yellow>/ranks</yellow> ᴜɴᴛᴜᴋ ᴍᴇᴍʙᴜᴋᴀ sᴋɪɴ ɪɴɪ!</gray>"));
                 player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
                 return;

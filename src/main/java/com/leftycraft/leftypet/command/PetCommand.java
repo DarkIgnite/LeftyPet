@@ -48,8 +48,10 @@ public class PetCommand implements CommandExecutor, TabCompleter {
             case "dismiss", "hide" -> {
                 if (plugin.getPetManager().isPetSummoned(player.getUniqueId())) {
                     plugin.getPetManager().despawnPet(player.getUniqueId());
+                    plugin.getPetManager().setSessionDismissed(player.getUniqueId(), true);
                     player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("pet-dismissed")));
                 } else {
+                    plugin.getPetManager().setSessionDismissed(player.getUniqueId(), true);
                     player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<yellow>ᴘᴇᴛ ᴋᴀᴍᴜ ᴍᴇᴍᴀɴɢ sᴇᴅᴀɴɢ ᴛɪᴅᴀᴋ ᴅɪᴘᴀɴɢɢɪʟ.</yellow>"));
                 }
             }
