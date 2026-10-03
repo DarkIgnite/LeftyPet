@@ -70,42 +70,46 @@ public class AltarStructureManager {
     }
 
     /**
-     * Builds the Altar structure layer by layer with 1 second delay between each layer and sound effects.
+     * Builds the Altar structure layer by layer with 0.5 second delay (10 ticks) between each layer and sound effects.
      */
     public void buildStructureAnimated(Location center, int level, Runnable onComplete) {
+        plugin.getAltarManager().setBuilding(center, true);
+
         // Layer 0: Base (Y=0) immediately
         buildLayerBase(center, level);
         center.getWorld().playSound(center, Sound.BLOCK_STONE_PLACE, 1.0f, 0.8f);
         center.getWorld().playSound(center, Sound.BLOCK_ANVIL_PLACE, 0.5f, 1.2f);
         center.getWorld().spawnParticle(Particle.CLOUD, center.clone().add(0.5, 0.5, 0.5), 18, 0.8, 0.1, 0.8, 0.05);
 
-        // Layer 1: Glass Lower (Y=1) after 1 second (20 ticks)
+        // Layer 1: Glass Lower (Y=1) after 0.5 second (10 ticks)
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             buildGlassLevel(center, level, 1);
             center.getWorld().playSound(center, Sound.BLOCK_GLASS_PLACE, 1.0f, 1.0f);
             center.getWorld().playSound(center, Sound.BLOCK_AMETHYST_BLOCK_CHIME, 0.8f, 1.0f);
             center.getWorld().spawnParticle(Particle.END_ROD, center.clone().add(0.5, 1.5, 0.5), 15, 0.8, 0.2, 0.8, 0.03);
 
-            // Layer 2: Glass Upper (Y=2) after 2 seconds (40 ticks from start)
+            // Layer 2: Glass Upper (Y=2) after 1.0 second (10 ticks later)
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 buildGlassLevel(center, level, 2);
                 center.getWorld().playSound(center, Sound.BLOCK_GLASS_PLACE, 1.0f, 1.2f);
                 center.getWorld().playSound(center, Sound.BLOCK_AMETHYST_BLOCK_CHIME, 0.9f, 1.3f);
                 center.getWorld().spawnParticle(Particle.END_ROD, center.clone().add(0.5, 2.5, 0.5), 18, 0.8, 0.2, 0.8, 0.03);
 
-                // Layer 3: Roof Slabs (Y=3) after 3 seconds (60 ticks from start)
+                // Layer 3: Roof Slabs (Y=3) after 1.5 seconds (10 ticks later)
                 Bukkit.getScheduler().runTaskLater(plugin, () -> {
                     buildLayerRoof(center, level);
                     center.getWorld().playSound(center, Sound.BLOCK_BEACON_ACTIVATE, 1.0f, 1.4f);
                     center.getWorld().playSound(center, Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.7f, 1.2f);
                     center.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, center.clone().add(0.5, 3.2, 0.5), 30, 0.8, 0.2, 0.8, 0.1);
 
+                    plugin.getAltarManager().setBuilding(center, false);
+
                     if (onComplete != null) {
                         onComplete.run();
                     }
-                }, 20L);
-            }, 20L);
-        }, 20L);
+                }, 10L);
+            }, 10L);
+        }, 10L);
     }
 
     /**

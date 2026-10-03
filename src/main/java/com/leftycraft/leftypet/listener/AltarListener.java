@@ -15,7 +15,9 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 
@@ -76,6 +78,16 @@ public class AltarListener implements Listener {
         if (block == null) return;
 
         Location loc = block.getLocation();
+
+        // Prevent interacting while building
+        if (plugin.getAltarManager().isBuilding(loc)) {
+            event.setCancelled(true);
+            event.getPlayer().sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                    "<gradient:#ff5f6d:#ffc371>ᴀʟᴛᴀʀ sᴇᴅᴀɴɢ ᴅᴀʟᴀᴍ ᴘʀᴏsᴇs ᴘᴇᴍʙᴀɴɢᴜɴᴀɴ! ʜᴀʀᴀᴘ ᴛᴜɴɢɢᴜ sᴇʙᴇɴᴛᴀʀ.</gradient>"));
+            event.getPlayer().playSound(event.getPlayer().getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
+            return;
+        }
+
         PetAltar altar = plugin.getAltarManager().getAltarAt(loc);
 
         if (altar == null) {
@@ -114,6 +126,15 @@ public class AltarListener implements Listener {
         Block block = event.getBlock();
         Location loc = block.getLocation();
 
+        // Prevent breaking while building
+        if (plugin.getAltarManager().isBuilding(loc)) {
+            event.setCancelled(true);
+            event.getPlayer().sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                    "<gradient:#ff5f6d:#ffc371>ᴀʟᴛᴀʀ sᴇᴅᴀɴɢ ᴅᴀʟᴀᴍ ᴘʀᴏsᴇs ᴘᴇᴍʙᴀɴɢᴜɴᴀɴ! ᴛɪᴅᴀᴋ ᴅᴀᴘᴀᴛ ᴅɪʜᴀɴᴄᴜʀᴋᴀɴ.</gradient>"));
+            event.getPlayer().playSound(event.getPlayer().getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
+            return;
+        }
+
         PetAltar altar = plugin.getAltarManager().getAltarAt(loc);
         if (altar == null) {
             for (Location cLoc : plugin.getAltarManager().getAltarsMap().keySet()) {
@@ -135,5 +156,29 @@ public class AltarListener implements Listener {
 
             plugin.getAltarManager().dismantleAltar(player, altar);
         }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onEntityExplode(EntityExplodeEvent event) {
+        event.blockList().removeIf(block -> {
+            for (Location cLoc : plugin.getAltarManager().getAltarsMap().keySet()) {
+                if (plugin.getAltarManager().getStructureManager().isPartOfStructure(cLoc, block.getLocation())) {
+                    return true;
+                }
+            }
+            return plugin.getAltarManager().isBuilding(block.getLocation());
+        });
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onBlockExplode(BlockExplodeEvent event) {
+        event.blockList().removeIf(block -> {
+            for (Location cLoc : plugin.getAltarManager().getAltarsMap().keySet()) {
+                if (plugin.getAltarManager().getStructureManager().isPartOfStructure(cLoc, block.getLocation())) {
+                    return true;
+                }
+            }
+            return plugin.getAltarManager().isBuilding(block.getLocation());
+        });
     }
 }

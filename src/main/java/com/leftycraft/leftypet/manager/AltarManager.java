@@ -32,6 +32,7 @@ public class AltarManager {
     private final LeftyPetPlugin plugin;
     private final AltarStructureManager structureManager;
     private final Map<Location, PetAltar> altars = new ConcurrentHashMap<>();
+    private final Set<Location> buildingAltars = ConcurrentHashMap.newKeySet();
     private final NamespacedKey altarKey;
     private final NamespacedKey altarLevelKey;
     private final File altarFile;
@@ -48,6 +49,28 @@ public class AltarManager {
 
     public AltarStructureManager getStructureManager() {
         return structureManager;
+    }
+
+    public boolean isBuilding(Location loc) {
+        if (buildingAltars.isEmpty()) return false;
+        for (Location cLoc : buildingAltars) {
+            if (structureManager.isPartOfStructure(cLoc, loc)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void setBuilding(Location center, boolean building) {
+        if (building) {
+            buildingAltars.add(center.getBlock().getLocation());
+        } else {
+            buildingAltars.remove(center.getBlock().getLocation());
+        }
+    }
+
+    public Set<Location> getBuildingAltars() {
+        return buildingAltars;
     }
 
     public ItemStack createAltarItem() {
@@ -67,7 +90,7 @@ public class AltarManager {
             int discount = (lvl == 4) ? 50 : (lvl * 10);
             lore.add(ColorUtil.component("&eᴀʟᴛᴀʀ ʟᴇᴠᴇʟ: &f" + lvl + " &7(-" + discount + "% ᴡᴀᴋᴛᴜ ᴜᴘɢʀᴀᴅᴇ)"));
             if (lvl == 4) {
-                lore.add(ColorUtil.component("<gradient:#ff9a00:#ff6a00>✦ MEMBER++ EXCLUSIVE - Max Level!</gradient>"));
+                lore.add(ColorUtil.component("&d&l✦ CELESTIAL EXCLUSIVE &7- Max Level!"));
             } else if (lvl < 4) {
                 lore.add(ColorUtil.component("&bʙɪsᴀ ᴅɪ-ᴜᴘɢʀᴀᴅᴇ &7ʜɪɴɢɢᴀ ʟᴇᴠᴇʟ 4 (-50%)"));
             }
@@ -299,13 +322,69 @@ public class AltarManager {
         plugin.getPetManager().summonPet(player);
     }
 
+    public Location getIdealHologramLocation(PetAltar altar) {
+        Location lodestoneLoc = altar.getLocation();
+        if (lodestoneLoc.getWorld() == null) return lodestoneLoc;
+
+        double cx = lodestoneLoc.getX() + 0.5;
+        double cy = lodestoneLoc.getY();
+        double cz = lodestoneLoc.getZ() + 0.5;
+
+        if (altar.isTraining()) {
+            // Inside the altar chamber, sitting directly above the custom skull (head is at Y=1.55, height 1.92)
+            return new Location(lodestoneLoc.getWorld(), cx, cy + 1.92, cz);
+        }
+
+        // Idle state: Hologram is placed OUTSIDE the 3x3 altar and follows the nearest player's side (N, S, E, W)
+        Player nearest = null;
+        double minDistanceSq = 144.0; // within 12 blocks
+        for (Player p : lodestoneLoc.getWorld().getPlayers()) {
+            double dSq = p.getLocation().distanceSquared(new Location(lodestoneLoc.getWorld(), cx, cy + 1.0, cz));
+            if (dSq < minDistanceSq) {
+                minDistanceSq = dSq;
+                nearest = p;
+            }
+        }
+
+        // Default to South (+Z) if no player nearby
+        double offX = 0.0;
+        double offZ = 1.85;
+
+        if (nearest != null) {
+            double dx = nearest.getLocation().getX() - cx;
+            double dz = nearest.getLocation().getZ() - cz;
+
+            if (Math.abs(dx) > Math.abs(dz)) {
+                // East (+X) or West (-X)
+                if (dx > 0) {
+                    offX = 1.85; // East
+                    offZ = 0.0;
+                } else {
+                    offX = -1.85; // West
+                    offZ = 0.0;
+                }
+            } else {
+                // South (+Z) or North (-Z)
+                if (dz > 0) {
+                    offX = 0.0;
+                    offZ = 1.85; // South
+                } else {
+                    offX = 0.0;
+                    offZ = -1.85; // North
+                }
+            }
+        }
+
+        return new Location(lodestoneLoc.getWorld(), cx + offX, cy + 1.70, cz + offZ);
+    }
+
     public void ensureHologram(PetAltar altar) {
         Location lodestoneLoc = altar.getLocation();
         if (!lodestoneLoc.isWorldLoaded() || !lodestoneLoc.getChunk().isLoaded()) return;
 
         TextDisplay text = altar.getHologramDisplay();
         if (text == null || !text.isValid()) {
-            Location textLoc = lodestoneLoc.clone().add(0.5, 2.20, 0.5);
+            Location textLoc = getIdealHologramLocation(altar);
             text = textLoc.getWorld().spawn(textLoc, TextDisplay.class, t -> {
                 t.setPersistent(false);
                 t.setBillboard(Display.Billboard.CENTER);
@@ -353,6 +432,12 @@ public class AltarManager {
         TextDisplay text = altar.getHologramDisplay();
         if (text == null || !text.isValid()) return;
 
+        // Follow player perspective (N, S, E, W outside when idle, inside directly above skull when training)
+        Location idealLoc = getIdealHologramLocation(altar);
+        if (text.getLocation().distanceSquared(idealLoc) > 0.04) {
+            text.teleport(idealLoc);
+        }
+
         OfflinePlayer owner = Bukkit.getOfflinePlayer(altar.getOwnerUuid());
         String ownerName = owner.getName() != null ? owner.getName() : "Player";
         int discount = (int) altar.getTimeReductionPercent();
@@ -387,14 +472,21 @@ public class AltarManager {
         text.text(ColorUtil.component(full));
     }
 
+    private int tickerStep = 0;
+
     private void startAltarTicker() {
         Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            tickerStep++;
+            boolean isSecondTick = (tickerStep % 2 == 0);
+
             for (PetAltar altar : altars.values()) {
                 Location loc = altar.getLocation();
                 if (!loc.isWorldLoaded() || !loc.getChunk().isLoaded()) continue;
 
-                // Subtle ambient particles per level
-                spawnAltarAmbientParticles(altar);
+                if (isSecondTick) {
+                    // Subtle ambient particles per level
+                    spawnAltarAmbientParticles(altar);
+                }
 
                 // Always ensure hologram exists for all altars
                 ensureHologram(altar);
@@ -407,7 +499,7 @@ public class AltarManager {
                     // Smooth rotation of head on Y axis
                     if (altar.getFloatingDisplay() != null) {
                         Location dLoc = altar.getFloatingDisplay().getLocation();
-                        dLoc.setYaw((dLoc.getYaw() + 3.0f) % 360f);
+                        dLoc.setYaw((dLoc.getYaw() + 2.0f) % 360f);
                         altar.getFloatingDisplay().teleport(dLoc);
                     }
 
@@ -415,7 +507,7 @@ public class AltarManager {
                     boolean isOnline = (owner != null && owner.isOnline());
 
                     // Altar training ONLY progresses while player is online!
-                    if (isOnline && !altar.isFinished()) {
+                    if (isSecondTick && isOnline && !altar.isFinished()) {
                         altar.decrementRemainingSeconds();
                         if (altar.isFinished()) {
                             owner.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
@@ -431,10 +523,10 @@ public class AltarManager {
                     }
                 }
 
-                // Update text display (unified hologram)
+                // Update text display (unified hologram with player perspective tracking)
                 updateAltarHologram(altar);
             }
-        }, 20L, 20L); // 1 second
+        }, 10L, 10L); // 0.5 second interval for responsive perspective tracking
     }
 
     public boolean dismantleAltarByAdmin(org.bukkit.command.CommandSender sender, OfflinePlayer target) {

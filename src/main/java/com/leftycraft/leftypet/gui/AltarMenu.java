@@ -99,15 +99,15 @@ public class AltarMenu {
         // Slot 15: Upgrade Altar
         int nextAltarLvl = altar.getAltarLevel() + 1;
         if (nextAltarLvl <= 4) {
-            boolean isMemberPPTier = (nextAltarLvl == 4);
-            boolean hasMemberPPPerm = player.hasPermission("leftypet.memberplusplus") || player.hasPermission("leftypet.memberpp");
+            boolean isCelestialTier = (nextAltarLvl == 4);
+            boolean hasCelestialPerm = player.hasPermission("leftypet.celestial");
 
-            if (isMemberPPTier && !hasMemberPPPerm) {
+            if (isCelestialTier && !hasCelestialPerm) {
                 // Show locked button
                 inv.setItem(15, PetMenu.createItem(Material.BARRIER, false,
-                        "<gradient:#ff9a00:#7928ca><b>🔒 ᴜᴘɢʀᴀᴅᴇ ᴀʟᴛᴀʀ [ᴍᴇᴍʙᴇʀ++] (ʟᴇᴠᴇʟ 4)</b></gradient>",
+                        "<gradient:#d946ef:#8b5cf6><b>🔒 ᴜᴘɢʀᴀᴅᴇ ᴀʟᴛᴀʀ [ᴄᴇʟᴇsᴛɪᴀʟ] (ʟᴇᴠᴇʟ 4)</b></gradient>",
                         "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
-                        "&c🔒 ʜᴀɴʏᴀ ᴜɴᴛᴜᴋ ʀᴀɴᴋ &d&lMEMBER++!",
+                        "&c🔒 ʜᴀɴʏᴀ ᴜɴᴛᴜᴋ ʀᴀɴᴋ &d&lCELESTIAL!",
                         "&7ᴅɪsᴋᴏɴ ᴍᴀᴋsɪᴍᴀʟ: &a-50% ᴡᴀᴋᴛᴜ ᴜᴘɢʀᴀᴅᴇ",
                         "&7ᴅᴀɴ sᴛʀᴜᴋᴛᴜʀ ᴇxᴋʟᴜsɪᴠ ᴅᴀʀɪ sᴄʜᴇᴍᴀᴛɪᴄ!",
                         "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
@@ -118,17 +118,17 @@ public class AltarMenu {
                 else if (nextAltarLvl == 3) costLore = "&7• ʙɪᴀʏᴀ: &e16x Purpur Blocks & 8x Diamonds";
                 else costLore = "&7• ʙɪᴀʏᴀ: &d16x Amethyst Shard & 4x Netherite Ingot";
 
-                String titleColor = isMemberPPTier ? "<gradient:#ff9a00:#7928ca>" : "<gradient:#00c6ff:#0072ff>";
-                String titleSuffix = isMemberPPTier ? " &d[ᴍᴇᴍʙᴇʀ++]</gradient>" : "</gradient>";
-                int discount = isMemberPPTier ? 50 : (nextAltarLvl * 10);
+                String titleColor = isCelestialTier ? "<gradient:#d946ef:#8b5cf6>" : "<gradient:#00c6ff:#0072ff>";
+                String titleSuffix = isCelestialTier ? " &d&l[ᴄᴇʟᴇsᴛɪᴀʟ]</gradient>" : "</gradient>";
+                int discount = isCelestialTier ? 50 : (nextAltarLvl * 10);
 
                 inv.setItem(15, PetMenu.createItem(
-                        isMemberPPTier ? Material.NETHER_STAR : Material.ANVIL, true,
+                        isCelestialTier ? Material.NETHER_STAR : Material.ANVIL, true,
                         titleColor + "<b>ᴜᴘɢʀᴀᴅᴇ ᴀʟᴛᴀʀ (ʟᴇᴠᴇʟ " + nextAltarLvl + ")" + titleSuffix,
                         "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
                         "&7• ᴅɪsᴋᴏɴ ʙᴀʀᴜ: &a-" + discount + "% ᴡᴀᴋᴛᴜ",
                         costLore,
-                        isMemberPPTier ? "&d✦ sᴛʀᴜᴋᴛᴜʀ sᴄʜᴇᴍᴀᴛɪᴄ ᴇxᴋʟᴜsɪᴠ!" : "",
+                        isCelestialTier ? "&d&l✦ sᴛʀᴜᴋᴛᴜʀ sᴄʜᴇᴍᴀᴛɪᴄ ᴇxᴋʟᴜsɪᴠ!" : "",
                         "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
                         "&e▶ ᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴜᴘɢʀᴀᴅᴇ ᴀʟᴛᴀʀ!"));
             }
@@ -176,11 +176,10 @@ public class AltarMenu {
                 int nextLvl = altar.getAltarLevel() + 1;
                 if (nextLvl > 4) return;
 
-                // Member++ gate for lv4
-                boolean hasMemberPP = player.hasPermission("leftypet.memberplusplus") || player.hasPermission("leftypet.memberpp");
-                if (nextLvl == 4 && !hasMemberPP) {
+                // Celestial gate for lv4
+                if (nextLvl == 4 && !player.hasPermission("leftypet.celestial")) {
                     player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                            "<gradient:#ff9a00:#7928ca><b>🔒 ᴜᴘɢʀᴀᴅᴇ ᴀʟᴛᴀʀ ʟᴇᴠᴇʟ 4 ʜᴀɴʏᴀ ᴜɴᴛᴜᴋ ʀᴀɴᴋ MEMBER++!</b></gradient> " +
+                            "<gradient:#d946ef:#8b5cf6><b>🔒 ᴜᴘɢʀᴀᴅᴇ ᴀʟᴛᴀʀ ʟᴇᴠᴇʟ 4 ʜᴀɴʏᴀ ᴜɴᴛᴜᴋ ʀᴀɴᴋ &d&lCELESTIAL!</b></gradient> " +
                             "<gray>ᴜᴘɢʀᴀᴅᴇ ʀᴀɴᴋᴍᴜ ᴅɪ <yellow>/ranks</yellow>.</gray>"));
                     player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
                     return;
@@ -189,13 +188,14 @@ public class AltarMenu {
                 if (hasUpgradeMaterials(player, nextLvl)) {
                     takeUpgradeMaterials(player, nextLvl);
                     altar.setAltarLevel(nextLvl);
-                    plugin.getAltarManager().getStructureManager().buildStructure(altar.getLocation(), nextLvl);
                     plugin.getAltarManager().saveAltars();
 
                     int discount = (nextLvl == 4) ? 50 : (nextLvl * 10);
-                    player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                            "<gradient:#43e97b:#38f9d7>ᴀʟᴛᴀʀ ʙᴇʀʜᴀsɪʟ ᴅɪ-ᴜᴘɢʀᴀᴅᴇ ᴋᴇ <b>ʟᴇᴠᴇʟ " + nextLvl + "</b>! ᴅɪsᴋᴏɴ ᴡᴀᴋᴛᴜ: <b>-" + discount + "%</b>!</gradient>"));
-                    player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1.2f);
+                    plugin.getAltarManager().getStructureManager().buildStructureAnimated(altar.getLocation(), nextLvl, () -> {
+                        player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                                "<gradient:#43e97b:#38f9d7>ᴀʟᴛᴀʀ ʙᴇʀʜᴀsɪʟ ᴅɪ-ᴜᴘɢʀᴀᴅᴇ ᴋᴇ <b>ʟᴇᴠᴇʟ " + nextLvl + "</b>! ᴅɪsᴋᴏɴ ᴡᴀᴋᴛᴜ: <b>-" + discount + "%</b>!</gradient>"));
+                        player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1.2f);
+                    });
                     open(player, altar, plugin);
                 } else {
                     player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +

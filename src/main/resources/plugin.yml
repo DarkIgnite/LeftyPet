@@ -27,8 +27,11 @@ permissions:
     description: Allows admin management for pets
     default: op
   leftypet.memberplusplus:
-    description: Unlocks Member++ exclusive pet skins and Altar Level 4 upgrade
+    description: Unlocks Member++ exclusive pet skins
     default: false
   leftypet.memberpp:
     description: Alias for leftypet.memberplusplus
+    default: false
+  leftypet.celestial:
+    description: Allows upgrading Pet Training Altar to Level 4
     default: false
