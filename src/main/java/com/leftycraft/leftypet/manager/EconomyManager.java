@@ -59,11 +59,22 @@ public class EconomyManager {
     }
 
     public String format(double amount) {
+        String result = null;
         if (hasEconomy()) {
             try {
-                return economy.format(amount);
+                result = economy.format(amount);
             } catch (Throwable ignored) {}
         }
-        return String.format("%,.0f", amount);
+        if (result == null || result.isBlank()) {
+            result = "$" + String.format("%,.0f", amount);
+        }
+        // Sanitize any duplicated dollar signs (e.g. "$$100" or "$ $100")
+        while (result.startsWith("$$")) {
+            result = result.substring(1);
+        }
+        if (result.startsWith("$ $")) {
+            result = "$" + result.substring(3);
+        }
+        return result;
     }
 }

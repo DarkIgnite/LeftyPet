@@ -210,7 +210,7 @@ public class AltarManager {
             String formattedCost = plugin.getEconomyManager().format(cost);
             String formattedBal = plugin.getEconomyManager().format(plugin.getEconomyManager().getBalance(player));
             player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                    "<gradient:#ff5f6d:#ffc371>ᴜᴀɴɢ ᴋᴀᴍᴜ ᴛɪᴅᴀᴋ ᴄᴜᴋᴜᴘ! ʙɪᴀʏᴀ ᴜᴘɢʀᴀᴅᴇ: </gradient><yellow>$" + formattedCost + "</yellow> <gray>(sᴀʟᴅᴏ: <red>$" + formattedBal + "</red>)</gray>"));
+                    "<gradient:#ff5f6d:#ffc371>ᴜᴀɴɢ ᴋᴀᴍᴜ ᴛɪᴅᴀᴋ ᴄᴜᴋᴜᴘ! ʙɪᴀʏᴀ ᴜᴘɢʀᴀᴅᴇ: </gradient><yellow>" + formattedCost + "</yellow> <gray>(sᴀʟᴅᴏ: <red>" + formattedBal + "</red>)</gray>"));
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
             return;
         }
@@ -223,7 +223,7 @@ public class AltarManager {
         if (cost > 0.0) {
             plugin.getEconomyManager().withdraw(player, cost);
             player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                    "<gray>ʙɪᴀʏᴀ ᴜᴘɢʀᴀᴅᴇ ᴛᴇʀᴘᴏᴛᴏɴɢ: </gray><red>-$" + plugin.getEconomyManager().format(cost) + "</red>"));
+                    "<gray>ʙɪᴀʏᴀ ᴜᴘɢʀᴀᴅᴇ ᴛᴇʀᴘᴏᴛᴏɴɢ: </gray><red>-" + plugin.getEconomyManager().format(cost) + "</red>"));
         }
 
         altar.setTraining(true);
@@ -263,7 +263,7 @@ public class AltarManager {
             if (cost > 0.0) {
                 plugin.getEconomyManager().deposit(player, cost);
                 player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                        "<gray>ʙɪᴀʏᴀ ᴜᴘɢʀᴀᴅᴇ ᴅɪᴋᴇᴍʙᴀʟɪᴋᴀɴ: </gray><green>+$" + plugin.getEconomyManager().format(cost) + "</green>"));
+                        "<gray>ʙɪᴀʏᴀ ᴜᴘɢʀᴀᴅᴇ ᴅɪᴋᴇᴍʙᴀʟɪᴋᴀɴ: </gray><green>+" + plugin.getEconomyManager().format(cost) + "</green>"));
             }
             altar.setTraining(false);
             altar.removeEntities();

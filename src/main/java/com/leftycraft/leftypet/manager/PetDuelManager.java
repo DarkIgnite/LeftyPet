@@ -22,11 +22,31 @@ public class PetDuelManager {
 
     private final LeftyPetPlugin plugin;
     private final Map<UUID, DuelInvite> pendingInvites = new ConcurrentHashMap<>();
+    private final Map<UUID, DuelInvite> outgoingInvites = new ConcurrentHashMap<>();
     private final Map<UUID, ActiveDuel> activeDuels = new ConcurrentHashMap<>();
 
-    public record DuelInvite(UUID challenger, UUID target, double bet, long timestamp) {
+    public static class DuelInvite {
+        final UUID challenger;
+        final UUID target;
+        final double bet;
+        final long timestamp;
+        BukkitTask expiryTask;
+
+        public DuelInvite(UUID challenger, UUID target, double bet, long timestamp) {
+            this.challenger = challenger;
+            this.target = target;
+            this.bet = bet;
+            this.timestamp = timestamp;
+        }
+
         public boolean isExpired() {
             return System.currentTimeMillis() - timestamp > 60000L; // 60s
+        }
+
+        public void cancelTask() {
+            if (expiryTask != null && !expiryTask.isCancelled()) {
+                expiryTask.cancel();
+            }
         }
     }
 
@@ -64,6 +84,23 @@ public class PetDuelManager {
     public void sendChallenge(Player challenger, Player target, double bet) {
         if (challenger.equals(target)) {
             challenger.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<red>Kamu tidak bisa menantang dirimu sendiri!</red>"));
+            return;
+        }
+
+        // Revisi 17: Cooldown / max request 60 detik jika sudah mengirim tantangan duel ke orang lain
+        DuelInvite existingOutgoing = outgoingInvites.get(challenger.getUniqueId());
+        if (existingOutgoing != null && !existingOutgoing.isExpired()) {
+            long remainingSec = 60 - ((System.currentTimeMillis() - existingOutgoing.timestamp) / 1000);
+            challenger.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                    "<red>Kamu sudah mengirim tantangan duel! Harap tunggu <yellow>" + Math.max(1, remainingSec) + " detik</yellow> sebelum mengirim tantangan baru.</red>"));
+            return;
+        }
+
+        // Cek jika target sedang memiliki tantangan duel dari orang lain
+        DuelInvite existingTargetInvite = pendingInvites.get(target.getUniqueId());
+        if (existingTargetInvite != null && !existingTargetInvite.isExpired()) {
+            challenger.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                    "<red>" + target.getName() + " saat ini sedang memiliki tantangan duel lain yang belum direspon!</red>"));
             return;
         }
 
@@ -106,16 +143,39 @@ public class PetDuelManager {
         }
 
         DuelInvite invite = new DuelInvite(challenger.getUniqueId(), target.getUniqueId(), bet, System.currentTimeMillis());
-        pendingInvites.put(target.getUniqueId(), invite);
 
-        String betStr = (bet > 0.0) ? " <gold>($" + plugin.getEconomyManager().format(bet) + ")</gold>" : "";
+        // Revisi 17: Batas waktu acc duel pet 60 detik (1200 ticks) dengan auto-expiry
+        invite.expiryTask = Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (pendingInvites.remove(target.getUniqueId(), invite)) {
+                outgoingInvites.remove(challenger.getUniqueId());
+
+                Player cPlayer = Bukkit.getPlayer(challenger.getUniqueId());
+                Player tPlayer = Bukkit.getPlayer(target.getUniqueId());
+
+                if (cPlayer != null && cPlayer.isOnline()) {
+                    cPlayer.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                            "<yellow>Tantangan duel ke <white>" + (tPlayer != null ? tPlayer.getName() : "lawan") + "</white> telah kedaluwarsa (tidak direspon dalam 60 detik).</yellow>"));
+                }
+                if (tPlayer != null && tPlayer.isOnline()) {
+                    tPlayer.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                            "<yellow>Tantangan duel dari <white>" + (cPlayer != null ? cPlayer.getName() : "penantang") + "</white> telah kedaluwarsa (batas waktu 60 detik habis).</yellow>"));
+                }
+            }
+        }, 1200L);
+
+        pendingInvites.put(target.getUniqueId(), invite);
+        outgoingInvites.put(challenger.getUniqueId(), invite);
+
+        // Revisi 17: Fix bug message double $
+        String betStr = (bet > 0.0) ? " <gold>(" + plugin.getEconomyManager().format(bet) + ")</gold>" : "";
         challenger.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                "<yellow>Tantangan duel pet berhasil dikirim ke <white>" + target.getName() + "</white>" + betStr + "! Menunggu respon...</yellow>"));
+                "<yellow>Tantangan duel pet berhasil dikirim ke <white>" + target.getName() + "</white>" + betStr + "! Menunggu respon (60 detik)...</yellow>"));
         challenger.playSound(challenger.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 0.7f, 1.2f);
 
         target.sendMessage(ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"));
         target.sendMessage(ColorUtil.component("<gradient:#ff5f6d:#ffc371><b>⚔ TANTANGAN DUEL PET! ⚔</b></gradient>"));
         target.sendMessage(ColorUtil.component("<white>" + challenger.getName() + "</white> <yellow>menantang pet milikmu untuk bertarung!" + betStr + "</yellow>"));
+        target.sendMessage(ColorUtil.component("<yellow>⏱ Batas waktu respon: <b>60 detik</b></yellow>"));
         target.sendMessage(ColorUtil.component("<green>Ketik <click:run_command:'/pet duel accept'><yellow><b>/pet duel accept</b></yellow></click> untuk menerima!</green>"));
         target.sendMessage(ColorUtil.component("<red>Ketik <click:run_command:'/pet duel decline'><yellow><b>/pet duel decline</b></yellow></click> untuk menolak.</red>"));
         target.sendMessage(ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"));
@@ -125,11 +185,18 @@ public class PetDuelManager {
     public void acceptChallenge(Player target) {
         DuelInvite invite = pendingInvites.remove(target.getUniqueId());
         if (invite == null || invite.isExpired()) {
-            target.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<red>Tidak ada tantangan duel yang aktif atau sudah kedaluwarsa.</red>"));
+            if (invite != null) {
+                invite.cancelTask();
+                outgoingInvites.remove(invite.challenger);
+            }
+            target.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<red>Tidak ada tantangan duel yang aktif atau sudah kedaluwarsa (batas 60 detik).</red>"));
             return;
         }
 
-        Player challenger = Bukkit.getPlayer(invite.challenger());
+        invite.cancelTask();
+        outgoingInvites.remove(invite.challenger);
+
+        Player challenger = Bukkit.getPlayer(invite.challenger);
         if (challenger == null || !challenger.isOnline()) {
             target.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<red>Pemain yang menantang sudah offline.</red>"));
             return;
@@ -148,7 +215,7 @@ public class PetDuelManager {
             return;
         }
 
-        double bet = invite.bet();
+        double bet = invite.bet;
         if (bet > 0.0) {
             if (!plugin.getEconomyManager().hasEnough(challenger, bet) || !plugin.getEconomyManager().hasEnough(target, bet)) {
                 target.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<red>Salah satu pemain tidak memiliki cukup uang taruhan saat ini!</red>"));
@@ -164,13 +231,20 @@ public class PetDuelManager {
 
     public void declineChallenge(Player target) {
         DuelInvite invite = pendingInvites.remove(target.getUniqueId());
-        if (invite == null) {
-            target.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<red>Tidak ada tantangan duel untuk ditolak.</red>"));
+        if (invite == null || invite.isExpired()) {
+            if (invite != null) {
+                invite.cancelTask();
+                outgoingInvites.remove(invite.challenger);
+            }
+            target.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<red>Tidak ada tantangan duel untuk ditolak atau sudah kedaluwarsa.</red>"));
             return;
         }
 
+        invite.cancelTask();
+        outgoingInvites.remove(invite.challenger);
+
         target.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<yellow>Tantangan duel ditolak.</yellow>"));
-        Player challenger = Bukkit.getPlayer(invite.challenger());
+        Player challenger = Bukkit.getPlayer(invite.challenger);
         if (challenger != null && challenger.isOnline()) {
             challenger.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<red>" + target.getName() + " menolak tantangan duel pet kamu.</red>"));
             challenger.playSound(challenger.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
@@ -183,6 +257,11 @@ public class PetDuelManager {
         ActiveDuel duel = new ActiveDuel(playerA, playerB, petA, petB, bet, center);
         activeDuels.put(playerA.getUniqueId(), duel);
         activeDuels.put(playerB.getUniqueId(), duel);
+
+        // Global broadcast server-wide
+        String betBroadcast = (bet > 0.0) ? " <gold>(Taruhan: " + plugin.getEconomyManager().format(bet) + ")</gold>" : "";
+        Bukkit.broadcast(ColorUtil.component("<gradient:#ff5f6d:#ffc371><b>⚔ [PET DUEL] ⚔</b></gradient> " +
+                "<yellow>Pertarungan pet telah dimulai antara <white><b>" + playerA.getName() + "</b> (" + petA.getData().getName() + ")</white> <gray>VS</gray> <white><b>" + playerB.getName() + "</b> (" + petB.getData().getName() + ")</white>!" + betBroadcast));
 
         // Countdown 3.. 2.. 1.. FIGHT!
         broadcastDuel(duel, "<gradient:#ff5f6d:#ffc371><b>⚔ PERSIAPAN DUEL PET! ⚔</b></gradient>",
@@ -346,15 +425,15 @@ public class PetDuelManager {
         if (duel.bet > 0.0) {
             double totalPrize = duel.bet * 2.0;
             plugin.getEconomyManager().deposit(winner, totalPrize);
-            betMsg = " <gold>Hadiah taruhan: <b>$" + plugin.getEconomyManager().format(totalPrize) + "</b>!</gold>";
+            betMsg = " <gold>Hadiah taruhan: <b>" + plugin.getEconomyManager().format(totalPrize) + "</b>!</gold>";
         }
 
         String broadcast = "<gradient:#ff9a00:#ff5500><b>⚔ [PET DUEL] ⚔</b></gradient> " +
                 "<white>" + winner.getName() + "</white> <yellow>dengan pet</yellow> <white>" + winPet.getData().getName() + "</white> " +
                 "<green><b>MENANG</b></green> <yellow>melawan pet milik</yellow> <white>" + loser.getName() + "</white>!" + betMsg;
 
-        winner.sendMessage(ColorUtil.component(broadcast));
-        loser.sendMessage(ColorUtil.component(broadcast));
+        // Revisi 17: Broadcast global ketika pertarungan pet selesai
+        Bukkit.broadcast(ColorUtil.component(broadcast));
 
         activeDuels.remove(duel.playerA.getUniqueId());
         activeDuels.remove(duel.playerB.getUniqueId());
@@ -397,7 +476,11 @@ public class PetDuelManager {
         for (ActiveDuel duel : new HashSet<>(activeDuels.values())) {
             cancelDuel(duel, "Server reload/shutdown.");
         }
+        for (DuelInvite invite : pendingInvites.values()) {
+            invite.cancelTask();
+        }
         pendingInvites.clear();
+        outgoingInvites.clear();
         activeDuels.clear();
     }
 }
