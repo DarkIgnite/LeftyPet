@@ -3,6 +3,7 @@ package com.leftycraft.leftypet.listener;
 import com.leftycraft.leftypet.LeftyPetPlugin;
 import com.leftycraft.leftypet.entity.ActivePet;
 import com.leftycraft.leftypet.model.PetData;
+import com.leftycraft.leftypet.util.ColorUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -59,6 +60,10 @@ public class PlayerListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player player = event.getPlayer();
+        PetData data = plugin.getPetManager().getPetData(player.getUniqueId());
+        if (data != null) {
+            data.setEnergy(0.0); // Pet otomatis pingsan saat pemilik gugur
+        }
         // Despawn pet on death to prevent weird ghost positioning
         plugin.getPetManager().despawnPet(player.getUniqueId());
     }
@@ -71,6 +76,8 @@ public class PlayerListener implements Listener {
                 PetData data = plugin.getPetManager().getPetData(player.getUniqueId());
                 if (!data.isTraining()) {
                     plugin.getPetManager().summonPet(player);
+                    ColorUtil.sendMessage(player, plugin.getConfigManager().getMessage("prefix") +
+                            "<gradient:#ff5f6d:#ffc371>Pet kamu pingsan karena kematianmu! Beri makan untuk memulihkannya.</gradient>");
                 }
             }
         }, 15L);

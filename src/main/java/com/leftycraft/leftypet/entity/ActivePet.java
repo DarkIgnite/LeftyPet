@@ -227,13 +227,13 @@ public class ActivePet {
         Vector dir = new Vector(-Math.sin(rad), 0, Math.cos(rad));
         Vector side = new Vector(-dir.getZ(), 0, dir.getX());
 
-        double bobbing = Math.sin((ticksLived + owner.getEntityId()) * 0.15) * 0.12;
-        double sleepOffset = isSleeping ? -0.25 : 0.0;
+        double bobbing = data.isFainted() ? 0.0 : Math.sin((ticksLived + owner.getEntityId()) * 0.15) * 0.12;
+        double stateOffset = data.isFainted() ? -0.65 : (isSleeping ? -0.25 : 0.0);
 
         Location targetLoc = owner.getLocation()
                 .add(side.multiply(1.80))
                 .add(dir.multiply(-0.15))
-                .add(0, 1.30 + bobbing + sleepOffset, 0);
+                .add(0, 1.30 + bobbing + stateOffset, 0);
 
         double distSq = displayEntity.getLocation().distanceSquared(targetLoc);
 
@@ -372,6 +372,19 @@ public class ActivePet {
             loc.getWorld().spawnParticle(Particle.FIREWORK, loc, 20, 0.4, 0.4, 0.4, 0.1);
             loc.getWorld().playSound(loc, Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.7f, 1.5f);
         }
+    }
+
+    public void faint() {
+        data.setEnergy(0.0);
+        updateNameTag();
+        if (displayEntity != null && displayEntity.isValid()) {
+            Location loc = displayEntity.getLocation().add(0, 0.3, 0);
+            loc.getWorld().spawnParticle(Particle.SMOKE, loc, 15, 0.25, 0.25, 0.25, 0.05);
+            loc.getWorld().playSound(loc, Sound.ENTITY_VILLAGER_DEATH, 0.7f, 1.2f);
+            com.leftycraft.leftypet.util.PetSoundUtil.playHungrySound(owner, loc, data.getSkinKey());
+        }
+        owner.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                "<gradient:#ff5f6d:#ffc371><b>Pet kamu kehabisan daya dan pingsan!</b> Beri makan pet untuk membangunkannya.</gradient>"));
     }
 
     public void updateSkin() {

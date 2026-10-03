@@ -87,6 +87,9 @@ public final class ColorUtil {
         // Strip Variation Selectors (U+FE0F / U+FE0E) which cause "VS 16" square boxes in Minecraft
         s = s.replace("\uFE0F", "").replace("\uFE0E", "");
 
+        // Sanitize any duplicated dollar signs like "$$500" or "$ $500" everywhere
+        s = s.replaceAll("\\${2,}", "\\$").replace("$ ", "$");
+
         // 1. Hex codes: &#123456 or §#123456 -> <#123456>
         s = s.replaceAll("[&§]#([0-9a-fA-F]{6})", "<#$1>");
 

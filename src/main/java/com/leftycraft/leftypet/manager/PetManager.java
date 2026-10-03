@@ -118,6 +118,7 @@ public class PetManager {
             return true;
         }
 
+        boolean wasFainted = data.isFainted();
         item.setAmount(item.getAmount() - 1);
         data.addEnergy(restore);
         pet.updateNameTag();
@@ -127,6 +128,16 @@ public class PetManager {
                 .replace("{current}", String.valueOf((int) data.getEnergy()));
         ColorUtil.sendMessage(player, msg);
         player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 0.7f, 1.2f);
+
+        if (wasFainted && !data.isFainted()) {
+            ColorUtil.sendMessage(player, plugin.getConfigManager().getMessage("prefix") +
+                    "<gradient:#43e97b:#38f9d7>✨ <b>Pet kamu telah sadar dari pingsan!</b> Siap mendampingi petualanganmu kembali.</gradient>");
+            if (pet.getDisplayEntity() != null && pet.getDisplayEntity().isValid()) {
+                org.bukkit.Location loc = pet.getDisplayEntity().getLocation().add(0, 0.4, 0);
+                loc.getWorld().spawnParticle(org.bukkit.Particle.HEART, loc, 8, 0.25, 0.25, 0.25, 0.05);
+                com.leftycraft.leftypet.util.PetSoundUtil.playHappySound(player, loc, data.getSkinKey());
+            }
+        }
         return true;
     }
 

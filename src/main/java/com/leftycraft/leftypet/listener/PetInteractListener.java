@@ -76,7 +76,31 @@ public class PetInteractListener implements Listener {
             if (event.getEntity().equals(pet.getInteractionEntity()) || event.getEntity().equals(pet.getDisplayEntity()) || event.getEntity().equals(pet.getNameTagDisplay())) {
                 event.setCancelled(true);
                 if (event.getDamager() instanceof Player player && player.getUniqueId().equals(pet.getOwner().getUniqueId())) {
-                    PetMenu.open(player, plugin);
+                    if (player.isSneaking()) {
+                        PetMenu.open(player, plugin);
+                    }
+                    return;
+                }
+
+                // If attacked by monster or hostile projectile
+                if (event.getDamager() instanceof org.bukkit.entity.Monster ||
+                        (event.getDamager() instanceof org.bukkit.entity.Projectile proj && proj.getShooter() instanceof org.bukkit.entity.Monster)) {
+                    var data = pet.getData();
+                    if (!data.isFainted() && !data.isTraining()) {
+                        double drain = Math.max(12.0, event.getDamage() * 2.0);
+                        data.drainEnergy(drain);
+                        pet.updateNameTag();
+
+                        if (pet.getDisplayEntity() != null && pet.getDisplayEntity().isValid()) {
+                            org.bukkit.Location pLoc = pet.getDisplayEntity().getLocation().add(0, 0.3, 0);
+                            pLoc.getWorld().spawnParticle(org.bukkit.Particle.DAMAGE_INDICATOR, pLoc, 3, 0.2, 0.2, 0.2, 0.05);
+                            pLoc.getWorld().playSound(pLoc, org.bukkit.Sound.ENTITY_VILLAGER_HURT, 0.6f, 1.4f);
+                        }
+
+                        if (data.isFainted()) {
+                            pet.faint();
+                        }
+                    }
                 }
                 return;
             }

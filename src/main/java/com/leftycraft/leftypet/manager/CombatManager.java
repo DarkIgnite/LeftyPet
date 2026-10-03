@@ -242,8 +242,7 @@ public class CombatManager {
         pet.updateNameTag();
 
         if (data.isFainted()) {
-            ColorUtil.sendMessage(player, plugin.getConfigManager().getMessage("pet-fainted"));
-            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 0.8f);
+            pet.faint();
         }
     }
 

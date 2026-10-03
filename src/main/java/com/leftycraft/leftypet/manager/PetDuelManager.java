@@ -418,6 +418,9 @@ public class PetDuelManager {
         winner.sendTitle(ColorUtil.colorize("&a&lVICTORY!"), ColorUtil.colorize("&ePet kamu memenangkan duel!"), 5, 45, 10);
         loser.sendTitle(ColorUtil.colorize("&c&lDEFEAT"), ColorUtil.colorize("&7Pet kamu kalah dalam duel."), 5, 45, 10);
 
+        // Pet yang kalah otomatis pingsan
+        losePet.faint();
+
         winner.playSound(winner.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.9f, 1.2f);
         loser.playSound(loser.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.7f, 1.0f);
 
