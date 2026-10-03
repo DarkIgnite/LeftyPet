@@ -34,9 +34,10 @@ public class PetMenu {
         Inventory inv = Bukkit.createInventory(holder, 27, ColorUtil.component(TITLE));
         holder.setInventory(inv);
 
-        // Frame
+        // Frame & Accents
         ItemStack darkFiller = createFiller(Material.BLACK_STAINED_GLASS_PANE);
         ItemStack cyanCorner = createFiller(Material.CYAN_STAINED_GLASS_PANE);
+        ItemStack orangeAccent = createFiller(Material.ORANGE_STAINED_GLASS_PANE);
         for (int i = 0; i < 27; i++) {
             inv.setItem(i, darkFiller);
         }
@@ -44,6 +45,8 @@ public class PetMenu {
         inv.setItem(8, cyanCorner);
         inv.setItem(18, cyanCorner);
         inv.setItem(26, cyanCorner);
+        inv.setItem(21, orangeAccent);
+        inv.setItem(23, orangeAccent);
 
         // Slot 4: Pet Head Profile
         PetSkin skin = plugin.getConfigManager().getSkin(data.getSkinKey());
@@ -137,8 +140,8 @@ public class PetMenu {
                 "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
                 "&e▶ ᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴍᴇᴍʙᴜᴋᴀ ᴋᴏsᴍᴇᴛɪᴋ!"));
 
-        // Slot 16: Class Selector
-        inv.setItem(16, createItem(Material.NETHER_STAR, true, "<gradient:#f7971e:#ffd200><b>sᴘᴇsɪᴀʟɪsᴀsɪ ᴋᴇʟᴀs</b></gradient>",
+        // Slot 15: Class Selector
+        inv.setItem(15, createItem(Material.NETHER_STAR, true, "<gradient:#f7971e:#ffd200><b>sᴘᴇsɪᴀʟɪsᴀsɪ ᴋᴇʟᴀs</b></gradient>",
                 "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
                 "&7ᴋᴇʟᴀs sᴀᴀᴛ ɪɴɪ: " + data.getPetClass().getDisplayName(),
                 "&7ᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴍᴇɴɢɢᴀɴᴛɪ sᴘᴇsɪᴀʟɪsᴀsɪ:",
@@ -149,8 +152,17 @@ public class PetMenu {
                 "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
                 "&e▶ ᴋʟɪᴋ ᴜɴᴛᴜᴋ ɢᴀɴᴛɪ ᴋᴇʟᴀs!"));
 
-        // Slot 22: Altar Info
-        inv.setItem(22, createItem(Material.LODESTONE, true, "<gradient:#43e97b:#38f9d7><b>ᴛʀᴀɪɴɪɴɢ ᴀʟᴛᴀʀ (3x3)</b></gradient>",
+        // Slot 16: Pet Leaderboard
+        inv.setItem(16, createItem(Material.GOLD_BLOCK, true,
+                "<gradient:#ffe259:#ffa751><b>✦ ᴛᴏᴘ 10 ʟᴇᴀᴅᴇʀʙᴏᴀʀᴅ ✦</b></gradient>",
+                "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
+                "&7ʟɪʜᴀᴛ 10 ᴘᴇᴛ ᴅᴇɴɢᴀɴ ʟᴇᴠᴇʟ ᴛᴇʀᴛɪɴɢɢɪ",
+                "&7ᴅɪ sᴇʟᴜʀᴜʜ sᴇʀᴠᴇʀ!",
+                "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
+                "&e▶ ᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴍᴇᴍʙᴜᴋᴀ ʟᴇᴀᴅᴇʀʙᴏᴀʀᴅ!"));
+
+        // Slot 22: Altar Claim
+        inv.setItem(22, createItem(Material.LODESTONE, true, "<gradient:#43e97b:#38f9d7><b>✦ ᴛʀᴀɪɴɪɴɢ ᴀʟᴛᴀʀ (3x3) ✦</b></gradient>",
                 "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
                 "&7ᴛᴇᴍᴘᴀᴛ ᴀғᴋ ᴛʀᴀɪɴɪɴɢ ᴜɴᴛᴜᴋ ᴍᴇɴɪɴɢᴋᴀᴛᴋᴀɴ ʟᴇᴠᴇʟ ᴘᴇᴛ!",
                 "&7• ʟᴇᴠᴇʟ 1: &7sᴛᴀɴᴅᴀʀ (0% ᴅɪsᴋᴏɴ)",
@@ -158,16 +170,7 @@ public class PetMenu {
                 "&7• ʟᴇᴠᴇʟ 3: &a-20% ᴡᴀᴋᴛᴜ ᴜᴘɢʀᴀᴅᴇ",
                 "&7• ʟᴇᴠᴇʟ 4: &d&l✦ CELESTIAL &a-50% ᴡᴀᴋᴛᴜ",
                 "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
-                "&e▶ ɢᴜɴᴀᴋᴀɴ &f/pet altar &eᴜɴᴛᴜᴋ ᴍᴇɴᴅᴀᴘᴀᴛᴋᴀɴ ᴀʟᴛᴀʀ!"));
-
-        // Slot 24: Pet Leaderboard
-        inv.setItem(24, createItem(Material.GOLD_BLOCK, true,
-                "<gradient:#ffe259:#ffa751><b>✦ ᴛᴏᴘ 10 ʟᴇᴀᴅᴇʀʙᴏᴀʀᴅ ✦</b></gradient>",
-                "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
-                "&7ʟɪʜᴀᴛ 10 ᴘᴇᴛ ᴅᴇɴɢᴀɴ ʟᴇᴠᴇʟ ᴛᴇʀᴛɪɴɢɢɪ",
-                "&7ᴅɪ sᴇʟᴜʀᴜʜ sᴇʀᴠᴇʀ!",
-                "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
-                "&e▶ ᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴍᴇᴍʙᴜᴋᴀ ʟᴇᴀᴅᴇʀʙᴏᴀʀᴅ!"));
+                "&a▶ ᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴍᴇɴᴅᴀᴘᴀᴛᴋᴀɴ ᴀʟᴛᴀʀ!"));
 
         player.openInventory(inv);
         player.playSound(player.getLocation(), Sound.BLOCK_CHEST_OPEN, 0.6f, 1.2f);
@@ -221,7 +224,7 @@ public class PetMenu {
                 player.closeInventory();
                 CosmeticMenu.open(player, plugin);
             }
-            case 16 -> { // Cycle Class
+            case 15 -> { // Cycle Class
                 PetClass[] classes = PetClass.values();
                 int nextIndex = (data.getPetClass().ordinal() + 1) % classes.length;
                 data.setPetClass(classes[nextIndex]);
@@ -234,14 +237,15 @@ public class PetMenu {
                 player.playSound(player.getLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 0.7f, 1.4f);
                 open(player, plugin);
             }
-            case 22 -> { // Altar Info
-                player.closeInventory();
-                ColorUtil.sendMessage(player, plugin.getConfigManager().getMessage("prefix") +
-                        "<yellow>ɢᴜɴᴀᴋᴀɴ ᴘᴇʀɪɴᴛᴀʜ <aqua>/pet altar</aqua> ᴜɴᴛᴜᴋ ᴍᴇɴᴅᴀᴘᴀᴛᴋᴀɴ ʙʟᴏᴋ ᴀʟᴛᴀʀ 3x3!</yellow>");
-            }
-            case 24 -> { // Pet Leaderboard
+            case 16 -> { // Pet Leaderboard
                 player.closeInventory();
                 PetLeaderboardMenu.open(player, plugin);
+            }
+            case 22 -> { // Altar Claim
+                boolean claimed = plugin.getAltarManager().claimAltarItem(player);
+                if (claimed) {
+                    player.closeInventory();
+                }
             }
         }
     }

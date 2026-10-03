@@ -109,36 +109,7 @@ public class PetCommand implements CommandExecutor, TabCompleter {
                 }
             }
             case "altar" -> {
-                // 1. Cek apakah inventory penuh
-                if (player.getInventory().firstEmpty() == -1) {
-                    player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                            "<red>ɪɴᴠᴇɴᴛᴏʀʏ ᴋᴀᴍᴜ ᴘᴇɴᴜʜ! ᴋᴏsᴏɴɢᴋᴀɴ sᴇᴛɪᴅᴀᴋɴʏᴀ 1 sʟᴏᴛ ᴛᴇʀʟᴇʙɪʜ ᴅᴀʜᴜʟᴜ.</red>"));
-                    return true;
-                }
-
-                // 2. Cek limit harian (maksimal 3x per hari)
-                PetData data = plugin.getPetManager().getPetData(player.getUniqueId());
-                String today = java.time.LocalDate.now().toString();
-                if (!today.equals(data.getLastAltarClaimDate())) {
-                    data.setLastAltarClaimDate(today);
-                    data.setDailyAltarClaims(0);
-                }
-
-                int maxDaily = 3;
-                boolean isAdmin = player.hasPermission("leftypet.admin");
-                if (!isAdmin && data.getDailyAltarClaims() >= maxDaily) {
-                    player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                            "<red>ᴋᴀᴍᴜ sᴜᴅᴀʜ ᴍᴇɴᴄᴀᴘᴀɪ ʙᴀᴛᴀs ᴋʟᴀɪᴍ ᴀʟᴛᴀʀ ʜᴀʀɪ ɪɴɪ (" + maxDaily + "/" + maxDaily + ")! sɪʟᴀᴋᴀɴ ᴄᴏʙᴀ ʟᴀɢɪ ʙᴇsᴏᴋ.</red>"));
-                    return true;
-                }
-
-                data.setDailyAltarClaims(data.getDailyAltarClaims() + 1);
-                plugin.getPetManager().savePetData(player.getUniqueId());
-
-                player.getInventory().addItem(plugin.getAltarManager().createAltarItem());
-                int claims = data.getDailyAltarClaims();
-                player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                        "<gradient:#43e97b:#38f9d7>ᴋᴀᴍᴜ ᴍᴇɴᴇʀɪᴍᴀ 1x ᴘᴇᴛ ᴛʀᴀɪɴɪɴɢ ᴀʟᴛᴀʀ (3x3)!</gradient> <gray>(" + claims + "/" + maxDaily + " ʜᴀʀɪ ɪɴɪ)</gray>"));
+                plugin.getAltarManager().claimAltarItem(player);
             }
             case "roadmap" -> {
                 PetRoadmapMenu.open(player, plugin);

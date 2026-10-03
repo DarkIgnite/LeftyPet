@@ -17,7 +17,7 @@ commands:
     description: Admin commands for LeftyPet
     aliases: [lpa, petadmin]
     permission: leftypet.admin
-    usage: /<command> [reload|setlevel|setenergy|givealtar|removealtar]
+    usage: /<command> [reload|setlevel|setenergy|givealtar|removealtar|tpaltar]
 
 permissions:
   leftypet.use:

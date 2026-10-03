@@ -3,7 +3,9 @@ package com.leftycraft.leftypet.listener;
 import com.leftycraft.leftypet.LeftyPetPlugin;
 import com.leftycraft.leftypet.gui.AltarCancelMenu;
 import com.leftycraft.leftypet.gui.AltarMenu;
+import com.leftycraft.leftypet.manager.AltarManager;
 import com.leftycraft.leftypet.model.PetAltar;
+import com.leftycraft.leftypet.model.PetData;
 import com.leftycraft.leftypet.util.ColorUtil;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -159,6 +161,15 @@ public class AltarListener implements Listener {
 
             if (!altar.getOwnerUuid().equals(player.getUniqueId()) && !player.hasPermission("leftypet.admin")) {
                 player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<gradient:#ff5f6d:#ffc371>ᴋᴀᴍᴜ ᴛɪᴅᴀᴋ ʙɪsᴀ ᴍᴇʀᴜsᴀᴋ ᴀʟᴛᴀʀ ᴍɪʟɪᴋ ᴘᴇᴍᴀɪɴ ʟᴀɪɴ!</gradient>"));
+                return;
+            }
+
+            PetData ownerData = plugin.getPetManager().getPetData(altar.getOwnerUuid());
+            if (ownerData.isUpgradeOnCooldown()) {
+                int remSec = ownerData.getUpgradeCooldownRemainingSeconds();
+                player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                        "<gradient:#ff5f6d:#ffc371>ᴀʟᴛᴀʀ sᴇᴅᴀɴɢ ᴅᴀʟᴀᴍ ᴍᴀsᴀ ᴄᴏᴏʟᴅᴏᴡɴ ᴜᴘɢʀᴀᴅᴇ! ᴛɪᴅᴀᴋ ᴅᴀᴘᴀᴛ ᴅɪʜᴀɴᴄᴜʀᴋᴀɴ. sɪsᴀ ᴡᴀᴋᴛᴜ: </gradient><yellow>" + AltarManager.formatDuration(remSec) + "</yellow>"));
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
                 return;
             }
 

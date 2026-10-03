@@ -107,6 +107,42 @@ public class AltarManager {
         return item;
     }
 
+    public boolean claimAltarItem(Player player) {
+        // 1. Cek apakah inventory penuh
+        if (player.getInventory().firstEmpty() == -1) {
+            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                    "<red>ɪɴᴠᴇɴᴛᴏʀʏ ᴋᴀᴍᴜ ᴘᴇɴᴜʜ! ᴋᴏsᴏɴɢᴋᴀɴ sᴇᴛɪᴅᴀᴋɴʏᴀ 1 sʟᴏᴛ ᴛᴇʀʟᴇʙɪʜ ᴅᴀʜᴜʟᴜ.</red>"));
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
+            return false;
+        }
+
+        // 2. Cek limit harian (maksimal 3x per hari)
+        PetData data = plugin.getPetManager().getPetData(player.getUniqueId());
+        String today = java.time.LocalDate.now().toString();
+        if (!today.equals(data.getLastAltarClaimDate())) {
+            data.setLastAltarClaimDate(today);
+            data.setDailyAltarClaims(0);
+        }
+
+        int maxDaily = 3;
+        boolean isAdmin = player.hasPermission("leftypet.admin");
+        if (!isAdmin && data.getDailyAltarClaims() >= maxDaily) {
+            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                    "<red>ᴋᴀᴍᴜ sᴜᴅᴀʜ ᴍᴇɴᴄᴀᴘᴀɪ ʙᴀᴛᴀs ᴋʟᴀɪᴍ ᴀʟᴛᴀʀ ʜᴀʀɪ ɪɴɪ! sɪʟᴀᴋᴀɴ ᴄᴏʙᴀ ʟᴀɢɪ ʙᴇsᴏᴋ.</red>"));
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
+            return false;
+        }
+
+        data.setDailyAltarClaims(data.getDailyAltarClaims() + 1);
+        plugin.getPetManager().savePetData(player.getUniqueId());
+
+        player.getInventory().addItem(createAltarItem());
+        player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                "<gradient:#43e97b:#38f9d7>ᴋᴀᴍᴜ ᴍᴇɴᴇʀɪᴍᴀ 1x ᴘᴇᴛ ᴛʀᴀɪɴɪɴɢ ᴀʟᴛᴀʀ (3x3)! ʟᴇᴛᴀᴋᴋᴀɴ ᴅɪ ᴀʀᴇᴀ 3x3 ᴛᴇʀʙᴜᴋᴀ.</gradient>"));
+        player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 0.7f, 1.4f);
+        return true;
+    }
+
     public int getAltarItemLevel(ItemStack item) {
         if (item == null || !item.hasItemMeta()) return 1;
         Integer lvl = item.getItemMeta().getPersistentDataContainer().get(altarLevelKey, PersistentDataType.INTEGER);
@@ -156,6 +192,16 @@ public class AltarManager {
     public void dismantleAltar(Player player, PetAltar altar) {
         if (!altar.getOwnerUuid().equals(player.getUniqueId()) && !player.hasPermission("leftypet.admin")) {
             player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<gradient:#ff5f6d:#ffc371>ɪɴɪ ʙᴜᴋᴀɴ ᴀʟᴛᴀʀ ᴍɪʟɪᴋᴍᴜ!</gradient>"));
+            return;
+        }
+
+        // Check if pet/altar is on upgrade cooldown (Revisi 18)
+        PetData ownerData = plugin.getPetManager().getPetData(altar.getOwnerUuid());
+        if (ownerData.isUpgradeOnCooldown()) {
+            int remSec = ownerData.getUpgradeCooldownRemainingSeconds();
+            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                    "<gradient:#ff5f6d:#ffc371>ᴀʟᴛᴀʀ sᴇᴅᴀɴɢ ᴅᴀʟᴀᴍ ᴍᴀsᴀ ᴄᴏᴏʟᴅᴏᴡɴ ᴜᴘɢʀᴀᴅᴇ! ᴛɪᴅᴀᴋ ᴅᴀᴘᴀᴛ ᴅɪʙᴏɴɢᴋᴀʀ. sɪsᴀ ᴡᴀᴋᴛᴜ: </gradient><yellow>" + formatDuration(remSec) + "</yellow>"));
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
             return;
         }
 
@@ -327,10 +373,11 @@ public class AltarManager {
                 .replace("{level}", String.valueOf(data.getLevel()));
         player.sendMessage(ColorUtil.component(msg));
 
-        // Broadcast to all players (Revisi 13)
+        // Broadcast to all players (Revisi 13 & 19)
         Component bc = ColorUtil.component("<gradient:#ff9900:#ff00cc><b>[ʟᴇғᴛʏᴘᴇᴛ]</b></gradient> <yellow>"
                 + player.getName() + "</yellow> <white>ʙᴀʀᴜ sᴀᴊᴀ ᴍᴇɴɢ-ᴜᴘɢʀᴀᴅᴇ ᴘᴇᴛ ᴍᴇʀᴇᴋᴀ ᴋᴇ</white> <gradient:#00f2fe:#4facfe><b>ʟᴇᴠᴇʟ "
-                + data.getLevel() + "</b></gradient> <gray>ᴅɪ ᴛʀᴀɪɴɪɴɢ ᴀʟᴛᴀʀ!</gray>");
+                + data.getLevel() + "</b></gradient> <gray>ᴅɪ ᴛʀᴀɪɴɪɴɢ ᴀʟᴛᴀʀ!</gray>\n"
+                + "<gradient:#ffaa00:#ffd200><b>💡 Tips:</b></gradient> <white>Gunakan command</white> <yellow><b>/pet altar</b></yellow> <white>untuk membangun altar & upgrade pet kamu!</white>");
         Bukkit.broadcast(bc);
         for (Player p : Bukkit.getOnlinePlayers()) {
             p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 0.6f, 1.4f);
@@ -343,9 +390,9 @@ public class AltarManager {
         // Auto summon
         plugin.getPetManager().summonPet(player);
 
-        // Apply Upgrade Cooldown (Revisi 18)
+        // Apply Upgrade Cooldown (Revisi 18 & 19 - online-only seconds)
         int cooldownSec = getUpgradeCooldownSeconds(data.getLevel());
-        data.setUpgradeCooldownUntil(System.currentTimeMillis() + (cooldownSec * 1000L));
+        data.setUpgradeCooldownRemainingSeconds(cooldownSec);
         plugin.getPetManager().savePetData(uuid);
         player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
                 "<gray>ᴘᴇᴛ ᴍᴀsᴜᴋ ᴍᴀsᴀ ᴄᴏᴏʟᴅᴏᴡɴ ᴜᴘɢʀᴀᴅᴇ: </gray><yellow>" + formatDuration(cooldownSec) + "</yellow> <gray>(ᴛɪᴅᴀᴋ ʙɪsᴀ ᴛʀᴀɪɴɪɴɢ sᴇʟᴀᴍᴀ ᴄᴏᴏʟᴅᴏᴡɴ)</gray>"));
@@ -558,13 +605,32 @@ public class AltarManager {
         OfflinePlayer owner = Bukkit.getOfflinePlayer(altar.getOwnerUuid());
         String ownerName = owner.getName() != null ? owner.getName() : "Player";
         int discount = (int) altar.getTimeReductionPercent();
+        PetData ownerData = plugin.getPetManager().getPetData(altar.getOwnerUuid());
 
         if (!altar.isTraining()) {
-            // Idle Altar Hologram: FIXED billboard, 1 block lower, shortened to concise 2 lines
+            // Idle Altar Hologram: FIXED billboard, 1 block lower
             text.setBillboard(Display.Billboard.FIXED);
 
+            // Display cooldown status if pet is on upgrade cooldown (Revisi 19)
+            if (ownerData != null && ownerData.isUpgradeOnCooldown()) {
+                int remSec = ownerData.getUpgradeCooldownRemainingSeconds();
+                boolean isOnline = owner.isOnline();
+                String cdText;
+                if (!isOnline) {
+                    cdText = "<gradient:#ff416c:#ff4b2b><b>⏳ ᴄᴏᴏʟᴅᴏᴡɴ: " + formatDuration(remSec) + " (ᴛᴇʀᴊᴇᴅᴀ)</b></gradient>";
+                } else {
+                    cdText = "<yellow>⏳ ᴄᴏᴏʟᴅᴏᴡɴ: </yellow><gradient:#00f2fe:#4facfe><b>" + formatDuration(remSec) + "</b></gradient>";
+                }
+                String idleText = "<gradient:#ff9900:#ff5500><b>✦ ᴘᴇᴛ ᴀʟᴛᴀʀ [ʟᴠ." + altar.getAltarLevel() + "] ✦</b></gradient>\n" +
+                        "<white>" + ownerName + "</white>\n" + cdText;
+                text.text(ColorUtil.component(idleText));
+                return;
+            }
+
+            // Normal idle display: omit -0% waktu for Lv 1
+            String discountStr = (discount > 0) ? " <gray>•</gray> <green>-" + discount + "% ᴡᴀᴋᴛᴜ</green>" : "";
             String idleText = "<gradient:#ff9900:#ff5500><b>✦ ᴘᴇᴛ ᴀʟᴛᴀʀ [ʟᴠ." + altar.getAltarLevel() + "] ✦</b></gradient>\n" +
-                    "<white>" + ownerName + "</white> <gray>•</gray> <green>-" + discount + "% ᴡᴀᴋᴛᴜ</green>";
+                    "<white>" + ownerName + "</white>" + discountStr;
             text.text(ColorUtil.component(idleText));
             return;
         }
@@ -582,9 +648,10 @@ public class AltarManager {
             statusLine = "<yellow>sɪsᴀ ᴡᴀᴋᴛᴜ: </yellow><gradient:#00f2fe:#4facfe><b>" + altar.getFormattedRemainingTime() + "</b></gradient>";
         }
 
+        String discountTag = (discount > 0) ? " <green>(-" + discount + "% ᴡᴀᴋᴛᴜ)</green>" : "";
         String full = "<gradient:#ff9900:#ff5500><b>✦ ᴘᴇᴛ ᴛʀᴀɪɴɪɴɢ ᴀʟᴛᴀʀ ✦</b></gradient>\n" +
                 "<gray>ᴘᴇᴍɪʟɪᴋ: </gray><white>" + ownerName + "</white>\n" +
-                "<yellow>ʟᴇᴠᴇʟ: </yellow><gold><b>ʟᴠ." + altar.getAltarLevel() + "</b></gold> <green>(-" + discount + "% ᴡᴀᴋᴛᴜ)</green>\n" +
+                "<yellow>ʟᴇᴠᴇʟ: </yellow><gold><b>ʟᴠ." + altar.getAltarLevel() + "</b></gold>" + discountTag + "\n" +
                 "<aqua>ᴛᴀʀɢᴇᴛ: </aqua>" + ColorUtil.getLevelTag(altar.getTargetLevel()) + "\n" +
                 statusLine;
 
@@ -697,7 +764,7 @@ public class AltarManager {
         }
     }
 
-    private String formatDuration(int seconds) {
+    public static String formatDuration(int seconds) {
         int hours = seconds / 3600;
         int min = (seconds % 3600) / 60;
         int sec = seconds % 60;

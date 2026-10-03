@@ -53,6 +53,16 @@ public class PetManager {
                 pet.tick();
             }
         }, 1L, 2L); // Run every 2 ticks
+
+        // Online-only upgrade cooldown ticker (every 1 second = 20 ticks)
+        Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                PetData data = petDataCache.get(player.getUniqueId());
+                if (data != null && data.getUpgradeCooldownRemainingSeconds() > 0) {
+                    data.decrementUpgradeCooldown(1);
+                }
+            }
+        }, 20L, 20L);
     }
 
     public PetData getPetData(UUID playerUuid) {
@@ -178,7 +188,7 @@ public class PetManager {
             data.setLastAltarClaimDate(cfg.getString("last-altar-claim-date", ""));
             data.setDailyAltarClaims(cfg.getInt("daily-altar-claims", 0));
             data.setAutoAttack(cfg.getBoolean("auto-attack", true));
-            data.setUpgradeCooldownUntil(cfg.getLong("upgrade-cooldown-until", 0L));
+            data.setUpgradeCooldownRemainingSeconds(cfg.getInt("upgrade-cooldown-seconds", 0));
         }
         return data;
     }
@@ -200,7 +210,7 @@ public class PetManager {
         cfg.set("last-altar-claim-date", data.getLastAltarClaimDate());
         cfg.set("daily-altar-claims", data.getDailyAltarClaims());
         cfg.set("auto-attack", data.isAutoAttack());
-        cfg.set("upgrade-cooldown-until", data.getUpgradeCooldownUntil());
+        cfg.set("upgrade-cooldown-seconds", data.getUpgradeCooldownRemainingSeconds());
 
         try {
             cfg.save(file);
