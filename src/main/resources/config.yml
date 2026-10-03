@@ -29,7 +29,7 @@ upgrade-durations:
 # Pet Energy & Hunger system
 energy:
   max-energy: 100
-  drain-per-attack: 1.5
+  drain-per-attack: 0.3
   # Amount of energy restored by foods
   food-restore:
     COOKED_BEEF: 30

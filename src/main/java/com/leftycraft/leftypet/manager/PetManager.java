@@ -177,6 +177,8 @@ public class PetManager {
             }
             data.setLastAltarClaimDate(cfg.getString("last-altar-claim-date", ""));
             data.setDailyAltarClaims(cfg.getInt("daily-altar-claims", 0));
+            data.setAutoAttack(cfg.getBoolean("auto-attack", true));
+            data.setUpgradeCooldownUntil(cfg.getLong("upgrade-cooldown-until", 0L));
         }
         return data;
     }
@@ -197,6 +199,8 @@ public class PetManager {
         cfg.set("altar-id", data.getCurrentAltarId() != null ? data.getCurrentAltarId().toString() : null);
         cfg.set("last-altar-claim-date", data.getLastAltarClaimDate());
         cfg.set("daily-altar-claims", data.getDailyAltarClaims());
+        cfg.set("auto-attack", data.isAutoAttack());
+        cfg.set("upgrade-cooldown-until", data.getUpgradeCooldownUntil());
 
         try {
             cfg.save(file);
@@ -209,6 +213,14 @@ public class PetManager {
         for (UUID uuid : petDataCache.keySet()) {
             savePetData(uuid);
         }
+    }
+
+    public File getDataFolder() {
+        return dataFolder;
+    }
+
+    public Map<UUID, PetData> getPetDataCache() {
+        return petDataCache;
     }
 
     public void unloadPlayer(UUID uuid) {

@@ -88,8 +88,12 @@ public class AltarManager {
             lore.add(ColorUtil.component("&7ʟᴇᴛᴀᴋᴋᴀɴ ᴅɪ ᴀʀᴇᴀ &e3x3 &7ᴛᴇʀʙᴜᴋᴀ"));
             lore.add(ColorUtil.component("&7ᴜɴᴛᴜᴋ ᴍᴇᴍʙᴀɴɢᴜɴ ғᴀsɪʟɪᴛᴀs ᴀғᴋ ᴛʀᴀɪɴɪɴɢ!"));
             lore.add(ColorUtil.component(""));
-            int discount = (lvl == 4) ? 50 : (lvl * 10);
-            lore.add(ColorUtil.component("&eᴀʟᴛᴀʀ ʟᴇᴠᴇʟ: &f" + lvl + " &7(-" + discount + "% ᴡᴀᴋᴛᴜ ᴜᴘɢʀᴀᴅᴇ)"));
+            int discount = (lvl == 4) ? 50 : ((lvl - 1) * 10);
+            if (discount > 0) {
+                lore.add(ColorUtil.component("&eᴀʟᴛᴀʀ ʟᴇᴠᴇʟ: &f" + lvl + " &7(-" + discount + "% ᴡᴀᴋᴛᴜ ᴜᴘɢʀᴀᴅᴇ)"));
+            } else {
+                lore.add(ColorUtil.component("&eᴀʟᴛᴀʀ ʟᴇᴠᴇʟ: &f" + lvl + " &7(sᴛᴀɴᴅᴀʀ / 0% ᴅɪsᴋᴏɴ)"));
+            }
             if (lvl == 4) {
                 lore.add(ColorUtil.component("&d&l✦ CELESTIAL EXCLUSIVE &7- Max Level!"));
             } else if (lvl < 4) {
@@ -195,6 +199,23 @@ public class AltarManager {
 
         PetAltar altar = getAltarAt(altarLoc);
         if (altar == null) return;
+
+        // Upgrade cooldown check
+        if (data.isUpgradeOnCooldown()) {
+            int remSec = data.getUpgradeCooldownRemainingSeconds();
+            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                    "<gradient:#ff5f6d:#ffc371>ᴘᴇᴛ ᴋᴀᴍᴜ ᴍᴀsɪʜ ᴅᴀʟᴀᴍ ᴄᴏᴏʟᴅᴏᴡɴ sᴇᴛᴇʟᴀʜ ᴜᴘɢʀᴀᴅᴇ! sɪsᴀ ᴡᴀᴋᴛᴜ: </gradient><yellow>" + formatDuration(remSec) + "</yellow>"));
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
+            return;
+        }
+
+        // Celestial rank restriction for Level 4 altar
+        if (altar.getAltarLevel() == 4 && !player.hasPermission("leftypet.celestial")) {
+            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                    "<gradient:#ff5f6d:#ffc371>ᴀʟᴛᴀʀ ʟᴇᴠᴇʟ 4 ʜᴀɴʏᴀ ʙɪsᴀ ᴅɪɢᴜɴᴀᴋᴀɴ ᴏʟᴇʜ ʀᴀɴᴋ </gradient><gradient:#d946ef:#8b5cf6><b>CELESTIAL</b></gradient>!"));
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
+            return;
+        }
 
         int maxLvl = plugin.getConfigManager().getMaxLevel();
         if (data.getLevel() >= maxLvl) {
@@ -321,6 +342,35 @@ public class AltarManager {
 
         // Auto summon
         plugin.getPetManager().summonPet(player);
+
+        // Apply Upgrade Cooldown (Revisi 18)
+        int cooldownSec = getUpgradeCooldownSeconds(data.getLevel());
+        data.setUpgradeCooldownUntil(System.currentTimeMillis() + (cooldownSec * 1000L));
+        plugin.getPetManager().savePetData(uuid);
+        player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                "<gray>ᴘᴇᴛ ᴍᴀsᴜᴋ ᴍᴀsᴀ ᴄᴏᴏʟᴅᴏᴡɴ ᴜᴘɢʀᴀᴅᴇ: </gray><yellow>" + formatDuration(cooldownSec) + "</yellow> <gray>(ᴛɪᴅᴀᴋ ʙɪsᴀ ᴛʀᴀɪɴɪɴɢ sᴇʟᴀᴍᴀ ᴄᴏᴏʟᴅᴏᴡɴ)</gray>"));
+    }
+
+    /**
+     * Calculates upgrade cooldown in seconds based on pet level.
+     * Lv 1-10: 1 to 5 minutes (60s to 300s)
+     * Lv 11-20: 5 to 8 minutes (300s to 480s)
+     * Lv 21-30: 8 to 11 minutes (480s to 660s)
+     * Lv 31-40: 11 to 14 minutes (660s to 840s)
+     * etc.
+     */
+    public static int getUpgradeCooldownSeconds(int level) {
+        if (level <= 10) {
+            double frac = (level - 1) / 9.0;
+            double mins = 1.0 + (frac * 4.0);
+            return (int) Math.round(mins * 60.0);
+        } else {
+            int tier = (level - 1) / 10;
+            double baseMins = 5.0 + ((tier - 1) * 3.0);
+            double frac = (level - 1 - (tier * 10)) / 9.0;
+            double mins = baseMins + (frac * 3.0);
+            return (int) Math.round(mins * 60.0);
+        }
     }
 
     public Location getIdealHologramLocation(PetAltar altar) {

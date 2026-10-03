@@ -16,6 +16,8 @@ public class PetData {
     private UUID currentAltarId;
     private String lastAltarClaimDate;
     private int dailyAltarClaims;
+    private boolean autoAttack;
+    private long upgradeCooldownUntil;
 
     public PetData(UUID ownerUuid) {
         this(ownerUuid, null);
@@ -36,6 +38,8 @@ public class PetData {
         this.currentAltarId = null;
         this.lastAltarClaimDate = "";
         this.dailyAltarClaims = 0;
+        this.autoAttack = true;
+        this.upgradeCooldownUntil = 0L;
     }
 
     public UUID getOwnerUuid() {
@@ -140,6 +144,30 @@ public class PetData {
 
     public void setDailyAltarClaims(int dailyAltarClaims) {
         this.dailyAltarClaims = dailyAltarClaims;
+    }
+
+    public boolean isAutoAttack() {
+        return autoAttack;
+    }
+
+    public void setAutoAttack(boolean autoAttack) {
+        this.autoAttack = autoAttack;
+    }
+
+    public long getUpgradeCooldownUntil() {
+        return upgradeCooldownUntil;
+    }
+
+    public void setUpgradeCooldownUntil(long upgradeCooldownUntil) {
+        this.upgradeCooldownUntil = upgradeCooldownUntil;
+    }
+
+    public boolean isUpgradeOnCooldown() {
+        return System.currentTimeMillis() < upgradeCooldownUntil;
+    }
+
+    public int getUpgradeCooldownRemainingSeconds() {
+        return Math.max(0, (int) ((upgradeCooldownUntil - System.currentTimeMillis()) / 1000L));
     }
 
     /**

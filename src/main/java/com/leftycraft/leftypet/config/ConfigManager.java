@@ -25,7 +25,7 @@ public class ConfigManager {
     private final Map<String, PetSkin> skins = new LinkedHashMap<>();
     private final Map<String, String> trails = new LinkedHashMap<>();
 
-    private double energyDrainPerAttack = 1.5;
+    private double energyDrainPerAttack = 0.3;
     private boolean economyEnabled = true;
     private double upgradeBaseCost = 1000.0;
     private double upgradeCostPerLevel = 500.0;
@@ -62,7 +62,7 @@ public class ConfigManager {
         }
 
         // Energy settings
-        energyDrainPerAttack = config.getDouble("energy.drain-per-attack", 1.5);
+        energyDrainPerAttack = config.getDouble("energy.drain-per-attack", 0.3);
 
         foodRestoreMap.clear();
         ConfigurationSection foodSec = config.getConfigurationSection("energy.food-restore");

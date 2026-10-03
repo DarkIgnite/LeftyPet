@@ -58,10 +58,10 @@ public class PetAltar {
 
     public double getTimeReductionPercent() {
         return switch (altarLevel) {
-            case 2 -> 20.0;
-            case 3 -> 30.0;
+            case 2 -> 10.0;
+            case 3 -> 20.0;
             case 4 -> 50.0;
-            default -> 10.0;
+            default -> 0.0;
         };
     }
 

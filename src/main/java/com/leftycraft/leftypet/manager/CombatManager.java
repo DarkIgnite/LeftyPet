@@ -55,7 +55,7 @@ public class CombatManager {
                 if (pet == null || !pet.isValid()) continue;
 
                 PetData data = pet.getData();
-                if (data.isFainted() || data.getEnergy() < 2.0) continue;
+                if (data.isFainted() || data.getEnergy() < 2.0 || !data.isAutoAttack()) continue;
 
                 LivingEntity target = findTarget(player, pet);
                 if (target != null) {

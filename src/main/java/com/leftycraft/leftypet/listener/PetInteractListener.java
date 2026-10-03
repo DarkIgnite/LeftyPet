@@ -5,6 +5,7 @@ import com.leftycraft.leftypet.entity.ActivePet;
 import com.leftycraft.leftypet.gui.AltarCancelMenu;
 import com.leftycraft.leftypet.gui.AltarMenu;
 import com.leftycraft.leftypet.gui.CosmeticMenu;
+import com.leftycraft.leftypet.gui.PetLeaderboardMenu;
 import com.leftycraft.leftypet.gui.PetMenu;
 import com.leftycraft.leftypet.gui.PetRoadmapMenu;
 import com.leftycraft.leftypet.gui.holder.AltarCancelMenuHolder;
@@ -89,7 +90,7 @@ public class PetInteractListener implements Listener {
                         (event.getDamager() instanceof org.bukkit.entity.Projectile proj && proj.getShooter() instanceof org.bukkit.entity.Monster)) {
                     var data = pet.getData();
                     if (!data.isFainted() && !data.isTraining()) {
-                        double drain = Math.max(12.0, event.getDamage() * 2.0);
+                        double drain = Math.max(2.0, event.getDamage() * 0.4);
                         data.drainEnergy(drain);
                         pet.updateNameTag();
 
@@ -143,6 +144,12 @@ public class PetInteractListener implements Listener {
             return;
         }
 
+        if (holder instanceof com.leftycraft.leftypet.gui.holder.PetLeaderboardMenuHolder) {
+            event.setCancelled(true);
+            PetLeaderboardMenu.handleClick(event, plugin);
+            return;
+        }
+
         // Secondary fallback by title
         String title = PlainTextComponentSerializer.plainText().serialize(event.getView().title());
         if (title.contains("ʟᴇғᴛʏᴘᴇᴛ") || title.contains("LeftyPet") || title.contains("ᴘᴇᴛ ᴅᴀsʜʙᴏᴀʀᴅ") || title.contains("Pet Dashboard")) {
@@ -166,7 +173,8 @@ public class PetInteractListener implements Listener {
         InventoryHolder holder = event.getInventory().getHolder();
         if (holder instanceof PetMenuHolder || holder instanceof CosmeticMenuHolder
                 || holder instanceof AltarMenuHolder || holder instanceof AltarCancelMenuHolder
-                || holder instanceof PetRoadmapMenuHolder) {
+                || holder instanceof PetRoadmapMenuHolder
+                || holder instanceof com.leftycraft.leftypet.gui.holder.PetLeaderboardMenuHolder) {
             event.setCancelled(true);
             return;
         }

@@ -20,11 +20,12 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Sound;
 
 public class PetCommand implements CommandExecutor, TabCompleter {
 
     private final LeftyPetPlugin plugin;
-    private final List<String> subCommands = Arrays.asList("menu", "summon", "dismiss", "rename", "class", "altar", "roadmap", "duel", "help");
+    private final List<String> subCommands = Arrays.asList("menu", "summon", "dismiss", "rename", "class", "altar", "roadmap", "duel", "attack", "autoattack", "top", "leaderboard", "help");
 
     public PetCommand(LeftyPetPlugin plugin) {
         this.plugin = plugin;
@@ -173,15 +174,35 @@ public class PetCommand implements CommandExecutor, TabCompleter {
                 }
                 plugin.getPetDuelManager().sendChallenge(player, target, bet);
             }
+            case "attack", "autoattack", "toggleattack" -> {
+                PetData data = plugin.getPetManager().getPetData(player.getUniqueId());
+                boolean newStatus = !data.isAutoAttack();
+                data.setAutoAttack(newStatus);
+                plugin.getPetManager().savePetData(player.getUniqueId());
+                if (newStatus) {
+                    player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                            "<green>ᴀᴜᴛᴏ ᴀᴛᴛᴀᴄᴋ ᴘᴇᴛ ᴅɪᴀᴋᴛɪғᴋᴀɴ! ᴘᴇᴛ ᴀᴋᴀɴ ᴍᴇᴍʙᴀɴᴛᴜ ᴍᴇɴʏᴇʀᴀɴɢ ᴍᴏɴsᴛᴇʀ.</green>"));
+                    player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_ATTACK_CRIT, 0.7f, 1.4f);
+                } else {
+                    player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                            "<red>ᴀᴜᴛᴏ ᴀᴛᴛᴀᴄᴋ ᴘᴇᴛ ᴅɪɴᴏɴᴀᴋᴛɪғᴋᴀɴ! ᴘᴇᴛ ᴍᴀsᴜᴋ ᴋᴇ ᴍᴏᴅᴇ ᴘᴀsɪғ.</red>"));
+                    player.playSound(player.getLocation(), Sound.BLOCK_DISPENSER_FAIL, 0.7f, 1.0f);
+                }
+            }
+            case "top", "leaderboard" -> {
+                com.leftycraft.leftypet.gui.PetLeaderboardMenu.open(player, plugin);
+            }
             case "help" -> {
                 player.sendMessage(ColorUtil.component("<gradient:#00f2fe:#4facfe><b>---------------- [ʟᴇғᴛʏᴘᴇᴛ ᴄᴏᴍᴍᴀɴᴅs] ----------------</b></gradient>"));
                 player.sendMessage(ColorUtil.component("<aqua>/pet</aqua> <gray>- ʙᴜᴋᴀ ᴍᴇɴᴜ ɢᴜɪ ᴘᴇᴛ</gray>"));
                 player.sendMessage(ColorUtil.component("<aqua>/pet summon</aqua> <gray>- ᴘᴀɴɢɢɪʟ ᴘᴇᴛ ᴋᴇ sᴀᴍᴘɪɴɢ ʙᴀʜᴜᴍᴜ</gray>"));
                 player.sendMessage(ColorUtil.component("<aqua>/pet dismiss</aqua> <gray>- sɪᴍᴘᴀɴ ᴘᴇᴛ ᴋᴇ ᴀʟᴀᴍ sᴘɪʀɪᴛᴜᴀʟ</gray>"));
+                player.sendMessage(ColorUtil.component("<aqua>/pet attack</aqua> <gray>- ᴀᴋᴛɪғᴋᴀɴ / ɴᴏɴᴀᴋᴛɪғᴋᴀɴ ᴀᴜᴛᴏ ᴀᴛᴛᴀᴄᴋ ᴘᴇᴛ</gray>"));
                 player.sendMessage(ColorUtil.component("<aqua>/pet rename [nama]</aqua> <gray>- ʙᴇʀɪ ɴᴀᴍᴀ ᴘᴇᴛ ᴋᴀᴍᴜ (ᴍᴀᴋs. 15 ᴋᴀʀᴀᴋᴛᴇʀ)</gray>"));
                 player.sendMessage(ColorUtil.component("<aqua>/pet roadmap</aqua> <gray>- ʟɪʜᴀᴛ ᴘᴏʜᴏɴ ᴘʀᴏɢʀᴇsɪ ʟᴇᴠᴇʟ ᴘᴇᴛ (ᴀᴜʀᴀsᴋɪʟʟs sᴛʏʟᴇ)</gray>"));
                 player.sendMessage(ColorUtil.component("<aqua>/pet class [class]</aqua> <gray>- ᴘɪʟɪʜ ᴋᴇʟᴀs sᴘᴇsɪᴀʟɪsᴀsɪ ᴘᴇᴛ</gray>"));
                 player.sendMessage(ColorUtil.component("<aqua>/pet altar</aqua> <gray>- ᴅᴀᴘᴀᴛᴋᴀɴ ᴀʟᴛᴀʀ ᴛʀᴀɪɴɪɴɢ ᴀғᴋ (3x3) (ᴍᴀᴋs. 3x/ʜᴀʀɪ)</gray>"));
+                player.sendMessage(ColorUtil.component("<aqua>/pet top</aqua> <gray>- ʟɪʜᴀᴛ ᴛᴏᴘ 10 ʟᴇᴠᴇʟ ᴘᴇᴛ ᴅɪ sᴇʀᴠᴇʀ</gray>"));
                 player.sendMessage(ColorUtil.component("<aqua>/pet duel [pemain] [taruhan]</aqua> <gray>- ᴛᴀɴᴛᴀɴɢ ᴘᴇᴛ ᴘᴇᴍᴀɪɴ ʟᴀɪɴ ʙᴇʀᴅᴜᴇʟ</gray>"));
                 player.sendMessage(ColorUtil.component("<gradient:#00f2fe:#4facfe><b>-----------------------------------------------------</b></gradient>"));
             }

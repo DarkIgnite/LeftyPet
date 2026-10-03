@@ -46,7 +46,25 @@ public class AltarMenu {
             int currentLvl = data.getLevel();
             int maxLvl = plugin.getConfigManager().getMaxLevel();
 
-            if (currentLvl >= maxLvl) {
+            if (altar.getAltarLevel() == 4 && !player.hasPermission("leftypet.celestial")) {
+                inv.setItem(11, PetMenu.createItem(Material.BARRIER, false,
+                        "<gradient:#d946ef:#8b5cf6><b>🔒 ᴀʟᴛᴀʀ ʟᴇᴠᴇʟ 4 [ᴄᴇʟᴇsᴛɪᴀʟ]</b></gradient>",
+                        "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
+                        "&c🔒 ʜᴀɴʏᴀ ʙɪsᴀ ᴅɪɢᴜɴᴀᴋᴀɴ ᴏʟᴇʜ ʀᴀɴᴋ &d&lCELESTIAL!",
+                        "&7ᴜᴘɢʀᴀᴅᴇ ʀᴀɴᴋ ᴋᴀᴍᴜ ᴜɴᴛᴜᴋ ᴍᴇɴɢɢᴜɴᴀᴋᴀɴ",
+                        "&7ғᴀsɪʟɪᴛᴀs ᴀʟᴛᴀʀ ʟᴇᴠᴇʟ 4 ɪɴɪ.",
+                        "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
+                        "&c▶ ʜᴀɴʏᴀ ᴜɴᴛᴜᴋ ʀᴀɴᴋ CELESTIAL!"));
+            } else if (data.isUpgradeOnCooldown()) {
+                int remSec = data.getUpgradeCooldownRemainingSeconds();
+                inv.setItem(11, PetMenu.createItem(Material.CLOCK, false,
+                        "<gradient:#ff5f6d:#ffc371><b>⏳ ᴘᴇᴛ sᴇᴅᴀɴɢ ᴄᴏᴏʟᴅᴏᴡɴ ᴜᴘɢʀᴀᴅᴇ</b></gradient>",
+                        "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
+                        "&7ᴘᴇᴛ ᴍᴀsɪʜ ᴅᴀʟᴀᴍ ᴍᴀsᴀ ᴘᴇᴍᴜʟɪʜᴀɴ sᴇᴛᴇʟᴀʜ ᴜᴘɢʀᴀᴅᴇ.",
+                        "&7• sɪsᴀ ᴡᴀᴋᴛᴜ: &e" + formatSec(remSec),
+                        "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
+                        "&cᴛᴜɴɢɢᴜ ʜɪɴɢɢᴀ ᴄᴏᴏʟᴅᴏᴡɴ sᴇʟᴇsᴀɪ ᴜɴᴛᴜᴋ ᴛʀᴀɪɴɪɴɢ ʟᴀɢɪ."));
+            } else if (currentLvl >= maxLvl) {
                 inv.setItem(11, PetMenu.createItem(Material.BARRIER, false, "&c&lᴘᴇᴛ sᴜᴅᴀʜ ʟᴇᴠᴇʟ ᴍᴀᴋsɪᴍᴀʟ",
                         "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
                         "&7ʟᴇᴠᴇʟ ᴘᴇᴛ ᴋᴀᴍᴜ: &e" + maxLvl,
@@ -87,10 +105,11 @@ public class AltarMenu {
             default -> Material.POLISHED_DIORITE_SLAB;
         };
 
+        String eff = (altar.getTimeReductionPercent() > 0) ? ("&a-" + (int) altar.getTimeReductionPercent() + "%") : "&7sᴛᴀɴᴅᴀʀ (0%)";
         inv.setItem(13, PetMenu.createItem(altarIcon, true,
-                "<gradient:#ffe259:#ffa751><b>ᴀʟᴛᴀʀ ʟᴇᴠᴇʟ " + altar.getAltarLevel() + " / 3</b></gradient>",
+                "<gradient:#ffe259:#ffa751><b>ᴀʟᴛᴀʀ ʟᴇᴠᴇʟ " + altar.getAltarLevel() + " / 4</b></gradient>",
                 "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
-                "&7• ᴇғɪsɪᴇɴsɪ ᴡᴀᴋᴛᴜ: &a-" + (int) altar.getTimeReductionPercent() + "%",
+                "&7• ᴇғɪsɪᴇɴsɪ ᴡᴀᴋᴛᴜ: " + eff,
                 "&7• sᴛʀᴜᴋᴛᴜʀ: &f3x3 Glass Chamber",
                 "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
                 "&7ᴀʟᴛᴀʀ ᴍᴇᴍᴘᴇʀᴄᴇᴘᴀᴛ ᴡᴀᴋᴛᴜ ᴜᴘɢʀᴀᴅᴇ",
@@ -120,7 +139,7 @@ public class AltarMenu {
 
                 String titleColor = isCelestialTier ? "<gradient:#d946ef:#8b5cf6>" : "<gradient:#00c6ff:#0072ff>";
                 String titleSuffix = isCelestialTier ? " &d&l[ᴄᴇʟᴇsᴛɪᴀʟ]</gradient>" : "</gradient>";
-                int discount = isCelestialTier ? 50 : (nextAltarLvl * 10);
+                int discount = isCelestialTier ? 50 : ((nextAltarLvl - 1) * 10);
 
                 inv.setItem(15, PetMenu.createItem(
                         isCelestialTier ? Material.NETHER_STAR : Material.ANVIL, true,

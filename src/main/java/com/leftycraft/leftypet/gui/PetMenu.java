@@ -88,6 +88,28 @@ public class PetMenu {
                     "&a▶ ᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴍᴇᴍᴀɴɢɢɪʟ"));
         }
 
+        // Slot 11: Auto Attack Toggle
+        boolean autoAtk = data.isAutoAttack();
+        if (autoAtk) {
+            inv.setItem(11, createItem(Material.DIAMOND_SWORD, true,
+                    "<gradient:#00f2fe:#4facfe><b>ᴀᴜᴛᴏ ᴀᴛᴛᴀᴄᴋ:</b></gradient> <green><b>[ON]</b></green>",
+                    "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
+                    "&7ᴘᴇᴛ ᴏᴛᴏᴍᴀᴛɪs ᴍᴇɴʏᴇʀᴀɴɢ ᴍᴏɴsᴛᴇʀ ʟɪᴀʀ",
+                    "&7ʏᴀɴɢ ᴍᴇɴɢᴀɴᴄᴀᴍ ᴅᴀɴ ᴍᴇɴᴅᴇᴋᴀᴛɪᴍᴜ!",
+                    "&7• sᴛᴀᴛᴜs: &a&lᴀᴋᴛɪғ (ON)",
+                    "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
+                    "&c▶ ᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴍᴇᴍᴀᴛɪᴋᴀɴ!"));
+        } else {
+            inv.setItem(11, createItem(Material.SHEARS, false,
+                    "<gradient:#ff5f6d:#ffc371><b>ᴀᴜᴛᴏ ᴀᴛᴛᴀᴄᴋ:</b></gradient> <red><b>[OFF]</b></red>",
+                    "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
+                    "&7ᴘᴇᴛ ʙᴇʀᴀᴅᴀ ᴅᴀʟᴀᴍ ᴍᴏᴅᴇ ᴘᴀsɪғ.",
+                    "&7ᴛɪᴅᴀᴋ ᴀᴋᴀɴ ᴍᴇɴʏᴇʀᴀɴɢ ᴍᴏɴsᴛᴇʀ ᴀᴘᴀᴘᴜɴ.",
+                    "&7• sᴛᴀᴛᴜs: &c&lɴᴏɴᴀᴋᴛɪғ (OFF)",
+                    "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
+                    "&a▶ ᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴍᴇɴɢᴀᴋᴛɪғᴋᴀɴ!"));
+        }
+
         // Slot 12: Rename Pet
         inv.setItem(12, createItem(Material.NAME_TAG, false, "&e&lɢᴀɴᴛɪ ɴᴀᴍᴀ ᴘᴇᴛ",
                 "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
@@ -131,11 +153,21 @@ public class PetMenu {
         inv.setItem(22, createItem(Material.LODESTONE, true, "<gradient:#43e97b:#38f9d7><b>ᴛʀᴀɪɴɪɴɢ ᴀʟᴛᴀʀ (3x3)</b></gradient>",
                 "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
                 "&7ᴛᴇᴍᴘᴀᴛ ᴀғᴋ ᴛʀᴀɪɴɪɴɢ ᴜɴᴛᴜᴋ ᴍᴇɴɪɴɢᴋᴀᴛᴋᴀɴ ʟᴇᴠᴇʟ ᴘᴇᴛ!",
-                "&7• ʟᴇᴠᴇʟ 1: &a-10% ᴡᴀᴋᴛᴜ ᴜᴘɢʀᴀᴅᴇ",
-                "&7• ʟᴇᴠᴇʟ 2: &a-20% ᴡᴀᴋᴛᴜ ᴜᴘɢʀᴀᴅᴇ",
-                "&7• ʟᴇᴠᴇʟ 3: &a-30% ᴡᴀᴋᴛᴜ ᴜᴘɢʀᴀᴅᴇ",
+                "&7• ʟᴇᴠᴇʟ 1: &7sᴛᴀɴᴅᴀʀ (0% ᴅɪsᴋᴏɴ)",
+                "&7• ʟᴇᴠᴇʟ 2: &a-10% ᴡᴀᴋᴛᴜ ᴜᴘɢʀᴀᴅᴇ",
+                "&7• ʟᴇᴠᴇʟ 3: &a-20% ᴡᴀᴋᴛᴜ ᴜᴘɢʀᴀᴅᴇ",
+                "&7• ʟᴇᴠᴇʟ 4: &d&l✦ CELESTIAL &a-50% ᴡᴀᴋᴛᴜ",
                 "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
                 "&e▶ ɢᴜɴᴀᴋᴀɴ &f/pet altar &eᴜɴᴛᴜᴋ ᴍᴇɴᴅᴀᴘᴀᴛᴋᴀɴ ᴀʟᴛᴀʀ!"));
+
+        // Slot 24: Pet Leaderboard
+        inv.setItem(24, createItem(Material.GOLD_BLOCK, true,
+                "<gradient:#ffe259:#ffa751><b>✦ ᴛᴏᴘ 10 ʟᴇᴀᴅᴇʀʙᴏᴀʀᴅ ✦</b></gradient>",
+                "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
+                "&7ʟɪʜᴀᴛ 10 ᴘᴇᴛ ᴅᴇɴɢᴀɴ ʟᴇᴠᴇʟ ᴛᴇʀᴛɪɴɢɢɪ",
+                "&7ᴅɪ sᴇʟᴜʀᴜʜ sᴇʀᴠᴇʀ!",
+                "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
+                "&e▶ ᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴍᴇᴍʙᴜᴋᴀ ʟᴇᴀᴅᴇʀʙᴏᴀʀᴅ!"));
 
         player.openInventory(inv);
         player.playSound(player.getLocation(), Sound.BLOCK_CHEST_OPEN, 0.6f, 1.2f);
@@ -157,6 +189,21 @@ public class PetMenu {
                     player.playSound(player.getLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 0.6f, 1.4f);
                 } else {
                     plugin.getPetManager().summonPet(player);
+                }
+                open(player, plugin);
+            }
+            case 11 -> { // Auto Attack Toggle
+                boolean newStatus = !data.isAutoAttack();
+                data.setAutoAttack(newStatus);
+                plugin.getPetManager().savePetData(player.getUniqueId());
+                if (newStatus) {
+                    ColorUtil.sendMessage(player, plugin.getConfigManager().getMessage("prefix") +
+                            "<green>ᴀᴜᴛᴏ ᴀᴛᴛᴀᴄᴋ ᴘᴇᴛ ᴅɪᴀᴋᴛɪғᴋᴀɴ! ᴘᴇᴛ ᴀᴋᴀɴ ᴍᴇᴍʙᴀɴᴛᴜ ᴍᴇɴʏᴇʀᴀɴɢ ᴍᴏɴsᴛᴇʀ.</green>");
+                    player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_ATTACK_CRIT, 0.7f, 1.4f);
+                } else {
+                    ColorUtil.sendMessage(player, plugin.getConfigManager().getMessage("prefix") +
+                            "<red>ᴀᴜᴛᴏ ᴀᴛᴛᴀᴄᴋ ᴘᴇᴛ ᴅɪɴᴏɴᴀᴋᴛɪғᴋᴀɴ! ᴘᴇᴛ ᴍᴀsᴜᴋ ᴋᴇ ᴍᴏᴅᴇ ᴘᴀsɪғ.</red>");
+                    player.playSound(player.getLocation(), Sound.BLOCK_DISPENSER_FAIL, 0.7f, 1.0f);
                 }
                 open(player, plugin);
             }
@@ -192,6 +239,10 @@ public class PetMenu {
                 ColorUtil.sendMessage(player, plugin.getConfigManager().getMessage("prefix") +
                         "<yellow>ɢᴜɴᴀᴋᴀɴ ᴘᴇʀɪɴᴛᴀʜ <aqua>/pet altar</aqua> ᴜɴᴛᴜᴋ ᴍᴇɴᴅᴀᴘᴀᴛᴋᴀɴ ʙʟᴏᴋ ᴀʟᴛᴀʀ 3x3!</yellow>");
             }
+            case 24 -> { // Pet Leaderboard
+                player.closeInventory();
+                PetLeaderboardMenu.open(player, plugin);
+            }
         }
     }
 
@@ -221,7 +272,7 @@ public class PetMenu {
         return item;
     }
 
-    private static ItemStack createFiller(Material mat) {
+    public static ItemStack createFiller(Material mat) {
         ItemStack item = new ItemStack(mat);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {

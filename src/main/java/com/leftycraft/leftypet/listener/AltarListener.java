@@ -60,6 +60,14 @@ public class AltarListener implements Listener {
         }
 
         int placedLevel = plugin.getAltarManager().getAltarItemLevel(event.getItemInHand());
+        if (placedLevel == 4 && !player.hasPermission("leftypet.celestial")) {
+            event.setCancelled(true);
+            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                    "<gradient:#ff5f6d:#ffc371>ᴀʟᴛᴀʀ ʟᴇᴠᴇʟ 4 ʜᴀɴʏᴀ ʙɪsᴀ ᴅɪʟᴇᴛᴀᴋᴋᴀɴ ᴅᴀɴ ᴅɪɢᴜɴᴀᴋᴀɴ ᴏʟᴇʜ ʀᴀɴᴋ </gradient><gradient:#d946ef:#8b5cf6><b>CELESTIAL</b></gradient>!"));
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
+            return;
+        }
+
         UUID altarId = UUID.randomUUID();
         plugin.getAltarManager().registerAltar(altarId, player.getUniqueId(), loc, placedLevel);
 

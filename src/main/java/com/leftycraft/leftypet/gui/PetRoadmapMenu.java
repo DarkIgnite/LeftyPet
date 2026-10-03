@@ -137,9 +137,10 @@ public class PetRoadmapMenu {
             List<Component> lore = new ArrayList<>();
             lore.add(ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"));
             lore.add(ColorUtil.component("&7ɢᴜɴᴀᴋᴀɴ &e/pet altar &7ᴜɴᴛᴜᴋ ᴍᴇɴᴅᴀᴘᴀᴛᴋᴀɴ ᴀʟᴛᴀʀ!"));
-            lore.add(ColorUtil.component("&7• ʟᴇᴠᴇʟ 1: &a-10% ᴡᴀᴋᴛᴜ ᴜᴘɢʀᴀᴅᴇ"));
-            lore.add(ColorUtil.component("&7• ʟᴇᴠᴇʟ 2: &a-20% ᴡᴀᴋᴛᴜ ᴜᴘɢʀᴀᴅᴇ"));
-            lore.add(ColorUtil.component("&7• ʟᴇᴠᴇʟ 3: &a-30% ᴡᴀᴋᴛᴜ ᴜᴘɢʀᴀᴅᴇ"));
+            lore.add(ColorUtil.component("&7• ʟᴇᴠᴇʟ 1: &7sᴛᴀɴᴅᴀʀ (0% ᴅɪsᴋᴏɴ)"));
+            lore.add(ColorUtil.component("&7• ʟᴇᴠᴇʟ 2: &a-10% ᴡᴀᴋᴛᴜ ᴜᴘɢʀᴀᴅᴇ"));
+            lore.add(ColorUtil.component("&7• ʟᴇᴠᴇʟ 3: &a-20% ᴡᴀᴋᴛᴜ ᴜᴘɢʀᴀᴅᴇ"));
+            lore.add(ColorUtil.component("&7• ʟᴇᴠᴇʟ 4: &d&l✦ CELESTIAL &a-50% ᴡᴀᴋᴛᴜ"));
             lore.add(ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"));
             lore.add(ColorUtil.component("&eᴛɪᴘ: ᴜᴘɢʀᴀᴅᴇ ᴀʟᴛᴀʀ ᴀɢᴀʀ ᴘᴇᴛ ɴᴀɪᴋ ʟᴇᴠᴇʟ ʟᴇʙɪʜ ᴄᴇᴘᴀᴛ!"));
             altarMeta.lore(lore);
