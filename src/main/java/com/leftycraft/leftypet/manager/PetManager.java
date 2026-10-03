@@ -89,6 +89,7 @@ public class PetManager {
 
         ColorUtil.sendMessage(player, plugin.getConfigManager().getMessage("pet-summoned"));
         player.playSound(player.getLocation(), Sound.ENTITY_ILLUSIONER_PREPARE_MIRROR, 0.7f, 1.4f);
+        com.leftycraft.leftypet.util.PetSoundUtil.playSummonSound(player, data.getSkinKey());
         return true;
     }
 

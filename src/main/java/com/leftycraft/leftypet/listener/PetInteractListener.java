@@ -23,6 +23,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.Material;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
@@ -50,12 +51,17 @@ public class PetInteractListener implements Listener {
                 event.setCancelled(true);
                 if (player.getUniqueId().equals(pet.getOwner().getUniqueId())) {
                     ItemStack hand = player.getInventory().getItemInMainHand();
-                    // 1. Try feeding if holding food
+                    // 1. Petting: sneaking or empty hand
+                    if (player.isSneaking() || hand.getType() == Material.AIR) {
+                        pet.pet(player);
+                        return;
+                    }
+                    // 2. Try feeding if holding food
                     if (plugin.getConfigManager().getFoodRestore(hand.getType()) > 0) {
                         plugin.getPetManager().feedPet(player, hand);
                         return;
                     }
-                    // 2. Open Pet Dashboard GUI
+                    // 3. Open Pet Dashboard GUI
                     PetMenu.open(player, plugin);
                 }
                 return;

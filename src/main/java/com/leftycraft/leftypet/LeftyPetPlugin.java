@@ -20,6 +20,7 @@ public final class LeftyPetPlugin extends JavaPlugin {
     private CombatManager combatManager;
     private AltarManager altarManager;
     private com.leftycraft.leftypet.manager.EconomyManager economyManager;
+    private com.leftycraft.leftypet.manager.PetDuelManager petDuelManager;
 
     @Override
     public void onEnable() {
@@ -34,6 +35,7 @@ public final class LeftyPetPlugin extends JavaPlugin {
         petManager = new PetManager(this);
         combatManager = new CombatManager(this);
         altarManager = new AltarManager(this);
+        petDuelManager = new com.leftycraft.leftypet.manager.PetDuelManager(this);
 
         // 3. Register Listeners
         PluginManager pm = Bukkit.getPluginManager();
@@ -78,6 +80,10 @@ public final class LeftyPetPlugin extends JavaPlugin {
             altarManager.saveAltars();
         }
 
+        if (petDuelManager != null) {
+            petDuelManager.cleanupAll();
+        }
+
         getLogger().info("LeftyPet disabled successfully.");
     }
 
@@ -103,5 +109,9 @@ public final class LeftyPetPlugin extends JavaPlugin {
 
     public com.leftycraft.leftypet.manager.EconomyManager getEconomyManager() {
         return economyManager;
+    }
+
+    public com.leftycraft.leftypet.manager.PetDuelManager getPetDuelManager() {
+        return petDuelManager;
     }
 }

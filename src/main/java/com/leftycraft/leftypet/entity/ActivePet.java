@@ -42,12 +42,18 @@ public class ActivePet {
     private float smoothedYaw = 0f;
     private long lastSupportHeal = 0;
     private long lastLooterPickup = 0;
+    private long lastPetTime = 0;
+    private boolean isSleeping = false;
+    private Location lastOwnerLocation = null;
+    private int afkTimer = 0;
+    private int celebratingTicks = 0;
 
     public ActivePet(LeftyPetPlugin plugin, Player owner, PetData data) {
         this.plugin = plugin;
         this.owner = owner;
         this.data = data;
         this.smoothedYaw = owner.getLocation().getYaw();
+        this.lastOwnerLocation = owner.getLocation().clone();
         spawn();
     }
 
@@ -166,6 +172,42 @@ public class ActivePet {
             }
         }
 
+        // AFK / Sleep Mood Detection
+        Location curOwnerLoc = owner.getLocation();
+        if (lastOwnerLocation == null || curOwnerLoc.distanceSquared(lastOwnerLocation) < 0.04) {
+            afkTimer++;
+            if (afkTimer > 450 && !isSleeping) { // ~45 seconds idle
+                isSleeping = true;
+                updateNameTag();
+            }
+        } else {
+            if (isSleeping) {
+                isSleeping = false;
+                updateNameTag();
+                // Happy wake up jump!
+                displayEntity.getWorld().spawnParticle(Particle.HEART, displayEntity.getLocation().add(0, 0.4, 0), 2, 0.2, 0.2, 0.2, 0.02);
+            }
+            afkTimer = 0;
+            lastOwnerLocation = curOwnerLoc.clone();
+        }
+
+        // Sleep particles: cute zZz cloud
+        if (isSleeping && ticksLived % 30 == 0) {
+            displayEntity.getWorld().spawnParticle(Particle.CLOUD, displayEntity.getLocation().add(0, 0.35, 0), 2, 0.1, 0.1, 0.1, 0.01);
+        }
+
+        // Hunger whimpers & smoke when energy < 15%
+        if (data.getEnergy() < 15.0 && !data.isFainted() && !data.isTraining() && ticksLived % 100 == 0) {
+            displayEntity.getWorld().spawnParticle(Particle.SMOKE, displayEntity.getLocation().add(0, 0.3, 0), 3, 0.1, 0.1, 0.1, 0.01);
+            com.leftycraft.leftypet.util.PetSoundUtil.playHungrySound(owner, displayEntity.getLocation(), data.getSkinKey());
+        }
+
+        // Celebration Spin Animation (Level up / Duel Victory)
+        if (celebratingTicks > 0) {
+            celebratingTicks--;
+            smoothedYaw += 36f;
+            displayEntity.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, displayEntity.getLocation().add(0, 0.3, 0), 3, 0.2, 0.2, 0.2, 0.05);
+        }
 
         spawnParticleTrail();
 
@@ -186,11 +228,12 @@ public class ActivePet {
         Vector side = new Vector(-dir.getZ(), 0, dir.getX());
 
         double bobbing = Math.sin((ticksLived + owner.getEntityId()) * 0.15) * 0.12;
+        double sleepOffset = isSleeping ? -0.25 : 0.0;
 
         Location targetLoc = owner.getLocation()
                 .add(side.multiply(1.80))
                 .add(dir.multiply(-0.15))
-                .add(0, 1.30 + bobbing, 0);
+                .add(0, 1.30 + bobbing + sleepOffset, 0);
 
         double distSq = displayEntity.getLocation().distanceSquared(targetLoc);
 
@@ -286,12 +329,49 @@ public class ActivePet {
         if (nameTagDisplay == null || !nameTagDisplay.isValid()) return;
 
         String faintedTag = data.isFainted() ? " <red>[ᴘɪɴɢsᴀɴ]</red>" : "";
-        String line1 = ColorUtil.getLevelTag(data.getLevel()) + " <white>" + data.getName() + "</white>" + faintedTag;
+        String moodTag = isSleeping ? " <gray>[zZz]</gray>" : "";
+        String line1 = ColorUtil.getLevelTag(data.getLevel()) + " <white>" + data.getName() + "</white>" + faintedTag + moodTag;
         String line2 = "<gray>ᴋᴇʟᴀs: </gray>" + data.getPetClass().getDisplayName();
         String line3 = "<green>ᴇɴᴇʀɢɪ: </green>" + data.getEnergyProgressBar() + " <white>" + (int) data.getEnergy() + "%</white>";
 
         Component comp = ColorUtil.component(line1 + "\n" + line2 + "\n" + line3);
         nameTagDisplay.text(comp);
+    }
+
+    public void pet(Player player) {
+        long now = System.currentTimeMillis();
+        if (now - lastPetTime < 3000L) {
+            player.sendMessage(ColorUtil.component("<yellow>Pet kamu masih merasa sangat disayangi! ❤</yellow>"));
+            return;
+        }
+        lastPetTime = now;
+        if (isSleeping) {
+            isSleeping = false;
+            afkTimer = 0;
+            updateNameTag();
+        }
+
+        if (displayEntity != null && displayEntity.isValid()) {
+            Location loc = displayEntity.getLocation().add(0, 0.35, 0);
+            loc.getWorld().spawnParticle(Particle.HEART, loc, 5, 0.25, 0.25, 0.25, 0.05);
+            com.leftycraft.leftypet.util.PetSoundUtil.playHappySound(player, loc, data.getSkinKey());
+        }
+
+        if (data.getEnergy() < 100.0) {
+            data.addEnergy(1.0);
+            updateNameTag();
+        }
+
+        player.sendMessage(ColorUtil.component("<gradient:#ff758c:#ff7eb3><b>❤</b> Kamu mengelus <b>" + data.getName() + "</b>! Pet kamu merasa sangat senang.</gradient>"));
+    }
+
+    public void playCelebrationAnimation() {
+        this.celebratingTicks = 20;
+        if (displayEntity != null && displayEntity.isValid()) {
+            Location loc = displayEntity.getLocation().add(0, 0.5, 0);
+            loc.getWorld().spawnParticle(Particle.FIREWORK, loc, 20, 0.4, 0.4, 0.4, 0.1);
+            loc.getWorld().playSound(loc, Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.7f, 1.5f);
+        }
     }
 
     public void updateSkin() {

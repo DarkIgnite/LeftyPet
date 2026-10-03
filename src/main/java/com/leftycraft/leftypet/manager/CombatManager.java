@@ -155,6 +155,7 @@ public class CombatManager {
 
         // Play combat sound
         player.getWorld().playSound(start, Sound.ENTITY_ILLUSIONER_CAST_SPELL, 0.6f, 1.6f);
+        com.leftycraft.leftypet.util.PetSoundUtil.playCombatSound(start, data.getSkinKey());
         if (isCrit) {
             player.getWorld().playSound(end, Sound.ENTITY_PLAYER_ATTACK_CRIT, 0.7f, 1.2f);
         }

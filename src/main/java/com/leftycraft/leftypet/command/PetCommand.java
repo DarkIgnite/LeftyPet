@@ -19,10 +19,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.bukkit.Bukkit;
+
 public class PetCommand implements CommandExecutor, TabCompleter {
 
     private final LeftyPetPlugin plugin;
-    private final List<String> subCommands = Arrays.asList("menu", "summon", "dismiss", "rename", "class", "altar", "roadmap", "help");
+    private final List<String> subCommands = Arrays.asList("menu", "summon", "dismiss", "rename", "class", "altar", "roadmap", "duel", "help");
 
     public PetCommand(LeftyPetPlugin plugin) {
         this.plugin = plugin;
@@ -112,6 +114,37 @@ public class PetCommand implements CommandExecutor, TabCompleter {
             case "roadmap" -> {
                 PetRoadmapMenu.open(player, plugin);
             }
+            case "duel" -> {
+                if (args.length < 2) {
+                    player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<yellow>ɢᴜɴᴀᴋᴀɴ: /pet duel <pemain> [taruhan] atau /pet duel accept/decline</yellow>"));
+                    return true;
+                }
+                String action = args[1].toLowerCase();
+                if (action.equals("accept")) {
+                    plugin.getPetDuelManager().acceptChallenge(player);
+                    return true;
+                }
+                if (action.equals("decline")) {
+                    plugin.getPetDuelManager().declineChallenge(player);
+                    return true;
+                }
+                Player target = Bukkit.getPlayer(args[1]);
+                if (target == null || !target.isOnline()) {
+                    player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<red>ᴘᴇᴍᴀɪɴ '" + args[1] + "' ᴛɪᴅᴀᴋ ᴅɪᴛᴇᴍᴜᴋᴀɴ ᴀᴛᴀᴜ sᴇᴅᴀɴɢ ᴏғғʟɪɴᴇ!</red>"));
+                    return true;
+                }
+                double bet = 0.0;
+                if (args.length >= 3) {
+                    try {
+                        bet = Double.parseDouble(args[2]);
+                        if (bet < 0) bet = 0.0;
+                    } catch (NumberFormatException e) {
+                        player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<red>ᴊᴜᴍʟᴀʜ ᴛᴀʀᴜʜᴀɴ ʜᴀʀᴜs ʙᴇʀᴜᴘᴀ ᴀɴɢᴋᴀ ᴠᴀʟɪᴅ!</red>"));
+                        return true;
+                    }
+                }
+                plugin.getPetDuelManager().sendChallenge(player, target, bet);
+            }
             case "help" -> {
                 player.sendMessage(ColorUtil.component("<gradient:#00f2fe:#4facfe><b>---------------- [ʟᴇғᴛʏᴘᴇᴛ ᴄᴏᴍᴍᴀɴᴅs] ----------------</b></gradient>"));
                 player.sendMessage(ColorUtil.component("<aqua>/pet</aqua> <gray>- ʙᴜᴋᴀ ᴍᴇɴᴜ ɢᴜɪ ᴘᴇᴛ</gray>"));
@@ -121,6 +154,7 @@ public class PetCommand implements CommandExecutor, TabCompleter {
                 player.sendMessage(ColorUtil.component("<aqua>/pet roadmap</aqua> <gray>- ʟɪʜᴀᴛ ᴘᴏʜᴏɴ ᴘʀᴏɢʀᴇsɪ ʟᴇᴠᴇʟ ᴘᴇᴛ (ᴀᴜʀᴀsᴋɪʟʟs sᴛʏʟᴇ)</gray>"));
                 player.sendMessage(ColorUtil.component("<aqua>/pet class [class]</aqua> <gray>- ᴘɪʟɪʜ ᴋᴇʟᴀs sᴘᴇsɪᴀʟɪsᴀsɪ ᴘᴇᴛ</gray>"));
                 player.sendMessage(ColorUtil.component("<aqua>/pet altar</aqua> <gray>- ᴅᴀᴘᴀᴛᴋᴀɴ ᴀʟᴛᴀʀ ᴛʀᴀɪɴɪɴɢ ᴀғᴋ (3x3)</gray>"));
+                player.sendMessage(ColorUtil.component("<aqua>/pet duel [pemain] [taruhan]</aqua> <gray>- ᴛᴀɴᴛᴀɴɢ ᴘᴇᴛ ᴘᴇᴍᴀɪɴ ʟᴀɪɴ ʙᴇʀᴅᴜᴇʟ</gray>"));
                 player.sendMessage(ColorUtil.component("<gradient:#00f2fe:#4facfe><b>-----------------------------------------------------</b></gradient>"));
             }
             default -> {
@@ -135,9 +169,27 @@ public class PetCommand implements CommandExecutor, TabCompleter {
         if (args.length == 1) {
             String input = args[0].toLowerCase();
             return subCommands.stream().filter(s -> s.startsWith(input)).toList();
-        } else if (args.length == 2 && args[0].equalsIgnoreCase("class")) {
-            String input = args[1].toUpperCase();
-            return Arrays.stream(PetClass.values()).map(Enum::name).filter(s -> s.startsWith(input)).toList();
+        } else if (args.length == 2) {
+            if (args[0].equalsIgnoreCase("class")) {
+                String input = args[1].toUpperCase();
+                return Arrays.stream(PetClass.values()).map(Enum::name).filter(s -> s.startsWith(input)).toList();
+            } else if (args[0].equalsIgnoreCase("duel")) {
+                String input = args[1].toLowerCase();
+                List<String> suggestions = new ArrayList<>();
+                if ("accept".startsWith(input)) suggestions.add("accept");
+                if ("decline".startsWith(input)) suggestions.add("decline");
+                for (Player p : Bukkit.getOnlinePlayers()) {
+                    if (sender instanceof Player sp && sp.getUniqueId().equals(p.getUniqueId())) continue;
+                    if (p.getName().toLowerCase().startsWith(input)) {
+                        suggestions.add(p.getName());
+                    }
+                }
+                return suggestions;
+            }
+        } else if (args.length == 3 && args[0].equalsIgnoreCase("duel")) {
+            if (!args[1].equalsIgnoreCase("accept") && !args[1].equalsIgnoreCase("decline")) {
+                return Arrays.asList("0", "100", "500", "1000", "5000");
+            }
         }
         return new ArrayList<>();
     }
