@@ -109,33 +109,33 @@ skins:
     display-name: "<gradient:#ffe259:#ffa751><b>Golden Angel</b></gradient>"
     texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzlhMjMxMGNmNTBhNTY3YmNhZTQyMGViMDY5NzgzNzBkMDM5MTMxMDcwZTMxMTkxYjRjMzM2Y2U2MmQyM2VkN2QifX19"
   # ──────────── CELESTIAL EXCLUSIVE (leftypet.celestial) ────────────
+  celestial_gojo:
+    display-name: "<gradient:#00f2fe:#ffffff><b>✦ Satoru Gojo</b></gradient>"
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzQzYmZkYjYyNGQ2MDFkMGJmYTQ2YjQ0MmQwMzY5MzRmODQzNzQ0ZmJmZGY4NTYzYTcxNzE2NWY3NDg3NWNiZTIifX19"
+    permission: "leftypet.celestial"
+  celestial_tanjiro:
+    display-name: "<gradient:#11998e:#38ef7d><b>⚔ Tanjiro Kamado</b></gradient>"
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2UwOTMyMzJhZWE0OTYwMGI1MDkyZmMxODJlMGQ1Y2U4OTk5Zjc4MDQ1ZGQ3YmRhMjNjNjVjY2E2ZmNmNWNmNjAifX19"
+    permission: "leftypet.celestial"
+  celestial_zenitsu:
+    display-name: "<gradient:#f7971e:#ffd200><b>⚡ Zenitsu Thunder</b></gradient>"
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2FjMGIyMGVjMDlmOWVlNzI4ZDU5YzU5YWZhOTdlMWI0MGMwNTdkZDZlMzljNWU1M2NmN2Y5MWZmNmFhMmQ3NjUifX19"
+    permission: "leftypet.celestial"
+  celestial_nezuko:
+    display-name: "<gradient:#ff758c:#ff7eb3><b>✿ Nezuko Kamado</b></gradient>"
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzE0YzUwZTFkOWZlZTk5YWNjM2M3NmQ5NzlkMjNmY2UyODllYThjYWM0NWJjOTNiOTA4NDEyNDRkYTI5YmMxZjkifX19"
+    permission: "leftypet.celestial"
+  celestial_kakashi:
+    display-name: "<gradient:#7f7fd5:#86a8e7><b>👁 Kakashi Hatake</b></gradient>"
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzk2M2Q1YmZmNjVjY2VkOWQxOWVlNTQ2ZTU4MThiYjhmMjgwMzdhZjY4OGZjMDQwNTg5YmE2OWFkM2UyMDczY2MifX19"
+    permission: "leftypet.celestial"
   celestial_kitsune:
     display-name: "<gradient:#ff4e50:#f9d423><b>🦊 Spirit Kitsune</b></gradient>"
     texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzRlODA2N2I3OGMwMDU4OTRkNzYwMjBkMzY5YTAxNGU1N2VkMWYwZGUwY2Q2MTJiZjNmMGU1ZTk4NDM0ZDI3MmIifX19"
     permission: "leftypet.celestial"
-  celestial_cyberpunk:
-    display-name: "<gradient:#00f2fe:#4facfe><b>⚡ Cyber Oni</b></gradient>"
-    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2VhNTNjOTRlZmEzZGFkODlmYmYzZWU2ODU3NTM2Yjg2OWUxNzY2MTU2N2ZiYzk2MzhmNDc5ZWM1ZTFhZjJlYjUifX19"
-    permission: "leftypet.celestial"
-  celestial_galaxy:
-    display-name: "<gradient:#7b2ff7:#f107a3><b>🌌 Galaxy Eye</b></gradient>"
-    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2YxMWVhN2NjNGNkNTQ1ZjNhY2EwYjk0MmQyNjA5NjRiMmJjNjZmODI4ZTVmYjdmYTI2NmM0YjJkNWI2NWExNzIifX19"
-    permission: "leftypet.celestial"
   celestial_samurai:
     display-name: "<gradient:#ff416c:#ff4b2b><b>🗡 Demon Samurai</b></gradient>"
     texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzc5ZjAyNTk3OGU4N2ZiZjc5ODRjY2NiNDgxMmZjMDM5ZDIzN2RkMzdhMDU1OGY3NjM3ODc4Y2I0OTE0MTgxMWMifX19"
-    permission: "leftypet.celestial"
-  celestial_crown:
-    display-name: "<gradient:#ffe259:#ffa751><b>👑 Imperial Crown</b></gradient>"
-    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzQ1NTg3ZGE3ZmU3MzM2ZThhYjlmNzkxZWE1ZTJjZmM4YTgyN2NhOTU5NTY3ZWI5ZDUzYTY0N2JhYmY5NDhkNSJ9fX0="
-    permission: "leftypet.celestial"
-  celestial_sunmoon:
-    display-name: "<gradient:#00c6ff:#ff758c><b>☯ Sun & Moon Deity</b></gradient>"
-    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2JhNTBlMDY3MDdmYTcwZTg4NjY1OWQ4MDUwNWFlZWFhMzg2ZmRkYzQ4ZTkwNWZiOWY5NGYzMDI0NzJhYjYyZmIifX19"
-    permission: "leftypet.celestial"
-  celestial_phoenix:
-    display-name: "<gradient:#ff9a00:#ff6a00><b>🔥 Solar Phoenix</b></gradient>"
-    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHBzOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzY4YmUwMDM0MWYyNWU0MzZlZTM1M2E2YmJjNThkNTU3YzA1MmNiYTQ2MTVmOWFhNTZlZTRmNDU0NjYxNmNmYmYifX19"
     permission: "leftypet.celestial"
 
 # Particle Trails
