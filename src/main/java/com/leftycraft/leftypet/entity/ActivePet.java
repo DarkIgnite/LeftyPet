@@ -100,7 +100,12 @@ public class ActivePet {
     }
 
     public void tick() {
-        if (!isValid()) return;
+        if (!owner.isOnline()) return;
+        if (!isValid()) {
+            despawn();
+            spawn();
+            return;
+        }
         ticksLived++;
 
         if (ticksLived % 10 == 0) {

@@ -45,39 +45,35 @@ public class PetInteractListener implements Listener {
     }
 
     private void handleInteract(Player player, Entity clicked, org.bukkit.event.Cancellable event) {
-        ActivePet pet = plugin.getPetManager().getActivePet(player.getUniqueId());
-        if (pet == null || !pet.isValid()) return;
-
-        // Check if player clicked their pet interaction hitbox or display
-        boolean isPetEntity = clicked.equals(pet.getInteractionEntity())
-                || clicked.equals(pet.getDisplayEntity());
-
-        if (isPetEntity) {
-            event.setCancelled(true);
-
-            ItemStack hand = player.getInventory().getItemInMainHand();
-            // 1. Try feeding if holding food
-            if (plugin.getConfigManager().getFoodRestore(hand.getType()) > 0) {
-                plugin.getPetManager().feedPet(player, hand);
+        for (ActivePet pet : plugin.getPetManager().getActivePets().values()) {
+            if (clicked.equals(pet.getInteractionEntity()) || clicked.equals(pet.getDisplayEntity()) || clicked.equals(pet.getNameTagDisplay())) {
+                event.setCancelled(true);
+                if (player.getUniqueId().equals(pet.getOwner().getUniqueId())) {
+                    ItemStack hand = player.getInventory().getItemInMainHand();
+                    // 1. Try feeding if holding food
+                    if (plugin.getConfigManager().getFoodRestore(hand.getType()) > 0) {
+                        plugin.getPetManager().feedPet(player, hand);
+                        return;
+                    }
+                    // 2. Open Pet Dashboard GUI
+                    PetMenu.open(player, plugin);
+                }
                 return;
             }
-
-            // 2. Open Pet Dashboard GUI
-            PetMenu.open(player, plugin);
         }
     }
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onEntityDamage(EntityDamageByEntityEvent event) {
-        if (!(event.getDamager() instanceof Player player)) return;
-
-        ActivePet pet = plugin.getPetManager().getActivePet(player.getUniqueId());
-        if (pet == null || !pet.isValid()) return;
-
-        // Left click / punch pet opens Pet GUI
-        if (event.getEntity().equals(pet.getInteractionEntity()) || event.getEntity().equals(pet.getDisplayEntity())) {
-            event.setCancelled(true);
-            PetMenu.open(player, plugin);
+        // Prevent damage to any pet display or interaction entity
+        for (ActivePet pet : plugin.getPetManager().getActivePets().values()) {
+            if (event.getEntity().equals(pet.getInteractionEntity()) || event.getEntity().equals(pet.getDisplayEntity()) || event.getEntity().equals(pet.getNameTagDisplay())) {
+                event.setCancelled(true);
+                if (event.getDamager() instanceof Player player && player.getUniqueId().equals(pet.getOwner().getUniqueId())) {
+                    PetMenu.open(player, plugin);
+                }
+                return;
+            }
         }
     }
 

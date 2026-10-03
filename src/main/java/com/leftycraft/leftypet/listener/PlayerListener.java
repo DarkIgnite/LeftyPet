@@ -89,12 +89,9 @@ public class PlayerListener implements Listener {
     public void onPlayerTeleport(PlayerTeleportEvent event) {
         Player player = event.getPlayer();
         ActivePet pet = plugin.getPetManager().getActivePet(player.getUniqueId());
-        if (pet != null && pet.isValid()) {
-            if (event.getFrom().getWorld() != event.getTo().getWorld()) {
+        if (pet != null) {
+            if (event.getFrom().getWorld() != event.getTo().getWorld() || event.getFrom().distanceSquared(event.getTo()) > 256.0) {
                 plugin.getPetManager().summonPet(player);
-            } else if (event.getFrom().distanceSquared(event.getTo()) > 256.0) {
-                pet.getDisplayEntity().teleport(event.getTo().clone().add(0, 1.5, 0));
-                pet.getNameTagDisplay().teleport(event.getTo().clone().add(0, 2.1, 0));
             }
         }
     }

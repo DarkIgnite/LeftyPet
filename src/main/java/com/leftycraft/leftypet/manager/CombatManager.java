@@ -75,6 +75,7 @@ public class CombatManager {
         for (LivingEntity entity : nearby) {
             if (entity.equals(player)) continue;
             if (entity instanceof Player || entity instanceof Villager || entity instanceof ArmorStand || entity instanceof Display) continue;
+            if (entity.hasMetadata("NPC") || entity.hasMetadata("shopkeeper")) continue;
             if (entity instanceof Tameable tameable && tameable.isTamed()) continue;
             if (entity.isDead() || !entity.isValid()) continue;
 

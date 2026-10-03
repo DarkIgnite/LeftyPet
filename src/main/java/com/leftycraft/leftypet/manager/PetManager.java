@@ -63,6 +63,10 @@ public class PetManager {
         return activePets.get(playerUuid);
     }
 
+    public Map<UUID, ActivePet> getActivePets() {
+        return activePets;
+    }
+
     public boolean isPetSummoned(UUID playerUuid) {
         return activePets.containsKey(playerUuid);
     }
