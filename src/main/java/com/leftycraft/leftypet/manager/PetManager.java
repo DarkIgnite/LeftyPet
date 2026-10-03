@@ -175,6 +175,8 @@ public class PetManager {
                     data.setCurrentAltarId(UUID.fromString(altarStr));
                 } catch (Exception ignored) {}
             }
+            data.setLastAltarClaimDate(cfg.getString("last-altar-claim-date", ""));
+            data.setDailyAltarClaims(cfg.getInt("daily-altar-claims", 0));
         }
         return data;
     }
@@ -193,6 +195,8 @@ public class PetManager {
         cfg.set("trail", data.getTrailKey());
         cfg.set("is-training", data.isTraining());
         cfg.set("altar-id", data.getCurrentAltarId() != null ? data.getCurrentAltarId().toString() : null);
+        cfg.set("last-altar-claim-date", data.getLastAltarClaimDate());
+        cfg.set("daily-altar-claims", data.getDailyAltarClaims());
 
         try {
             cfg.save(file);

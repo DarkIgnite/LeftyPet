@@ -14,6 +14,8 @@ public class PetData {
     private boolean isSummoned;
     private boolean isTraining;
     private UUID currentAltarId;
+    private String lastAltarClaimDate;
+    private int dailyAltarClaims;
 
     public PetData(UUID ownerUuid) {
         this(ownerUuid, null);
@@ -32,6 +34,8 @@ public class PetData {
         this.isSummoned = false;
         this.isTraining = false;
         this.currentAltarId = null;
+        this.lastAltarClaimDate = "";
+        this.dailyAltarClaims = 0;
     }
 
     public UUID getOwnerUuid() {
@@ -120,6 +124,22 @@ public class PetData {
 
     public void setCurrentAltarId(UUID currentAltarId) {
         this.currentAltarId = currentAltarId;
+    }
+
+    public String getLastAltarClaimDate() {
+        return lastAltarClaimDate;
+    }
+
+    public void setLastAltarClaimDate(String lastAltarClaimDate) {
+        this.lastAltarClaimDate = lastAltarClaimDate;
+    }
+
+    public int getDailyAltarClaims() {
+        return dailyAltarClaims;
+    }
+
+    public void setDailyAltarClaims(int dailyAltarClaims) {
+        this.dailyAltarClaims = dailyAltarClaims;
     }
 
     /**
