@@ -41,6 +41,18 @@ public class PlayerListener implements Listener {
         if (altar != null) {
             plugin.getAltarManager().updateAltarHologram(altar);
         }
+
+        // Update Bedrock/Java visibility for existing pets & altars
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (player.isOnline()) {
+                for (ActivePet pet : plugin.getPetManager().getActivePets().values()) {
+                    pet.updateVisibilityFor(player);
+                }
+                for (com.leftycraft.leftypet.model.PetAltar a : plugin.getAltarManager().getAltars().values()) {
+                    plugin.getAltarManager().updateAltarHeadVisibilityFor(a, player);
+                }
+            }
+        }, 5L);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

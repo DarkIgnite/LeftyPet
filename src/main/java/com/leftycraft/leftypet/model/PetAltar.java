@@ -1,6 +1,7 @@
 package com.leftycraft.leftypet.model;
 
 import org.bukkit.Location;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.TextDisplay;
 
@@ -18,6 +19,7 @@ public class PetAltar {
 
     // Transient entities in world
     private transient ItemDisplay floatingDisplay;
+    private transient ArmorStand bedrockStand;
     private transient TextDisplay hologramDisplay;
 
     public PetAltar(UUID altarId, UUID ownerUuid, Location location, int altarLevel, int remainingSeconds, int targetLevel, boolean isTraining) {
@@ -138,6 +140,14 @@ public class PetAltar {
         this.floatingDisplay = floatingDisplay;
     }
 
+    public ArmorStand getBedrockStand() {
+        return bedrockStand;
+    }
+
+    public void setBedrockStand(ArmorStand bedrockStand) {
+        this.bedrockStand = bedrockStand;
+    }
+
     public TextDisplay getHologramDisplay() {
         return hologramDisplay;
     }
@@ -150,10 +160,14 @@ public class PetAltar {
         if (floatingDisplay != null && floatingDisplay.isValid()) {
             floatingDisplay.remove();
         }
+        if (bedrockStand != null && bedrockStand.isValid()) {
+            bedrockStand.remove();
+        }
         if (hologramDisplay != null && hologramDisplay.isValid()) {
             hologramDisplay.remove();
         }
         floatingDisplay = null;
+        bedrockStand = null;
         hologramDisplay = null;
     }
 }

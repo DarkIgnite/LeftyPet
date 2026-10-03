@@ -47,7 +47,8 @@ public class PetInteractListener implements Listener {
 
     private void handleInteract(Player player, Entity clicked, org.bukkit.event.Cancellable event) {
         for (ActivePet pet : plugin.getPetManager().getActivePets().values()) {
-            if (clicked.equals(pet.getInteractionEntity()) || clicked.equals(pet.getDisplayEntity()) || clicked.equals(pet.getNameTagDisplay())) {
+            if (clicked.equals(pet.getInteractionEntity()) || clicked.equals(pet.getDisplayEntity()) ||
+                    clicked.equals(pet.getNameTagDisplay()) || (pet.getBedrockStand() != null && clicked.equals(pet.getBedrockStand()))) {
                 event.setCancelled(true);
                 if (player.getUniqueId().equals(pet.getOwner().getUniqueId())) {
                     ItemStack hand = player.getInventory().getItemInMainHand();
@@ -73,7 +74,8 @@ public class PetInteractListener implements Listener {
     public void onEntityDamage(EntityDamageByEntityEvent event) {
         // Prevent damage to any pet display or interaction entity
         for (ActivePet pet : plugin.getPetManager().getActivePets().values()) {
-            if (event.getEntity().equals(pet.getInteractionEntity()) || event.getEntity().equals(pet.getDisplayEntity()) || event.getEntity().equals(pet.getNameTagDisplay())) {
+            if (event.getEntity().equals(pet.getInteractionEntity()) || event.getEntity().equals(pet.getDisplayEntity()) ||
+                    event.getEntity().equals(pet.getNameTagDisplay()) || (pet.getBedrockStand() != null && event.getEntity().equals(pet.getBedrockStand()))) {
                 event.setCancelled(true);
                 if (event.getDamager() instanceof Player player && player.getUniqueId().equals(pet.getOwner().getUniqueId())) {
                     if (player.isSneaking()) {

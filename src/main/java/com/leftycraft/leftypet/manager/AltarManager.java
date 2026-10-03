@@ -11,6 +11,7 @@ import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
@@ -415,6 +416,13 @@ public class AltarManager {
         if (altar.getFloatingDisplay() != null && altar.getFloatingDisplay().isValid()) {
             altar.getFloatingDisplay().remove();
         }
+        if (altar.getBedrockStand() != null && altar.getBedrockStand().isValid()) {
+            altar.getBedrockStand().remove();
+        }
+
+        PetData data = plugin.getPetManager().getPetData(altar.getOwnerUuid());
+        PetSkin skin = plugin.getConfigManager().getSkin(data.getSkinKey());
+        ItemStack head = (skin != null) ? HeadUtil.createCustomHead(skin.getTexture()) : new ItemStack(Material.PLAYER_HEAD);
 
         // Floating Head: Positioned at Y=1.55 (exact vertical center of 2-block-high chamber)
         Location headLoc = lodestoneLoc.clone().add(0.5, 1.55, 0.5);
@@ -430,13 +438,60 @@ public class AltarManager {
                     new AxisAngle4f(0f, 0f, 1f, 0f)
             );
             d.setTransformation(t);
-
-            PetData data = plugin.getPetManager().getPetData(altar.getOwnerUuid());
-            PetSkin skin = plugin.getConfigManager().getSkin(data.getSkinKey());
-            ItemStack head = (skin != null) ? HeadUtil.createCustomHead(skin.getTexture()) : new ItemStack(Material.PLAYER_HEAD);
             d.setItemStack(head);
         });
         altar.setFloatingDisplay(display);
+
+        // Bedrock ArmorStand Fallback (GeyserMC)
+        Location standLoc = headLoc.clone().subtract(0, 0.70, 0);
+        ArmorStand stand = standLoc.getWorld().spawn(standLoc, ArmorStand.class, s -> {
+            s.setPersistent(false);
+            s.setInvisible(true);
+            s.setMarker(true);
+            s.setSmall(true);
+            s.setGravity(false);
+            s.setInvulnerable(true);
+            s.setCollidable(false);
+            s.setSilent(true);
+            s.setBasePlate(false);
+            s.setArms(false);
+            s.getEquipment().setHelmet(head);
+        });
+        altar.setBedrockStand(stand);
+
+        updateAltarHeadVisibility(altar);
+    }
+
+    public void updateAltarHeadVisibility(PetAltar altar) {
+        if (altar == null) return;
+        ItemDisplay display = altar.getFloatingDisplay();
+        ArmorStand stand = altar.getBedrockStand();
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            boolean isBedrock = com.leftycraft.leftypet.util.BedrockUtil.isBedrockPlayer(p);
+            if (display != null && display.isValid()) {
+                if (isBedrock) p.hideEntity(plugin, display);
+                else p.showEntity(plugin, display);
+            }
+            if (stand != null && stand.isValid()) {
+                if (isBedrock) p.showEntity(plugin, stand);
+                else p.hideEntity(plugin, stand);
+            }
+        }
+    }
+
+    public void updateAltarHeadVisibilityFor(PetAltar altar, Player player) {
+        if (altar == null || player == null || !player.isOnline()) return;
+        boolean isBedrock = com.leftycraft.leftypet.util.BedrockUtil.isBedrockPlayer(player);
+        ItemDisplay display = altar.getFloatingDisplay();
+        ArmorStand stand = altar.getBedrockStand();
+        if (display != null && display.isValid()) {
+            if (isBedrock) player.hideEntity(plugin, display);
+            else player.showEntity(plugin, display);
+        }
+        if (stand != null && stand.isValid()) {
+            if (isBedrock) player.showEntity(plugin, stand);
+            else player.hideEntity(plugin, stand);
+        }
     }
 
     public void updateAltarHologram(PetAltar altar) {
@@ -651,6 +706,10 @@ public class AltarManager {
         } catch (IOException e) {
             plugin.getLogger().severe("Failed to save altars.yml: " + e.getMessage());
         }
+    }
+
+    public Map<Location, PetAltar> getAltars() {
+        return altars;
     }
 
     public void removeAllEntities() {

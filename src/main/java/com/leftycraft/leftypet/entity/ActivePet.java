@@ -35,6 +35,7 @@ public class ActivePet {
     private final PetData data;
 
     private ItemDisplay displayEntity;
+    private ArmorStand bedrockStand; // Bedrock (GeyserMC) fallback entity
     private TextDisplay nameTagDisplay;
     private Interaction interactionEntity;
 
@@ -59,8 +60,10 @@ public class ActivePet {
 
     public void spawn() {
         Location spawnLoc = owner.getLocation().add(0, 1.5, 0);
+        PetSkin skin = plugin.getConfigManager().getSkin(data.getSkinKey());
+        ItemStack head = (skin != null) ? HeadUtil.createCustomHead(skin.getTexture()) : new ItemStack(Material.PLAYER_HEAD);
 
-        // 1. Spawn ItemDisplay (Floating Head)
+        // 1. Spawn ItemDisplay (Floating Head for Java Edition)
         displayEntity = spawnLoc.getWorld().spawn(spawnLoc, ItemDisplay.class, display -> {
             display.setPersistent(false);
             display.setBillboard(Display.Billboard.FIXED); // FIXED so pet has real world yaw/facing direction
@@ -76,10 +79,23 @@ public class ActivePet {
                     new AxisAngle4f(0f, 0f, 1f, 0f)
             );
             display.setTransformation(transformation);
-
-            PetSkin skin = plugin.getConfigManager().getSkin(data.getSkinKey());
-            ItemStack head = (skin != null) ? HeadUtil.createCustomHead(skin.getTexture()) : new ItemStack(Material.PLAYER_HEAD);
             display.setItemStack(head);
+        });
+
+        // 1b. Spawn Bedrock ArmorStand Fallback (for Bedrock Edition via GeyserMC)
+        Location standLoc = spawnLoc.clone().subtract(0, 0.70, 0);
+        bedrockStand = spawnLoc.getWorld().spawn(standLoc, ArmorStand.class, stand -> {
+            stand.setPersistent(false);
+            stand.setInvisible(true);
+            stand.setMarker(true);
+            stand.setSmall(true);
+            stand.setGravity(false);
+            stand.setInvulnerable(true);
+            stand.setCollidable(false);
+            stand.setSilent(true);
+            stand.setBasePlate(false);
+            stand.setArms(false);
+            stand.getEquipment().setHelmet(head);
         });
 
         // 2. Spawn TextDisplay (Nametag, Class, Energy bar)
@@ -103,6 +119,7 @@ public class ActivePet {
         });
 
         updateNameTag();
+        updateVisibilityForAll();
     }
 
     public void tick() {
@@ -256,6 +273,9 @@ public class ActivePet {
             targetLoc.setYaw(targetYaw);
             targetLoc.setPitch(0f);
             displayEntity.teleport(targetLoc);
+            if (bedrockStand != null && bedrockStand.isValid()) {
+                bedrockStand.teleport(targetLoc.clone().subtract(0, 0.70, 0));
+            }
             nameTagDisplay.teleport(targetLoc.clone().add(0, 0.70, 0));
             if (interactionEntity != null && interactionEntity.isValid()) {
                 interactionEntity.teleport(targetLoc.clone().subtract(0, 0.45, 0));
@@ -267,6 +287,9 @@ public class ActivePet {
             newLoc.setYaw(targetYaw);
             newLoc.setPitch(0f);
             displayEntity.teleport(newLoc);
+            if (bedrockStand != null && bedrockStand.isValid()) {
+                bedrockStand.teleport(newLoc.clone().subtract(0, 0.70, 0));
+            }
             nameTagDisplay.teleport(newLoc.clone().add(0, 0.70, 0));
             if (interactionEntity != null && interactionEntity.isValid()) {
                 interactionEntity.teleport(newLoc.clone().subtract(0, 0.45, 0));
@@ -388,20 +411,55 @@ public class ActivePet {
     }
 
     public void updateSkin() {
-        if (displayEntity == null || !displayEntity.isValid()) return;
         PetSkin skin = plugin.getConfigManager().getSkin(data.getSkinKey());
         ItemStack head = (skin != null) ? HeadUtil.createCustomHead(skin.getTexture()) : new ItemStack(Material.PLAYER_HEAD);
-        displayEntity.setItemStack(head);
+        if (displayEntity != null && displayEntity.isValid()) {
+            displayEntity.setItemStack(head);
+        }
+        if (bedrockStand != null && bedrockStand.isValid()) {
+            bedrockStand.getEquipment().setHelmet(head);
+        }
+    }
+
+    public void updateVisibilityFor(Player viewer) {
+        if (viewer == null || !viewer.isOnline()) return;
+        boolean isBedrock = com.leftycraft.leftypet.util.BedrockUtil.isBedrockPlayer(viewer);
+
+        if (displayEntity != null && displayEntity.isValid()) {
+            if (isBedrock) {
+                viewer.hideEntity(plugin, displayEntity);
+            } else {
+                viewer.showEntity(plugin, displayEntity);
+            }
+        }
+
+        if (bedrockStand != null && bedrockStand.isValid()) {
+            if (isBedrock) {
+                viewer.showEntity(plugin, bedrockStand);
+            } else {
+                viewer.hideEntity(plugin, bedrockStand);
+            }
+        }
+    }
+
+    public void updateVisibilityForAll() {
+        for (Player p : org.bukkit.Bukkit.getOnlinePlayers()) {
+            updateVisibilityFor(p);
+        }
     }
 
     public boolean isValid() {
-        return displayEntity != null && displayEntity.isValid() &&
-                nameTagDisplay != null && nameTagDisplay.isValid();
+        boolean headValid = (displayEntity != null && displayEntity.isValid()) ||
+                            (bedrockStand != null && bedrockStand.isValid());
+        return headValid && nameTagDisplay != null && nameTagDisplay.isValid();
     }
 
     public void despawn() {
         if (displayEntity != null && displayEntity.isValid()) {
             displayEntity.remove();
+        }
+        if (bedrockStand != null && bedrockStand.isValid()) {
+            bedrockStand.remove();
         }
         if (nameTagDisplay != null && nameTagDisplay.isValid()) {
             nameTagDisplay.remove();
@@ -410,12 +468,17 @@ public class ActivePet {
             interactionEntity.remove();
         }
         displayEntity = null;
+        bedrockStand = null;
         nameTagDisplay = null;
         interactionEntity = null;
     }
 
     public ItemDisplay getDisplayEntity() {
         return displayEntity;
+    }
+
+    public ArmorStand getBedrockStand() {
+        return bedrockStand;
     }
 
     public TextDisplay getNameTagDisplay() {
