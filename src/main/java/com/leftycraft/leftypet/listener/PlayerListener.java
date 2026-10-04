@@ -39,6 +39,7 @@ public class PlayerListener implements Listener {
         // Refresh altar display if player owns an altar
         com.leftycraft.leftypet.model.PetAltar altar = plugin.getAltarManager().getAltarByOwner(player.getUniqueId());
         if (altar != null) {
+            altar.setCachedOwnerName(player.getName());
             plugin.getAltarManager().updateAltarHologram(altar);
         }
 

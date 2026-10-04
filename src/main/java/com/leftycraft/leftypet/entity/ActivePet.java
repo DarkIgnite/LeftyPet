@@ -48,6 +48,7 @@ public class ActivePet {
     private Location lastOwnerLocation = null;
     private int afkTimer = 0;
     private int celebratingTicks = 0;
+    private String lastNameTagText = null;
 
     public ActivePet(LeftyPetPlugin plugin, Player owner, PetData data) {
         this.plugin = plugin;
@@ -131,7 +132,7 @@ public class ActivePet {
         }
         ticksLived++;
 
-        if (ticksLived % 10 == 0) {
+        if (ticksLived % 20 == 0) {
             updateNameTag();
         }
 
@@ -357,8 +358,12 @@ public class ActivePet {
         String line2 = "<gray>ᴋᴇʟᴀs: </gray>" + data.getPetClass().getDisplayName();
         String line3 = "<green>ᴇɴᴇʀɢɪ: </green>" + data.getEnergyProgressBar() + " <white>" + (int) data.getEnergy() + "%</white>";
 
-        Component comp = ColorUtil.component(line1 + "\n" + line2 + "\n" + line3);
-        nameTagDisplay.text(comp);
+        String full = line1 + "\n" + line2 + "\n" + line3;
+        if (!full.equals(lastNameTagText)) {
+            lastNameTagText = full;
+            Component comp = ColorUtil.component(full);
+            nameTagDisplay.text(comp);
+        }
     }
 
     public void pet(Player player) {
@@ -471,6 +476,7 @@ public class ActivePet {
         bedrockStand = null;
         nameTagDisplay = null;
         interactionEntity = null;
+        lastNameTagText = null;
     }
 
     public ItemDisplay getDisplayEntity() {

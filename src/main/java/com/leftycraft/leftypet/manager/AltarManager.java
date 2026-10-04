@@ -158,10 +158,16 @@ public class AltarManager {
         return altarKey;
     }
 
-    public void registerAltar(UUID altarId, UUID ownerUuid, Location loc, int level) {
-        PetAltar altar = new PetAltar(altarId, ownerUuid, loc, level, 0L, 0, false);
+    public void registerAltar(UUID altarId, UUID ownerUuid, String ownerName, Location loc, int level) {
+        PetAltar altar = new PetAltar(altarId, ownerUuid, ownerName, loc, level, 0, 0, false);
         altars.put(loc.getBlock().getLocation(), altar);
         saveAltars();
+    }
+
+    public void registerAltar(UUID altarId, UUID ownerUuid, Location loc, int level) {
+        Player player = Bukkit.getPlayer(ownerUuid);
+        String name = player != null ? player.getName() : null;
+        registerAltar(altarId, ownerUuid, name, loc, level);
     }
 
     public Map<Location, PetAltar> getAltarsMap() {
@@ -440,8 +446,13 @@ public class AltarManager {
         // Lowered 1 block down (from 1.70 to 0.70)
         Player nearest = null;
         double minDistanceSq = 144.0; // within 12 blocks
-        for (Player p : lodestoneLoc.getWorld().getPlayers()) {
-            double dSq = p.getLocation().distanceSquared(new Location(lodestoneLoc.getWorld(), cx, cy + 0.5, cz));
+        World world = lodestoneLoc.getWorld();
+        for (Player p : world.getPlayers()) {
+            Location pl = p.getLocation();
+            double dx = pl.getX() - cx;
+            double dy = pl.getY() - (cy + 0.5);
+            double dz = pl.getZ() - cz;
+            double dSq = dx * dx + dy * dy + dz * dz;
             if (dSq < minDistanceSq) {
                 minDistanceSq = dSq;
                 nearest = p;
@@ -482,7 +493,7 @@ public class AltarManager {
             }
         }
 
-        Location loc = new Location(lodestoneLoc.getWorld(), cx + offX, cy + 0.70, cz + offZ);
+        Location loc = new Location(world, cx + offX, cy + 0.70, cz + offZ);
         loc.setYaw(yaw);
         loc.setPitch(0f);
         return loc;
@@ -490,7 +501,8 @@ public class AltarManager {
 
     public void ensureHologram(PetAltar altar) {
         Location lodestoneLoc = altar.getLocation();
-        if (!lodestoneLoc.isWorldLoaded() || !lodestoneLoc.getChunk().isLoaded()) return;
+        World world = lodestoneLoc.getWorld();
+        if (world == null || !world.isChunkLoaded(lodestoneLoc.getBlockX() >> 4, lodestoneLoc.getBlockZ() >> 4)) return;
 
         TextDisplay text = altar.getHologramDisplay();
         if (text == null || !text.isValid()) {
@@ -508,7 +520,8 @@ public class AltarManager {
 
     public void spawnFloatingHead(PetAltar altar) {
         Location lodestoneLoc = altar.getLocation();
-        if (!lodestoneLoc.isWorldLoaded() || !lodestoneLoc.getChunk().isLoaded()) return;
+        World world = lodestoneLoc.getWorld();
+        if (world == null || !world.isChunkLoaded(lodestoneLoc.getBlockX() >> 4, lodestoneLoc.getBlockZ() >> 4)) return;
 
         if (altar.getFloatingDisplay() != null && altar.getFloatingDisplay().isValid()) {
             altar.getFloatingDisplay().remove();
@@ -602,43 +615,55 @@ public class AltarManager {
             text.teleport(idealLoc);
         }
 
-        OfflinePlayer owner = Bukkit.getOfflinePlayer(altar.getOwnerUuid());
-        String ownerName = owner.getName() != null ? owner.getName() : "Player";
+        String ownerName = altar.getCachedOwnerName();
+        if (ownerName == null || ownerName.isEmpty()) {
+            Player online = Bukkit.getPlayer(altar.getOwnerUuid());
+            if (online != null) {
+                ownerName = online.getName();
+                altar.setCachedOwnerName(ownerName);
+            } else {
+                ownerName = "Player";
+            }
+        }
+
         int discount = (int) altar.getTimeReductionPercent();
         PetData ownerData = plugin.getPetManager().getPetData(altar.getOwnerUuid());
+        boolean isOnline = Bukkit.getPlayer(altar.getOwnerUuid()) != null;
 
         if (!altar.isTraining()) {
             // Idle Altar Hologram: FIXED billboard, 1 block lower
             text.setBillboard(Display.Billboard.FIXED);
 
+            String idleText;
             // Display cooldown status if pet is on upgrade cooldown (Revisi 19)
             if (ownerData != null && ownerData.isUpgradeOnCooldown()) {
                 int remSec = ownerData.getUpgradeCooldownRemainingSeconds();
-                boolean isOnline = owner.isOnline();
                 String cdText;
                 if (!isOnline) {
                     cdText = "<gradient:#ff416c:#ff4b2b><b>⏳ ᴄᴏᴏʟᴅᴏᴡɴ: " + formatDuration(remSec) + " (ᴛᴇʀᴊᴇᴅᴀ)</b></gradient>";
                 } else {
                     cdText = "<yellow>⏳ ᴄᴏᴏʟᴅᴏᴡɴ: </yellow><gradient:#00f2fe:#4facfe><b>" + formatDuration(remSec) + "</b></gradient>";
                 }
-                String idleText = "<gradient:#ff9900:#ff5500><b>✦ ᴘᴇᴛ ᴀʟᴛᴀʀ [ʟᴠ." + altar.getAltarLevel() + "] ✦</b></gradient>\n" +
+                idleText = "<gradient:#ff9900:#ff5500><b>✦ ᴘᴇᴛ ᴀʟᴛᴀʀ [ʟᴠ." + altar.getAltarLevel() + "] ✦</b></gradient>\n" +
                         "<white>" + ownerName + "</white>\n" + cdText;
-                text.text(ColorUtil.component(idleText));
-                return;
+            } else {
+                // Normal idle display: omit -0% waktu for Lv 1
+                String discountStr = (discount > 0) ? " <gray>•</gray> <green>-" + discount + "% ᴡᴀᴋᴛᴜ</green>" : "";
+                idleText = "<gradient:#ff9900:#ff5500><b>✦ ᴘᴇᴛ ᴀʟᴛᴀʀ [ʟᴠ." + altar.getAltarLevel() + "] ✦</b></gradient>\n" +
+                        "<white>" + ownerName + "</white>" + discountStr;
             }
 
-            // Normal idle display: omit -0% waktu for Lv 1
-            String discountStr = (discount > 0) ? " <gray>•</gray> <green>-" + discount + "% ᴡᴀᴋᴛᴜ</green>" : "";
-            String idleText = "<gradient:#ff9900:#ff5500><b>✦ ᴘᴇᴛ ᴀʟᴛᴀʀ [ʟᴠ." + altar.getAltarLevel() + "] ✦</b></gradient>\n" +
-                    "<white>" + ownerName + "</white>" + discountStr;
-            text.text(ColorUtil.component(idleText));
+            // Dirty check: Only update Component and send packets if text actually changed!
+            if (!idleText.equals(altar.getLastRenderedText())) {
+                altar.setLastRenderedText(idleText);
+                text.text(ColorUtil.component(idleText));
+            }
             return;
         }
 
         // Training Altar Hologram: Merged with training details (no duplicate hologram, Billboard.CENTER)
         text.setBillboard(Display.Billboard.CENTER);
 
-        boolean isOnline = owner.isOnline();
         String statusLine;
         if (altar.isFinished()) {
             statusLine = "<gradient:#43e97b:#38f9d7><b>ᴜᴘɢʀᴀᴅᴇ sᴇʟᴇsᴀɪ!</b></gradient>\n<gray>(ᴋʟɪᴋ ᴋᴀɴᴀɴ ᴜɴᴛᴜᴋ ᴋʟᴀɪᴍ)</gray>";
@@ -655,26 +680,68 @@ public class AltarManager {
                 "<aqua>ᴛᴀʀɢᴇᴛ: </aqua>" + ColorUtil.getLevelTag(altar.getTargetLevel()) + "\n" +
                 statusLine;
 
-        text.text(ColorUtil.component(full));
+        // Dirty check: Only update Component and send packets if text actually changed!
+        if (!full.equals(altar.getLastRenderedText())) {
+            altar.setLastRenderedText(full);
+            text.text(ColorUtil.component(full));
+        }
     }
 
     private int tickerStep = 0;
 
     private void startAltarTicker() {
+        // Run every 20 ticks (1.0s) to dramatically reduce main thread scheduler overhead
         Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             tickerStep++;
-            boolean isSecondTick = (tickerStep % 2 == 0);
+            boolean isParticleTick = (tickerStep % 2 == 0); // Every 2 seconds
 
             for (PetAltar altar : altars.values()) {
                 Location loc = altar.getLocation();
-                if (!loc.isWorldLoaded() || !loc.getChunk().isLoaded()) continue;
+                World world = loc.getWorld();
+                if (world == null || !world.isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4)) {
+                    continue;
+                }
 
-                if (isSecondTick) {
+                Player owner = Bukkit.getPlayer(altar.getOwnerUuid());
+                boolean isOnline = (owner != null && owner.isOnline());
+
+                // Altar training ONLY progresses while player is online! (Runs every second)
+                if (altar.isTraining() && isOnline && !altar.isFinished()) {
+                    altar.decrementRemainingSeconds();
+                    if (altar.isFinished()) {
+                        owner.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                                "<gradient:#43e97b:#38f9d7><b>ᴜᴘɢʀᴀᴅᴇ sᴇʟᴇsᴀɪ!</b> Pet kamu di altar sudah siap diklaim.</gradient>"));
+                        owner.playSound(owner.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.2f);
+                    }
+                }
+
+                // Proximity Culling: Check if any player is within 32 blocks (1024 dist sq)
+                double lx = loc.getX();
+                double ly = loc.getY();
+                double lz = loc.getZ();
+                boolean hasNearbyPlayer = false;
+                for (Player p : world.getPlayers()) {
+                    Location pl = p.getLocation();
+                    double dx = pl.getX() - lx;
+                    double dy = pl.getY() - ly;
+                    double dz = pl.getZ() - lz;
+                    if ((dx * dx + dy * dy + dz * dz) <= 1024.0) {
+                        hasNearbyPlayer = true;
+                        break;
+                    }
+                }
+
+                // If no player is nearby, skip all visual rendering, entity rotation, and packet dispatch!
+                if (!hasNearbyPlayer) {
+                    continue;
+                }
+
+                if (isParticleTick) {
                     // Subtle ambient particles per level
                     spawnAltarAmbientParticles(altar);
                 }
 
-                // Always ensure hologram exists for all altars
+                // Always ensure hologram exists for active altar
                 ensureHologram(altar);
 
                 if (altar.isTraining()) {
@@ -685,21 +752,8 @@ public class AltarManager {
                     // Smooth rotation of head on Y axis
                     if (altar.getFloatingDisplay() != null) {
                         Location dLoc = altar.getFloatingDisplay().getLocation();
-                        dLoc.setYaw((dLoc.getYaw() + 2.0f) % 360f);
+                        dLoc.setYaw((dLoc.getYaw() + 4.0f) % 360f);
                         altar.getFloatingDisplay().teleport(dLoc);
-                    }
-
-                    Player owner = Bukkit.getPlayer(altar.getOwnerUuid());
-                    boolean isOnline = (owner != null && owner.isOnline());
-
-                    // Altar training ONLY progresses while player is online!
-                    if (isSecondTick && isOnline && !altar.isFinished()) {
-                        altar.decrementRemainingSeconds();
-                        if (altar.isFinished()) {
-                            owner.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                                    "<gradient:#43e97b:#38f9d7><b>ᴜᴘɢʀᴀᴅᴇ sᴇʟᴇsᴀɪ!</b> Pet kamu di altar sudah siap diklaim.</gradient>"));
-                            owner.playSound(owner.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.2f);
-                        }
                     }
                 } else {
                     // Remove floating head when not training
@@ -709,10 +763,10 @@ public class AltarManager {
                     }
                 }
 
-                // Update text display (unified hologram with player perspective tracking)
+                // Update text display (unified hologram with player perspective tracking & dirty check)
                 updateAltarHologram(altar);
             }
-        }, 10L, 10L); // 0.5 second interval for responsive perspective tracking
+        }, 20L, 20L); // 1.0 second interval
     }
 
     public boolean dismantleAltarByAdmin(org.bukkit.command.CommandSender sender, OfflinePlayer target) {
@@ -742,7 +796,7 @@ public class AltarManager {
         Player onlineTarget = target.getPlayer();
         if (onlineTarget != null && onlineTarget.isOnline()) {
             onlineTarget.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                    "<gradient:#ff5f6d:#ffc371>ᴀʟᴛᴀʀ ᴋᴀᴍᴜ ᴛᴇʟᴀʜ ᴅɪʜᴀᴘᴜs ᴏʟᴇʜ ᴀᴅᴍɪɴ!</gradient>"));
+                "<gradient:#ff5f6d:#ffc371>ᴀʟᴛᴀʀ ᴋᴀᴍᴜ ᴛᴇʟᴀʜ ᴅɪʜᴀᴘᴜs ᴏʟᴇʜ ᴀᴅᴍɪɴ!</gradient>"));
             onlineTarget.playSound(onlineTarget.getLocation(), Sound.BLOCK_ANVIL_DESTROY, 0.7f, 1.2f);
         }
 
@@ -783,6 +837,16 @@ public class AltarManager {
             try {
                 UUID altarId = UUID.fromString(key);
                 UUID ownerUuid = UUID.fromString(sec.getString(key + ".owner"));
+                String ownerName = sec.getString(key + ".owner-name", null);
+                if (ownerName == null || ownerName.isEmpty()) {
+                    Player p = Bukkit.getPlayer(ownerUuid);
+                    if (p != null) {
+                        ownerName = p.getName();
+                    } else {
+                        OfflinePlayer off = Bukkit.getOfflinePlayer(ownerUuid);
+                        ownerName = off.getName();
+                    }
+                }
                 Location loc = sec.getLocation(key + ".location");
                 int altarLvl = sec.getInt(key + ".altar-level", 1);
                 
@@ -798,7 +862,7 @@ public class AltarManager {
                 boolean isTrain = sec.getBoolean(key + ".is-training", false);
 
                 if (loc != null) {
-                    PetAltar altar = new PetAltar(altarId, ownerUuid, loc, altarLvl, remainingSec, targetLvl, isTrain);
+                    PetAltar altar = new PetAltar(altarId, ownerUuid, ownerName, loc, altarLvl, remainingSec, targetLvl, isTrain);
                     altars.put(loc.getBlock().getLocation(), altar);
                 }
             } catch (Exception e) {
@@ -812,6 +876,9 @@ public class AltarManager {
         for (PetAltar altar : altars.values()) {
             String key = "altars." + altar.getAltarId().toString();
             cfg.set(key + ".owner", altar.getOwnerUuid().toString());
+            if (altar.getCachedOwnerName() != null) {
+                cfg.set(key + ".owner-name", altar.getCachedOwnerName());
+            }
             cfg.set(key + ".location", altar.getLocation());
             cfg.set(key + ".altar-level", altar.getAltarLevel());
             cfg.set(key + ".remaining-seconds", altar.getRemainingSeconds());

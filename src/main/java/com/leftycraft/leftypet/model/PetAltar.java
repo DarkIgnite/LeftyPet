@@ -11,6 +11,7 @@ public class PetAltar {
 
     private final UUID altarId;
     private final UUID ownerUuid;
+    private String cachedOwnerName;
     private final Location location;
     private int altarLevel;
     private int remainingSeconds;
@@ -21,10 +22,12 @@ public class PetAltar {
     private transient ItemDisplay floatingDisplay;
     private transient ArmorStand bedrockStand;
     private transient TextDisplay hologramDisplay;
+    private transient String lastRenderedText;
 
-    public PetAltar(UUID altarId, UUID ownerUuid, Location location, int altarLevel, int remainingSeconds, int targetLevel, boolean isTraining) {
+    public PetAltar(UUID altarId, UUID ownerUuid, String cachedOwnerName, Location location, int altarLevel, int remainingSeconds, int targetLevel, boolean isTraining) {
         this.altarId = altarId;
         this.ownerUuid = ownerUuid;
+        this.cachedOwnerName = cachedOwnerName;
         this.location = location;
         this.altarLevel = Math.max(1, Math.min(4, altarLevel));
         this.remainingSeconds = Math.max(0, remainingSeconds);
@@ -32,8 +35,12 @@ public class PetAltar {
         this.isTraining = isTraining;
     }
 
+    public PetAltar(UUID altarId, UUID ownerUuid, Location location, int altarLevel, int remainingSeconds, int targetLevel, boolean isTraining) {
+        this(altarId, ownerUuid, null, location, altarLevel, remainingSeconds, targetLevel, isTraining);
+    }
+
     public PetAltar(UUID altarId, UUID ownerUuid, Location location, int altarLevel, long finishTimestamp, int targetLevel, boolean isTraining) {
-        this(altarId, ownerUuid, location, altarLevel, (int) Math.max(0, (finishTimestamp - System.currentTimeMillis()) / 1000L), targetLevel, isTraining);
+        this(altarId, ownerUuid, null, location, altarLevel, (int) Math.max(0, (finishTimestamp - System.currentTimeMillis()) / 1000L), targetLevel, isTraining);
     }
 
     public UUID getAltarId() {
@@ -156,6 +163,22 @@ public class PetAltar {
         this.hologramDisplay = hologramDisplay;
     }
 
+    public String getCachedOwnerName() {
+        return cachedOwnerName;
+    }
+
+    public void setCachedOwnerName(String cachedOwnerName) {
+        this.cachedOwnerName = cachedOwnerName;
+    }
+
+    public String getLastRenderedText() {
+        return lastRenderedText;
+    }
+
+    public void setLastRenderedText(String lastRenderedText) {
+        this.lastRenderedText = lastRenderedText;
+    }
+
     public void removeEntities() {
         if (floatingDisplay != null && floatingDisplay.isValid()) {
             floatingDisplay.remove();
@@ -169,5 +192,6 @@ public class PetAltar {
         floatingDisplay = null;
         bedrockStand = null;
         hologramDisplay = null;
+        lastRenderedText = null;
     }
 }

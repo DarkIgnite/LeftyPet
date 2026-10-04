@@ -71,7 +71,7 @@ public class AltarListener implements Listener {
         }
 
         UUID altarId = UUID.randomUUID();
-        plugin.getAltarManager().registerAltar(altarId, player.getUniqueId(), loc, placedLevel);
+        plugin.getAltarManager().registerAltar(altarId, player.getUniqueId(), player.getName(), loc, placedLevel);
 
         // Build with animation (Revisi 16)
         plugin.getAltarManager().getStructureManager().buildStructureAnimated(loc, placedLevel, () -> {
