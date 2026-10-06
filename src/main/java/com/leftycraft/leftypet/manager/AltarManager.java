@@ -515,6 +515,7 @@ public class AltarManager {
                 t.setShadowed(true);
             });
             altar.setHologramDisplay(text);
+            altar.setLastRenderedText(null);
         }
     }
 
@@ -696,16 +697,10 @@ public class AltarManager {
             boolean isParticleTick = (tickerStep % 2 == 0); // Every 2 seconds
 
             for (PetAltar altar : altars.values()) {
-                Location loc = altar.getLocation();
-                World world = loc.getWorld();
-                if (world == null || !world.isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4)) {
-                    continue;
-                }
-
                 Player owner = Bukkit.getPlayer(altar.getOwnerUuid());
                 boolean isOnline = (owner != null && owner.isOnline());
 
-                // Altar training ONLY progresses while player is online! (Runs every second)
+                // 1. LOGIC / COUNTDOWN: Always progresses as long as owner is online (regardless of chunk/distance)
                 if (altar.isTraining() && isOnline && !altar.isFinished()) {
                     altar.decrementRemainingSeconds();
                     if (altar.isFinished()) {
@@ -713,6 +708,13 @@ public class AltarManager {
                                 "<gradient:#43e97b:#38f9d7><b>ᴜᴘɢʀᴀᴅᴇ sᴇʟᴇsᴀɪ!</b> Pet kamu di altar sudah siap diklaim.</gradient>"));
                         owner.playSound(owner.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.2f);
                     }
+                }
+
+                // 2. VISUALS & ENTITIES: Only run when chunk is loaded in memory
+                Location loc = altar.getLocation();
+                World world = loc.getWorld();
+                if (world == null || !world.isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4)) {
+                    continue;
                 }
 
                 // Proximity Culling: Check if any player is within 32 blocks (1024 dist sq)
