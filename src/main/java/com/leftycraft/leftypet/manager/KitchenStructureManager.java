@@ -35,7 +35,7 @@ public class KitchenStructureManager {
 
     public static final double DELIVERY_SX = 7.5;
     public static final double DELIVERY_SY = 2.25;
-    public static final double DELIVERY_SZ = 2.2;
+    public static final double DELIVERY_SZ = 2.8;
 
     public static final double CASHIER_SX = 6.0;
     public static final double CASHIER_SY = 2.30;
@@ -116,11 +116,11 @@ public class KitchenStructureManager {
         switch (station) {
             case COOKING -> {
                 sx = COOKING_SX; sy = COOKING_SY; sz = COOKING_SZ;
-                tx = 4.5; ty = 1.0; tz = 10.0;
+                tx = 4.5; ty = 1.0; tz = 10.5;
             }
             case PACKING -> {
                 sx = PACKING_SX; sy = PACKING_SY; sz = PACKING_SZ;
-                tx = 2.5; ty = 1.0; tz = 4.5;
+                tx = 3.0; ty = 1.0; tz = 4.5;
             }
             case DELIVERY -> {
                 sx = DELIVERY_SX; sy = DELIVERY_SY; sz = DELIVERY_SZ;
@@ -128,11 +128,11 @@ public class KitchenStructureManager {
             }
             case TIRED -> {
                 sx = PACKING_SX; sy = PACKING_SY; sz = PACKING_SZ;
-                tx = 2.5; ty = 1.0; tz = 4.5;
+                tx = 3.0; ty = 1.0; tz = 4.5;
             }
             default -> {
                 sx = COOKING_SX; sy = COOKING_SY; sz = COOKING_SZ;
-                tx = 4.5; ty = 1.0; tz = 10.0;
+                tx = 4.5; ty = 1.0; tz = 10.5;
             }
         }
 
@@ -171,28 +171,43 @@ public class KitchenStructureManager {
         SchematicLoader.Schematic schem = getSchematic();
         if (schem == null || origin == null || origin.getWorld() == null) return false;
 
-        for (SchematicLoader.SchematicBlock sb : schem.getBlocks()) {
-            Location worldLoc = schem.transformLocation(origin, sb.x(), sb.y(), sb.z(), rotation);
+        int width = schem.getWidth();
+        int height = schem.getHeight();
+        int length = schem.getLength();
 
-            // Check if collides with another kitchen or altar
-            if (plugin.getKitchenManager().isKitchenAreaOrBuilding(worldLoc) ||
-                plugin.getAltarManager().isAltarAreaOrBuilding(worldLoc)) {
-                return false;
-            }
+        for (int x = 0; x < width; x++) {
+            for (int z = 0; z < length; z++) {
+                for (int y = 0; y < height; y++) {
+                    Location worldLoc = schem.transformBlockLocation(origin, x, y, z, rotation);
 
-            // For above ground space (y >= 1), ensure it's empty
-            if (sb.y() >= 1) {
-                Block b = worldLoc.getBlock();
-                Material mat = b.getType();
-                if (!mat.isAir() && mat != Material.CAVE_AIR && mat != Material.VOID_AIR
-                        && mat != Material.SHORT_GRASS && mat != Material.TALL_GRASS
-                        && mat != Material.SNOW && !mat.name().contains("FLOWER")
-                        && mat != Material.DEAD_BUSH && mat != Material.FERN) {
-                    return false;
+                    // Check if collides with another kitchen or altar
+                    if (plugin.getKitchenManager().isKitchenAreaOrBuilding(worldLoc) ||
+                        plugin.getAltarManager().isAltarAreaOrBuilding(worldLoc)) {
+                        return false;
+                    }
+
+                    // For above ground space (y >= 1), ensure there are no solid blocks
+                    if (y >= 1) {
+                        Block b = worldLoc.getBlock();
+                        Material mat = b.getType();
+                        if (!isPassableOrAir(mat)) {
+                            return false;
+                        }
+                    }
                 }
             }
         }
         return true;
+    }
+
+    private boolean isPassableOrAir(Material mat) {
+        if (mat == null) return true;
+        return mat.isAir() || mat == Material.CAVE_AIR || mat == Material.VOID_AIR
+                || mat == Material.SHORT_GRASS || mat == Material.TALL_GRASS
+                || mat == Material.SNOW || mat.name().contains("FLOWER")
+                || mat == Material.DEAD_BUSH || mat == Material.FERN
+                || mat == Material.LARGE_FERN || mat == Material.SEAGRASS
+                || mat == Material.SWEET_BERRY_BUSH;
     }
 
     /**
@@ -210,7 +225,7 @@ public class KitchenStructureManager {
         List<BlockPlacement> pass2 = new ArrayList<>();
 
         for (SchematicLoader.SchematicBlock sb : allBlocks) {
-            Location worldLoc = schem.transformLocation(origin, sb.x(), sb.y(), sb.z(), rotation);
+            Location worldLoc = schem.transformBlockLocation(origin, sb.x(), sb.y(), sb.z(), rotation);
             placedLocs.add(worldLoc.getBlock().getLocation());
 
             try {

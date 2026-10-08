@@ -20,6 +20,7 @@ import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -116,6 +117,14 @@ public class KitchenListener implements Listener {
             return;
         }
 
+        ItemStack hand = player.getInventory().getItemInMainHand();
+        if (plugin.getKitchenManager().isFoodItem(hand.getType())) {
+            if (kitchen.isPetAssigned()) {
+                plugin.getKitchenManager().feedPetInKitchen(player, kitchen);
+                return;
+            }
+        }
+
         KitchenMenu.open(player, kitchen, plugin);
     }
 
@@ -126,14 +135,49 @@ public class KitchenListener implements Listener {
 
         for (PetKitchen kitchen : plugin.getKitchenManager().getKitchensMap().values()) {
             boolean isChef = (kitchen.getChefDisplay() != null && kitchen.getChefDisplay().equals(target)) ||
-                    (kitchen.getBedrockStand() != null && kitchen.getBedrockStand().equals(target));
+                    (kitchen.getBedrockStand() != null && kitchen.getBedrockStand().equals(target)) ||
+                    (kitchen.getInteractionEntity() != null && kitchen.getInteractionEntity().equals(target));
 
             if (isChef) {
                 event.setCancelled(true);
                 Player player = event.getPlayer();
-                ItemStack hand = player.getInventory().getItemInMainHand();
+                if (!kitchen.getOwnerUuid().equals(player.getUniqueId()) && !player.hasPermission("leftypet.admin")) {
+                    player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<gradient:#ff5f6d:#ffc371>ɪɴɪ ʙᴜᴋᴀɴ ᴅᴀᴘᴜʀ ᴍʙɢ ᴍɪʟɪᴋᴍᴜ!</gradient>"));
+                    return;
+                }
 
-                if (hand.getType().isEdible()) {
+                ItemStack hand = player.getInventory().getItemInMainHand();
+                if (plugin.getKitchenManager().isFoodItem(hand.getType())) {
+                    plugin.getKitchenManager().feedPetInKitchen(player, kitchen);
+                } else {
+                    KitchenMenu.open(player, kitchen, plugin);
+                }
+                return;
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onEntityInteractNormal(PlayerInteractEntityEvent event) {
+        if (event instanceof PlayerInteractAtEntityEvent) return;
+        if (event.getHand() != EquipmentSlot.HAND) return;
+        Entity target = event.getRightClicked();
+
+        for (PetKitchen kitchen : plugin.getKitchenManager().getKitchensMap().values()) {
+            boolean isChef = (kitchen.getChefDisplay() != null && kitchen.getChefDisplay().equals(target)) ||
+                    (kitchen.getBedrockStand() != null && kitchen.getBedrockStand().equals(target)) ||
+                    (kitchen.getInteractionEntity() != null && kitchen.getInteractionEntity().equals(target));
+
+            if (isChef) {
+                event.setCancelled(true);
+                Player player = event.getPlayer();
+                if (!kitchen.getOwnerUuid().equals(player.getUniqueId()) && !player.hasPermission("leftypet.admin")) {
+                    player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<gradient:#ff5f6d:#ffc371>ɪɴɪ ʙᴜᴋᴀɴ ᴅᴀᴘᴜʀ ᴍʙɢ ᴍɪʟɪᴋᴍᴜ!</gradient>"));
+                    return;
+                }
+
+                ItemStack hand = player.getInventory().getItemInMainHand();
+                if (plugin.getKitchenManager().isFoodItem(hand.getType())) {
                     plugin.getKitchenManager().feedPetInKitchen(player, kitchen);
                 } else {
                     KitchenMenu.open(player, kitchen, plugin);

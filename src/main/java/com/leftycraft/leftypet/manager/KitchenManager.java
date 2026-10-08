@@ -251,7 +251,7 @@ public class KitchenManager {
         updateCashierHologram(kitchen);
     }
 
-    private boolean isFoodItem(Material material) {
+    public boolean isFoodItem(Material material) {
         String name = material.name();
         return material.isEdible() || name.contains("BEEF") || name.contains("PORK") || name.contains("MUTTON")
                 || name.contains("CHICKEN") || name.contains("BREAD") || name.contains("CARROT")
@@ -496,6 +496,9 @@ public class KitchenManager {
                     standLoc.setYaw(finalTravelYaw);
                     kitchen.getBedrockStand().teleport(standLoc);
                 }
+                if (kitchen.getInteractionEntity() != null && kitchen.getInteractionEntity().isValid()) {
+                    kitchen.getInteractionEntity().teleport(currentLoc.clone().subtract(0, 0.5, 0));
+                }
                 if (kitchen.getHologramDisplay() != null && kitchen.getHologramDisplay().isValid()) {
                     kitchen.getHologramDisplay().teleport(currentLoc.clone().add(0, 0.75, 0));
                 }
@@ -511,6 +514,9 @@ public class KitchenManager {
                         Location standLoc = to.clone().subtract(0, 0.70, 0);
                         standLoc.setYaw(pose.entityYaw());
                         kitchen.getBedrockStand().teleport(standLoc);
+                    }
+                    if (kitchen.getInteractionEntity() != null && kitchen.getInteractionEntity().isValid()) {
+                        kitchen.getInteractionEntity().teleport(to.clone().subtract(0, 0.5, 0));
                     }
                     if (kitchen.getHologramDisplay() != null && kitchen.getHologramDisplay().isValid()) {
                         kitchen.getHologramDisplay().teleport(to.clone().add(0, 0.75, 0));
@@ -575,6 +581,21 @@ public class KitchenManager {
                 standLoc.setYaw(pose.entityYaw());
                 kitchen.getBedrockStand().teleport(standLoc);
             }
+        }
+
+        // Interaction Entity for reliable hitbox / click detection
+        Location interactLoc = targetLoc.clone().subtract(0, 0.5, 0);
+        Interaction interact = kitchen.getInteractionEntity();
+        if (interact == null || !interact.isValid()) {
+            interact = interactLoc.getWorld().spawn(interactLoc, Interaction.class, i -> {
+                i.setPersistent(false);
+                i.setInteractionWidth(0.8f);
+                i.setInteractionHeight(1.0f);
+                i.setResponsive(true);
+            });
+            kitchen.setInteractionEntity(interact);
+        } else if (!kitchen.isGliding()) {
+            interact.teleport(interactLoc);
         }
 
         // Hologram above chef

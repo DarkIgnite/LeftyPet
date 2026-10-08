@@ -3,6 +3,7 @@ package com.leftycraft.leftypet.model;
 import org.bukkit.Location;
 import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Interaction;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.TextDisplay;
 
@@ -52,6 +53,7 @@ public class PetKitchen {
     // Transient Display Entities
     private transient ItemDisplay chefDisplay;
     private transient ArmorStand bedrockStand;
+    private transient Interaction interactionEntity;
     private transient TextDisplay hologramDisplay;
     private transient TextDisplay cashierDisplay;
     private transient String lastRenderedText;
@@ -222,12 +224,23 @@ public class PetKitchen {
         isGliding = gliding;
     }
 
+    public Interaction getInteractionEntity() {
+        return interactionEntity;
+    }
+
+    public void setInteractionEntity(Interaction interactionEntity) {
+        this.interactionEntity = interactionEntity;
+    }
+
     public void removeEntities() {
         if (chefDisplay != null && chefDisplay.isValid()) {
             chefDisplay.remove();
         }
         if (bedrockStand != null && bedrockStand.isValid()) {
             bedrockStand.remove();
+        }
+        if (interactionEntity != null && interactionEntity.isValid()) {
+            interactionEntity.remove();
         }
         if (hologramDisplay != null && hologramDisplay.isValid()) {
             hologramDisplay.remove();
@@ -237,6 +250,7 @@ public class PetKitchen {
         }
         chefDisplay = null;
         bedrockStand = null;
+        interactionEntity = null;
         hologramDisplay = null;
         cashierDisplay = null;
         lastRenderedText = null;

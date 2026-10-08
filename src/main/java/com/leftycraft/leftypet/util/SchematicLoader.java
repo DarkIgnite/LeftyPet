@@ -42,12 +42,12 @@ public class SchematicLoader {
         public List<SchematicBlock> getBlocks() { return blocks; }
 
         /**
-         * Transforms schematic coordinates to world coordinates based on origin (entrance) and rotation.
+         * Transforms continuous schematic coordinates to world coordinates based on anchor block center and rotation.
          */
         public Location transformLocation(Location origin, double sx, double sy, double sz, StructureRotation rotation) {
-            double rx = sx - anchorX;
+            double rx = sx - (anchorX + 0.5);
             double ry = sy - anchorY;
-            double rz = sz - anchorZ;
+            double rz = sz - (anchorZ + 0.5);
 
             double dx;
             double dz;
@@ -71,7 +71,40 @@ public class SchematicLoader {
                 }
             }
 
-            return origin.clone().add(dx, ry, dz);
+            return new Location(origin.getWorld(), origin.getBlockX() + 0.5 + dx, origin.getBlockY() + ry, origin.getBlockZ() + 0.5 + dz);
+        }
+
+        /**
+         * Transforms integer block coordinates to world block coordinates based on anchor and rotation.
+         */
+        public Location transformBlockLocation(Location origin, int x, int y, int z, StructureRotation rotation) {
+            int rx = x - anchorX;
+            int ry = y - anchorY;
+            int rz = z - anchorZ;
+
+            int dx;
+            int dz;
+
+            switch (rotation) {
+                case CLOCKWISE_90 -> { // Facing NORTH
+                    dx = -rz;
+                    dz = rx;
+                }
+                case CLOCKWISE_180 -> { // Facing EAST
+                    dx = -rx;
+                    dz = -rz;
+                }
+                case COUNTERCLOCKWISE_90 -> { // Facing SOUTH
+                    dx = rz;
+                    dz = -rx;
+                }
+                default -> { // NONE (Facing WEST - base schematic)
+                    dx = rx;
+                    dz = rz;
+                }
+            }
+
+            return new Location(origin.getWorld(), origin.getBlockX() + dx, origin.getBlockY() + ry, origin.getBlockZ() + dz);
         }
     }
 
