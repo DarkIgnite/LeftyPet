@@ -2,11 +2,13 @@ package com.leftycraft.leftypet.listener;
 
 import com.leftycraft.leftypet.LeftyPetPlugin;
 import com.leftycraft.leftypet.gui.KitchenMenu;
+import com.leftycraft.leftypet.manager.KitchenStructureManager;
 import com.leftycraft.leftypet.model.PetKitchen;
 import com.leftycraft.leftypet.util.ColorUtil;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -80,11 +82,17 @@ public class KitchenListener implements Listener {
         }
 
         org.bukkit.block.structure.StructureRotation rotation = plugin.getKitchenManager().getStructureManager().getRotationFromYaw(player.getLocation().getYaw());
-        if (!plugin.getKitchenManager().getStructureManager().canPlaceKitchen(loc, rotation)) {
+        KitchenStructureManager.PlacementCheck check = plugin.getKitchenManager().getStructureManager().checkPlacement(loc, rotation);
+        if (!check.success()) {
             event.setCancelled(true);
             player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                    "<gradient:#ff5f6d:#ffc371>ʟᴀʜᴀɴ ᴛᴇʀʜᴀʟᴀɴɢ! ᴘᴀsᴛɪᴋᴀɴ ᴀʀᴇᴀ 14x7x13 ʙᴇʀsɪʜ ᴅᴀʀɪ ʀɪɴᴛᴀɴɢᴀɴ/ʙᴀɴɢᴜɴᴀɴ ʟᴀɪɴ.</gradient>"));
+                    "<gradient:#ff5f6d:#ffc371>ʟᴀʜᴀɴ ᴛᴇʀʜᴀʟᴀɴɢ! " + check.reason() + "</gradient>"));
+            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                    "<gradient:#ff5f6d:#ffc371>ᴘᴀsᴛɪᴋᴀɴ ᴀʀᴇᴀ 14x7x13 ʙᴇɴᴇʀ-ʙᴇɴᴇʀ ʙᴇʀsɪʜ ᴅᴀʀɪ ʀɪɴᴛᴀɴɢᴀɴ ʙʟᴏᴋ!</gradient>"));
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
+            if (check.obstacleLoc() != null && check.obstacleLoc().getWorld() != null) {
+                check.obstacleLoc().getWorld().spawnParticle(Particle.FLAME, check.obstacleLoc().clone().add(0.5, 0.5, 0.5), 15, 0.2, 0.2, 0.2, 0.02);
+            }
             return;
         }
 

@@ -167,13 +167,28 @@ public class KitchenStructureManager {
         return schem.transformLocation(origin, CASHIER_SX, CASHIER_SY, CASHIER_SZ, rotation);
     }
 
-    public boolean canPlaceKitchen(Location origin, StructureRotation rotation) {
+    public record PlacementCheck(boolean success, String reason, Location obstacleLoc, Material obstacleMat) {
+        public static PlacementCheck ok() {
+            return new PlacementCheck(true, null, null, null);
+        }
+        public static PlacementCheck failed(String reason, Location obstacleLoc, Material obstacleMat) {
+            return new PlacementCheck(false, reason, obstacleLoc, obstacleMat);
+        }
+    }
+
+    public PlacementCheck checkPlacement(Location origin, StructureRotation rotation) {
         SchematicLoader.Schematic schem = getSchematic();
-        if (schem == null || origin == null || origin.getWorld() == null) return false;
+        if (schem == null || origin == null || origin.getWorld() == null) {
+            return PlacementCheck.failed("Schematic tidak ditemukan!", null, null);
+        }
 
         int width = schem.getWidth();
         int height = schem.getHeight();
         int length = schem.getLength();
+
+        int ox = origin.getBlockX();
+        int oy = origin.getBlockY();
+        int oz = origin.getBlockZ();
 
         for (int x = 0; x < width; x++) {
             for (int z = 0; z < length; z++) {
@@ -181,33 +196,54 @@ public class KitchenStructureManager {
                     Location worldLoc = schem.transformBlockLocation(origin, x, y, z, rotation);
 
                     // Check if collides with another kitchen or altar
-                    if (plugin.getKitchenManager().isKitchenAreaOrBuilding(worldLoc) ||
-                        plugin.getAltarManager().isAltarAreaOrBuilding(worldLoc)) {
-                        return false;
+                    if (plugin.getKitchenManager().isKitchenAreaOrBuilding(worldLoc)) {
+                        return PlacementCheck.failed("ᴛᴇʀʟᴀʟᴜ ᴅᴇᴋᴀᴛ ᴅᴇɴɢᴀɴ ᴅᴀᴘᴜʀ ᴍʙɢ ʟᴀɪɴ!", worldLoc, worldLoc.getBlock().getType());
+                    }
+                    if (plugin.getAltarManager().isAltarAreaOrBuilding(worldLoc)) {
+                        return PlacementCheck.failed("ᴛᴇʀʟᴀʟᴜ ᴅᴇᴋᴀᴛ ᴅᴇɴɢᴀɴ ᴀʟᴛᴀʀ ᴘᴇᴛ!", worldLoc, worldLoc.getBlock().getType());
                     }
 
-                    // For above ground space (y >= 1), ensure there are no solid blocks
-                    if (y >= 1) {
+                    // Check if this location is the placement origin itself (the smoker item being placed)
+                    boolean isOrigin = (worldLoc.getBlockX() == ox && worldLoc.getBlockY() == oy && worldLoc.getBlockZ() == oz);
+                    if (!isOrigin) {
                         Block b = worldLoc.getBlock();
                         Material mat = b.getType();
                         if (!isPassableOrAir(mat)) {
-                            return false;
+                            return PlacementCheck.failed("ᴛᴇʀʜᴀʟᴀɴɢ ʙʟᴏᴋ " + formatMaterial(mat) + " ᴅɪ X:" + b.getX() + " Y:" + b.getY() + " Z:" + b.getZ(), worldLoc, mat);
                         }
                     }
                 }
             }
         }
-        return true;
+        return PlacementCheck.ok();
+    }
+
+    public boolean canPlaceKitchen(Location origin, StructureRotation rotation) {
+        return checkPlacement(origin, rotation).success();
+    }
+
+    private String formatMaterial(Material mat) {
+        if (mat == null) return "Unknown";
+        String name = mat.name().toLowerCase(Locale.ROOT).replace('_', ' ');
+        String[] words = name.split(" ");
+        StringBuilder sb = new StringBuilder();
+        for (String w : words) {
+            if (!w.isEmpty()) {
+                sb.append(Character.toUpperCase(w.charAt(0))).append(w.substring(1)).append(" ");
+            }
+        }
+        return sb.toString().trim();
     }
 
     private boolean isPassableOrAir(Material mat) {
-        if (mat == null) return true;
-        return mat.isAir() || mat == Material.CAVE_AIR || mat == Material.VOID_AIR
-                || mat == Material.SHORT_GRASS || mat == Material.TALL_GRASS
-                || mat == Material.SNOW || mat.name().contains("FLOWER")
-                || mat == Material.DEAD_BUSH || mat == Material.FERN
-                || mat == Material.LARGE_FERN || mat == Material.SEAGRASS
-                || mat == Material.SWEET_BERRY_BUSH;
+        if (mat == null || mat.isAir()) return true;
+        if (mat == Material.SHORT_GRASS || mat == Material.TALL_GRASS) return true;
+        if (mat == Material.FERN || mat == Material.LARGE_FERN) return true;
+        if (mat == Material.DEAD_BUSH || mat == Material.SNOW || mat == Material.LIGHT) return true;
+        try {
+            if (Tag.FLOWERS.isTagged(mat)) return true;
+        } catch (Throwable ignored) {}
+        return mat.name().contains("FLOWER") || mat == Material.POPPY || mat == Material.DANDELION;
     }
 
     /**
