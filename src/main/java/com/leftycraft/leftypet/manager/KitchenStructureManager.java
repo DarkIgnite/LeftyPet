@@ -29,17 +29,19 @@ public class KitchenStructureManager {
     public static final double COOKING_SY = 2.25;
     public static final double COOKING_SZ = 9.0;
 
-    public static final double PACKING_SX = 3.0;
+    public static final double PACKING_SX = 4.8;
     public static final double PACKING_SY = 2.25;
-    public static final double PACKING_SZ = 4.0;
+    public static final double PACKING_SZ = 4.5;
 
     public static final double DELIVERY_SX = 7.5;
-    public static final double DELIVERY_SY = 2.40;
-    public static final double DELIVERY_SZ = 2.0;
+    public static final double DELIVERY_SY = 2.25;
+    public static final double DELIVERY_SZ = 2.2;
 
     public static final double CASHIER_SX = 6.0;
     public static final double CASHIER_SY = 2.30;
     public static final double CASHIER_SZ = 6.0;
+
+    public record StationPose(Location location, float entityYaw, float itemDisplayYaw) {}
 
     public KitchenStructureManager(LeftyPetPlugin plugin) {
         this.plugin = plugin;
@@ -102,16 +104,61 @@ public class KitchenStructureManager {
         };
     }
 
-    public Location getStationLocation(Location origin, PetKitchen.KitchenStation station, StructureRotation rotation) {
+    public StationPose getStationPose(Location origin, PetKitchen.KitchenStation station, StructureRotation rotation) {
         SchematicLoader.Schematic schem = getSchematic();
-        if (schem == null || origin == null) return origin;
+        if (schem == null || origin == null) {
+            return new StationPose(origin, 0f, 0f);
+        }
 
-        return switch (station) {
-            case COOKING -> schem.transformLocation(origin, COOKING_SX, COOKING_SY, COOKING_SZ, rotation);
-            case PACKING -> schem.transformLocation(origin, PACKING_SX, PACKING_SY, PACKING_SZ, rotation);
-            case DELIVERY -> schem.transformLocation(origin, DELIVERY_SX, DELIVERY_SY, DELIVERY_SZ, rotation);
-            case TIRED -> schem.transformLocation(origin, PACKING_SX, PACKING_SY + 0.5, PACKING_SZ, rotation);
-        };
+        double sx, sy, sz;
+        double tx, ty, tz;
+
+        switch (station) {
+            case COOKING -> {
+                sx = COOKING_SX; sy = COOKING_SY; sz = COOKING_SZ;
+                tx = 4.5; ty = 1.0; tz = 10.0;
+            }
+            case PACKING -> {
+                sx = PACKING_SX; sy = PACKING_SY; sz = PACKING_SZ;
+                tx = 2.5; ty = 1.0; tz = 4.5;
+            }
+            case DELIVERY -> {
+                sx = DELIVERY_SX; sy = DELIVERY_SY; sz = DELIVERY_SZ;
+                tx = 7.5; ty = 2.0; tz = 0.5;
+            }
+            case TIRED -> {
+                sx = PACKING_SX; sy = PACKING_SY; sz = PACKING_SZ;
+                tx = 2.5; ty = 1.0; tz = 4.5;
+            }
+            default -> {
+                sx = COOKING_SX; sy = COOKING_SY; sz = COOKING_SZ;
+                tx = 4.5; ty = 1.0; tz = 10.0;
+            }
+        }
+
+        Location petLoc = schem.transformLocation(origin, sx, sy, sz, rotation);
+        Location targetLoc = schem.transformLocation(origin, tx, ty, tz, rotation);
+
+        double dx = targetLoc.getX() - petLoc.getX();
+        double dz = targetLoc.getZ() - petLoc.getZ();
+
+        float entityYaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
+        entityYaw = (entityYaw % 360 + 360) % 360;
+        if (entityYaw > 180f) entityYaw -= 360f;
+
+        float itemDisplayYaw = entityYaw + 180f;
+        itemDisplayYaw = (itemDisplayYaw % 360 + 360) % 360;
+        if (itemDisplayYaw > 180f) itemDisplayYaw -= 360f;
+
+        Location finalLoc = petLoc.clone();
+        finalLoc.setYaw(itemDisplayYaw);
+        finalLoc.setPitch(0f);
+
+        return new StationPose(finalLoc, entityYaw, itemDisplayYaw);
+    }
+
+    public Location getStationLocation(Location origin, PetKitchen.KitchenStation station, StructureRotation rotation) {
+        return getStationPose(origin, station, rotation).location();
     }
 
     public Location getCashierHologramLocation(Location origin, StructureRotation rotation) {

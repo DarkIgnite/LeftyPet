@@ -13,10 +13,10 @@ import java.util.UUID;
 public class PetKitchen {
 
     public enum KitchenStation {
-        COOKING("🔥 Memasak di Furnace", 30),
-        PACKING("📦 Mengemas di Meja", 30),
-        DELIVERY("🍱 Menyerahkan di Jendela", 5),
-        TIRED("😴 Istirahat (Lapar / Habis Energi)", 0);
+        COOKING("Memasak di Furnace", 30),
+        PACKING("Mengemas di Meja", 30),
+        DELIVERY("Menyerahkan di Jendela", 5),
+        TIRED("Istirahat (Lapar / Habis Energi)", 0);
 
         private final String displayName;
         private final int durationSeconds;

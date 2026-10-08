@@ -77,13 +77,13 @@ public class KitchenMenu {
                 "&7• ᴛᴏᴛᴀʟ ᴘᴇsᴀɴᴀɴ: &e" + kitchen.getCompletedOrders() + " ʙᴏx",
                 "&7• ᴜᴀɴɢ ᴅɪ ᴋᴀsɪʀ: &a+$" + plugin.getEconomyManager().format(kitchen.getStoredEarnings()),
                 "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
-                "&e💡 ᴋʟɪᴋ ᴋᴀɴᴀɴ ᴘᴇᴛ ᴅɪ ᴅᴀᴘᴜʀ ᴅᴇɴɢᴀɴ ᴍᴀᴋᴀɴᴀɴ ᴜɴᴛᴜᴋ ɪsɪ ᴇɴᴇʀɢɪ!"));
+                "&e▶ ᴋʟɪᴋ ᴋᴀɴᴀɴ ᴘᴇᴛ ᴅɪ ᴅᴀᴘᴜʀ ᴅᴇɴɢᴀɴ ᴍᴀᴋᴀɴᴀɴ ᴜɴᴛᴜᴋ ɪsɪ ᴇɴᴇʀɢɪ!"));
 
         // Slot 15: Claim Cashier Earnings
         double earnings = kitchen.getStoredEarnings();
         if (earnings > 0) {
             inv.setItem(15, createItem(Material.GOLD_BLOCK, true,
-                    "<gradient:#4facfe:#00f2fe><b>💰 ᴋʟᴀɪᴍ ᴜᴀɴɢ ᴋᴀsɪʀ (+$" + plugin.getEconomyManager().format(earnings) + ")</b></gradient>",
+                    "<gradient:#4facfe:#00f2fe><b>ᴋʟᴀɪᴍ ᴜᴀɴɢ ᴋᴀsɪʀ (+$" + plugin.getEconomyManager().format(earnings) + ")</b></gradient>",
                     "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
                     "&7ᴛᴀʀɪᴋ ᴜᴀɴɢ ʜᴀsɪʟ ᴘᴇɴᴊᴜᴀʟᴀɴ ᴘᴇsᴀɴᴀɴ ᴍʙɢ",
                     "&7ʟᴀɴɢsᴜɴɢ ᴋᴇ sᴀʟᴅᴏ ᴀᴋᴜɴ ᴋᴀᴍᴜ!",
@@ -93,7 +93,7 @@ public class KitchenMenu {
                     "&a▶ ᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴍᴇɴᴄᴀɪʀᴋᴀɴ!"));
         } else {
             inv.setItem(15, createItem(Material.IRON_BARS, false,
-                    "<gradient:#757f9a:#d7dde8><b>💰 ᴋᴀsɪʀ ᴅᴀᴘᴜʀ ᴋᴏsᴏɴɢ</b></gradient>",
+                    "<gradient:#757f9a:#d7dde8><b>ᴋᴀsɪʀ ᴅᴀᴘᴜʀ ᴋᴏsᴏɴɢ</b></gradient>",
                     "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
                     "&7ʙᴇʟᴜᴍ ᴀᴅᴀ ᴘᴇsᴀɴᴀɴ ʏᴀɴɢ sᴇʟᴇsᴀɪ ᴅɪᴀɴᴛᴀʀ.",
                     "&7ᴘᴇᴛ ᴀᴋᴀɴ ᴍᴇɴʏᴇʀᴀʜᴋᴀɴ ᴘᴇsᴀɴᴀɴ ᴅɪ ᴊᴇɴᴅᴇʟᴀ",
@@ -104,7 +104,7 @@ public class KitchenMenu {
 
         // Slot 22: Dismantle Building
         inv.setItem(22, createItem(Material.BARRIER, false,
-                "<red><b>⚠ ʙᴏɴɢᴋᴀʀ ɢᴇᴅᴜɴɢ ᴅᴀᴘᴜʀ</b></red>",
+                "<red><b>[!] ʙᴏɴɢᴋᴀʀ ɢᴇᴅᴜɴɢ ᴅᴀᴘᴜʀ</b></red>",
                 "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
                 "&7ʜᴀᴘᴜs sᴇʟᴜʀᴜʜ ɢᴇᴅᴜɴɢ ᴅᴀᴘᴜʀ (14x7x13) ɪɴɪ",
                 "&7ᴅᴀɴ ᴋᴇᴍʙᴀʟɪᴋᴀɴ ɪᴛᴇᴍ ʙᴜɪʟᴅɪɴɢ ᴋᴇ ɪɴᴠᴇɴᴛᴏʀʏ ᴋᴀᴍᴜ.",
