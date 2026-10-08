@@ -12,12 +12,12 @@ commands:
     description: Open the pet menu or interact with your pet
     aliases: [lp, pets]
     permission: leftypet.use
-    usage: /<command> [summon|dismiss|rename|class|altar|roadmap|duel|menu]
+    usage: /<command> [summon|dismiss|rename|class|altar|kitchen|roadmap|duel|menu]
   leftypet:
     description: Admin commands for LeftyPet
     aliases: [lpa, petadmin]
     permission: leftypet.admin
-    usage: /<command> [reload|setlevel|setenergy|givealtar|removealtar|tpaltar]
+    usage: /<command> [reload|setlevel|setenergy|givealtar|removealtar|tpaltar|givekitchen|removekitchen|tpkitchen]
 
 permissions:
   leftypet.use:

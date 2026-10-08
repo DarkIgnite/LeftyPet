@@ -161,6 +161,18 @@ public class PetMenu {
                 "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
                 "&e▶ ᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴍᴇᴍʙᴜᴋᴀ ʟᴇᴀᴅᴇʀʙᴏᴀʀᴅ!"));
 
+        // Slot 20: Dapur MBG (Tycoon)
+        inv.setItem(20, createItem(Material.SMOKER, true, "<gradient:#ff9966:#ff5e62><b>✦ ᴅᴀᴘᴜʀ ᴍʙɢ (ᴛʏᴄᴏᴏɴ) ✦</b></gradient>",
+                "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
+                "&7ʙᴏᴏᴛʜ ᴅᴀᴘᴜʀ ᴍᴀᴋᴀɴ ʙᴇʀɢɪᴢɪ ɢʀᴀᴛɪs (3x3x4)!",
+                "&7ᴘᴇᴛ ᴍᴇɴᴊᴀᴅɪ ᴋᴏᴋɪ ʏᴀɴɢ ᴍᴇᴍᴀsᴀᴋ ᴘᴏʀsɪ ᴍᴀᴋᴀɴᴀɴ",
+                "&7ᴅᴀɴ ᴍᴇɴɢʜᴀsɪʟᴋᴀɴ ᴜᴀɴɢ (ᴠᴀᴜʟᴛ ᴇᴄᴏɴᴏᴍʏ) sᴇᴄᴀʀᴀ ᴀғᴋ!",
+                "&7• ʟᴇᴠᴇʟ 1: &a$250/ʙᴏx &7(ᴋᴀᴘᴀsɪᴛᴀs 10)",
+                "&7• ʟᴇᴠᴇʟ 2: &a$500/ʙᴏx &7(ᴋᴀᴘᴀsɪᴛᴀs 20)",
+                "&7• ʟᴇᴠᴇʟ 3: &6&l✦ ᴍᴀsᴛᴇʀ &a$1,000/ʙᴏx &7(ᴋᴀᴘᴀsɪᴛᴀs 30)",
+                "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
+                "&a▶ ᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴍᴇɴᴅᴀᴘᴀᴛᴋᴀɴ ᴅᴀᴘᴜʀ ᴍʙɢ!"));
+
         // Slot 22: Altar Claim
         inv.setItem(22, createItem(Material.LODESTONE, true, "<gradient:#43e97b:#38f9d7><b>✦ ᴛʀᴀɪɴɪɴɢ ᴀʟᴛᴀʀ (3x3) ✦</b></gradient>",
                 "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
@@ -240,6 +252,12 @@ public class PetMenu {
             case 16 -> { // Pet Leaderboard
                 player.closeInventory();
                 PetLeaderboardMenu.open(player, plugin);
+            }
+            case 20 -> { // Kitchen Claim
+                boolean claimed = plugin.getKitchenManager().claimKitchenItem(player);
+                if (claimed) {
+                    player.closeInventory();
+                }
             }
             case 22 -> { // Altar Claim
                 boolean claimed = plugin.getAltarManager().claimAltarItem(player);

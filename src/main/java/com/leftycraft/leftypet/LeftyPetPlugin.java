@@ -19,6 +19,7 @@ public final class LeftyPetPlugin extends JavaPlugin {
     private PetManager petManager;
     private CombatManager combatManager;
     private AltarManager altarManager;
+    private com.leftycraft.leftypet.manager.KitchenManager kitchenManager;
     private com.leftycraft.leftypet.manager.EconomyManager economyManager;
     private com.leftycraft.leftypet.manager.PetDuelManager petDuelManager;
     private com.leftycraft.leftypet.manager.PetLeaderboardManager leaderboardManager;
@@ -36,6 +37,7 @@ public final class LeftyPetPlugin extends JavaPlugin {
         petManager = new PetManager(this);
         combatManager = new CombatManager(this);
         altarManager = new AltarManager(this);
+        kitchenManager = new com.leftycraft.leftypet.manager.KitchenManager(this);
         petDuelManager = new com.leftycraft.leftypet.manager.PetDuelManager(this);
         leaderboardManager = new com.leftycraft.leftypet.manager.PetLeaderboardManager(this);
 
@@ -45,6 +47,7 @@ public final class LeftyPetPlugin extends JavaPlugin {
         pm.registerEvents(new PetInteractListener(this), this);
         pm.registerEvents(new CombatListener(this), this);
         pm.registerEvents(new AltarListener(this), this);
+        pm.registerEvents(new KitchenListener(this), this);
 
         // 4. Register Commands
         PetCommand petCommand = new PetCommand(this);
@@ -82,6 +85,11 @@ public final class LeftyPetPlugin extends JavaPlugin {
             altarManager.saveAltars();
         }
 
+        if (kitchenManager != null) {
+            kitchenManager.removeAllEntities();
+            kitchenManager.saveKitchens();
+        }
+
         if (petDuelManager != null) {
             petDuelManager.cleanupAll();
         }
@@ -107,6 +115,10 @@ public final class LeftyPetPlugin extends JavaPlugin {
 
     public AltarManager getAltarManager() {
         return altarManager;
+    }
+
+    public com.leftycraft.leftypet.manager.KitchenManager getKitchenManager() {
+        return kitchenManager;
     }
 
     public com.leftycraft.leftypet.manager.EconomyManager getEconomyManager() {

@@ -25,7 +25,7 @@ import org.bukkit.Sound;
 public class PetCommand implements CommandExecutor, TabCompleter {
 
     private final LeftyPetPlugin plugin;
-    private final List<String> subCommands = Arrays.asList("menu", "summon", "dismiss", "rename", "class", "altar", "roadmap", "duel", "attack", "autoattack", "top", "leaderboard", "help");
+    private final List<String> subCommands = Arrays.asList("menu", "summon", "dismiss", "rename", "class", "altar", "kitchen", "dapur", "roadmap", "duel", "attack", "autoattack", "top", "leaderboard", "help");
 
     public PetCommand(LeftyPetPlugin plugin) {
         this.plugin = plugin;
@@ -110,6 +110,9 @@ public class PetCommand implements CommandExecutor, TabCompleter {
             }
             case "altar" -> {
                 plugin.getAltarManager().claimAltarItem(player);
+            }
+            case "kitchen", "dapur" -> {
+                plugin.getKitchenManager().claimKitchenItem(player);
             }
             case "roadmap" -> {
                 PetRoadmapMenu.open(player, plugin);

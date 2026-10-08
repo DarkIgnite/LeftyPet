@@ -4,6 +4,7 @@ import com.leftycraft.leftypet.LeftyPetPlugin;
 import com.leftycraft.leftypet.entity.ActivePet;
 import com.leftycraft.leftypet.model.PetAltar;
 import com.leftycraft.leftypet.model.PetData;
+import com.leftycraft.leftypet.model.PetKitchen;
 import com.leftycraft.leftypet.util.ColorUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -23,7 +24,7 @@ import java.util.List;
 public class PetAdminCommand implements CommandExecutor, TabCompleter {
 
     private final LeftyPetPlugin plugin;
-    private final List<String> subCommands = Arrays.asList("reload", "setlevel", "setenergy", "givealtar", "removealtar", "tpaltar");
+    private final List<String> subCommands = Arrays.asList("reload", "setlevel", "setenergy", "givealtar", "removealtar", "tpaltar", "givekitchen", "removekitchen", "tpkitchen");
 
     public PetAdminCommand(LeftyPetPlugin plugin) {
         this.plugin = plugin;
@@ -44,6 +45,9 @@ public class PetAdminCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(ColorUtil.component("<aqua>/leftypet givealtar [player]</aqua> <gray>- ʙᴇʀɪᴋᴀɴ ᴀʟᴛᴀʀ ᴋᴇ ᴘʟᴀʏᴇʀ</gray>"));
             sender.sendMessage(ColorUtil.component("<aqua>/leftypet removealtar [player]</aqua> <gray>- ʜᴀᴘᴜs ᴀʟᴛᴀʀ ᴍɪʟɪᴋ ᴘʟᴀʏᴇʀ</gray>"));
             sender.sendMessage(ColorUtil.component("<aqua>/leftypet tpaltar [player]</aqua> <gray>- ᴛᴇʟᴇᴘᴏʀᴛ ᴋᴇ ᴀʟᴛᴀʀ ᴍɪʟɪᴋ ᴘʟᴀʏᴇʀ</gray>"));
+            sender.sendMessage(ColorUtil.component("<aqua>/leftypet givekitchen [player] [level]</aqua> <gray>- ʙᴇʀɪᴋᴀɴ ᴅᴀᴘᴜʀ ᴍʙɢ ᴋᴇ ᴘʟᴀʏᴇʀ</gray>"));
+            sender.sendMessage(ColorUtil.component("<aqua>/leftypet removekitchen [player]</aqua> <gray>- ʜᴀᴘᴜs ᴅᴀᴘᴜʀ ᴍʙɢ ᴍɪʟɪᴋ ᴘʟᴀʏᴇʀ</gray>"));
+            sender.sendMessage(ColorUtil.component("<aqua>/leftypet tpkitchen [player]</aqua> <gray>- ᴛᴇʟᴇᴘᴏʀᴛ ᴋᴇ ᴅᴀᴘᴜʀ ᴍʙɢ ᴍɪʟɪᴋ ᴘʟᴀʏᴇʀ</gray>"));
             sender.sendMessage(ColorUtil.component("<gradient:#00f2fe:#4facfe><b>--------------------------------------------------</b></gradient>"));
             return true;
         }
@@ -168,6 +172,77 @@ public class PetAdminCommand implements CommandExecutor, TabCompleter {
                         "<gradient:#43e97b:#38f9d7>ʙᴇʀʜᴀsɪʟ ᴛᴇʟᴇᴘᴏʀᴛ ᴋᴇ ᴀʟᴛᴀʀ ᴍɪʟɪᴋ <yellow>" + (target.getName() != null ? target.getName() : args[1]) + "</yellow>!</gradient>"));
                 adminPlayer.playSound(adminPlayer.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 0.7f, 1.0f);
             }
+            case "givekitchen" -> {
+                Player target = (args.length >= 2) ? Bukkit.getPlayer(args[1]) : (sender instanceof Player p ? p : null);
+                if (target == null) {
+                    sender.sendMessage(ColorUtil.component("<red>ᴛᴇɴᴛᴜᴋᴀɴ ᴛᴀʀɢᴇᴛ ᴘʟᴀʏᴇʀ!</red>"));
+                    return true;
+                }
+                int lvl = 1;
+                if (args.length >= 3) {
+                    try {
+                        lvl = Integer.parseInt(args[2]);
+                    } catch (NumberFormatException ignored) {}
+                }
+                target.getInventory().addItem(plugin.getKitchenManager().createKitchenItem(lvl));
+                sender.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                        "<gradient:#43e97b:#38f9d7>ʙᴇʀʜᴀsɪʟ ᴍᴇᴍʙᴇʀɪᴋᴀɴ ᴅᴀᴘᴜʀ ᴍʙɢ [ʟᴠ." + lvl + "] ᴋᴇᴘᴀᴅᴀ <yellow>" + target.getName() + "</yellow>!</gradient>"));
+            }
+            case "removekitchen" -> {
+                if (args.length < 2) {
+                    sender.sendMessage(ColorUtil.component("<red>ɢᴜɴᴀᴋᴀɴ: /leftypet removekitchen [player]</red>"));
+                    return true;
+                }
+                org.bukkit.OfflinePlayer target = Bukkit.getPlayer(args[1]);
+                if (target == null) {
+                    target = Bukkit.getOfflinePlayer(args[1]);
+                }
+                if (target.getName() == null && !target.hasPlayedBefore()) {
+                    sender.sendMessage(ColorUtil.component("<red>ᴘʟᴀʏᴇʀ ᴛɪᴅᴀᴋ ᴅɪᴛᴇᴍᴜᴋᴀɴ!</red>"));
+                    return true;
+                }
+                PetKitchen kitchen = plugin.getKitchenManager().getKitchenByOwner(target.getUniqueId());
+                if (kitchen == null) {
+                    sender.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                            "<gradient:#ff5f6d:#ffc371>ᴘʟᴀʏᴇʀ <yellow>" + (target.getName() != null ? target.getName() : args[1]) + "</yellow> ᴛɪᴅᴀᴋ ᴍᴇᴍɪʟɪᴋɪ ᴅᴀᴘᴜʀ ᴍʙɢ ᴀᴋᴛɪғ!</gradient>"));
+                    return true;
+                }
+                Location loc = kitchen.getLocation();
+                kitchen.removeEntities();
+                plugin.getKitchenManager().getStructureManager().removeStructure(loc);
+                plugin.getKitchenManager().removeKitchen(loc);
+                sender.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                        "<gradient:#43e97b:#38f9d7>ʙᴇʀʜᴀsɪʟ ᴍᴇɴɢʜᴀᴘᴜs ᴅᴀᴘᴜʀ ᴍʙɢ ᴍɪʟɪᴋ <yellow>" + (target.getName() != null ? target.getName() : args[1]) + "</yellow>!</gradient>"));
+            }
+            case "tpkitchen" -> {
+                if (!(sender instanceof Player adminPlayer)) {
+                    sender.sendMessage(ColorUtil.component("<red>ᴘᴇʀɪɴᴛᴀʜ ɪɴɪ ʜᴀɴʏᴀ ʙɪsᴀ ᴅɪᴊᴀʟᴀɴᴋᴀɴ ᴏʟᴇʜ ᴘʟᴀʏᴇʀ!</red>"));
+                    return true;
+                }
+                if (args.length < 2) {
+                    sender.sendMessage(ColorUtil.component("<red>ɢᴜɴᴀᴋᴀɴ: /leftypet tpkitchen [player]</red>"));
+                    return true;
+                }
+                org.bukkit.OfflinePlayer target = Bukkit.getPlayer(args[1]);
+                if (target == null) {
+                    target = Bukkit.getOfflinePlayer(args[1]);
+                }
+                if (target.getName() == null && !target.hasPlayedBefore()) {
+                    sender.sendMessage(ColorUtil.component("<red>ᴘʟᴀʏᴇʀ ᴛɪᴅᴀᴋ ᴅɪᴛᴇᴍᴜᴋᴀɴ!</red>"));
+                    return true;
+                }
+                PetKitchen kitchen = plugin.getKitchenManager().getKitchenByOwner(target.getUniqueId());
+                if (kitchen == null || kitchen.getLocation().getWorld() == null) {
+                    sender.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                            "<gradient:#ff5f6d:#ffc371>ᴘʟᴀʏᴇʀ <yellow>" + (target.getName() != null ? target.getName() : args[1]) + "</yellow> ᴛɪᴅᴀᴋ ᴍᴇᴍɪʟɪᴋɪ ᴅᴀᴘᴜʀ ᴍʙɢ ᴀᴋᴛɪғ!</gradient>"));
+                    return true;
+                }
+                Location dest = kitchen.getLocation().clone().add(0.5, 1.0, 0.5);
+                adminPlayer.teleport(dest);
+                adminPlayer.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                        "<gradient:#43e97b:#38f9d7>ʙᴇʀʜᴀsɪʟ ᴛᴇʟᴇᴘᴏʀᴛ ᴋᴇ ᴅᴀᴘᴜʀ ᴍʙɢ ᴍɪʟɪᴋ <yellow>" + (target.getName() != null ? target.getName() : args[1]) + "</yellow>!</gradient>"));
+                adminPlayer.playSound(adminPlayer.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 0.7f, 1.0f);
+            }
             default -> {
                 sender.sendMessage(ColorUtil.component("<red>sᴜʙᴄᴏᴍᴍᴀɴᴅ ᴛɪᴅᴀᴋ ᴅɪᴋᴇᴛᴀʜᴜɪ!</red>"));
             }
@@ -184,6 +259,8 @@ public class PetAdminCommand implements CommandExecutor, TabCompleter {
         } else if (args.length == 2 && !args[0].equalsIgnoreCase("reload")) {
             String input = args[1].toLowerCase();
             return Bukkit.getOnlinePlayers().stream().map(Player::getName).filter(s -> s.toLowerCase().startsWith(input)).toList();
+        } else if (args.length == 3 && args[0].equalsIgnoreCase("givekitchen")) {
+            return Arrays.asList("1", "2", "3");
         }
         return new ArrayList<>();
     }
