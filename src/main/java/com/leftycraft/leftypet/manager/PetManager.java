@@ -90,6 +90,16 @@ public class PetManager {
             return false;
         }
 
+        if (plugin.getKitchenManager() != null) {
+            com.leftycraft.leftypet.model.PetKitchen kitchen = plugin.getKitchenManager().getKitchenByOwner(uuid);
+            if (kitchen != null && kitchen.isPetAssigned()) {
+                ColorUtil.sendMessage(player, plugin.getConfigManager().getMessage("prefix") +
+                        "<gradient:#ff5f6d:#ffc371>ᴘᴇᴛ ᴋᴀᴍᴜ sᴇᴅᴀɴɢ ʙᴇᴋᴇʀᴊᴀ sᴇʙᴀɢᴀɪ ᴋᴏᴋɪ ᴅɪ ᴅᴀᴘᴜʀ ᴍʙɢ! ᴛᴀʀɪᴋ ᴘᴇᴛ ᴛᴇʀʟᴇʙɪʜ ᴅᴀʜᴜʟᴜ ᴍᴇʟᴀʟᴜɪ ᴍᴇɴᴜ ᴅᴀᴘᴜʀ.</gradient>");
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.7f, 1.0f);
+                return false;
+            }
+        }
+
         despawnPet(uuid);
 
         ActivePet activePet = new ActivePet(plugin, player, data);

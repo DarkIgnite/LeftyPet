@@ -74,8 +74,18 @@ public class PetMenu {
         }
         inv.setItem(4, head);
 
+        var kitchen = (plugin.getKitchenManager() != null) ? plugin.getKitchenManager().getKitchenByOwner(player.getUniqueId()) : null;
+        boolean isWorkingInKitchen = (kitchen != null && kitchen.isPetAssigned());
+
         // Slot 10: Summon / Dismiss
-        if (isSummoned) {
+        if (isWorkingInKitchen) {
+            inv.setItem(10, createItem(Material.BARRIER, false, "<gradient:#ff5f6d:#ffc371><b>sᴇᴅᴀɴɢ ʙᴇᴋᴇʀᴊᴀ ᴅɪ ᴅᴀᴘᴜʀ</b></gradient>",
+                    "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
+                    "&7ᴘᴇᴛ ᴋᴀᴍᴜ sᴇᴅᴀɴɢ ʙᴇᴋᴇʀᴊᴀ sᴇʙᴀɢᴀɪ ᴋᴏᴋɪ",
+                    "&7ᴅɪ ɢᴇᴅᴜɴɢ ᴅᴀᴘᴜʀ ᴍʙɢ!",
+                    "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
+                    "&c▶ ᴛᴀʀɪᴋ ᴘᴇᴛ ᴍᴇʟᴀʟᴜɪ ᴍᴇɴᴜ ᴅᴀᴘᴜʀ ᴍʙɢ"));
+        } else if (isSummoned) {
             inv.setItem(10, createItem(Material.REDSTONE_BLOCK, true, "&c&lsɪᴍᴘᴀɴ ᴘᴇᴛ",
                     "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
                     "&7ᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴍᴇɴʏᴇᴍʙᴜɴʏɪᴋᴀɴ ᴘᴇᴛ",
@@ -196,6 +206,13 @@ public class PetMenu {
 
         switch (slot) {
             case 10 -> { // Summon / Dismiss
+                var kitchen = (plugin.getKitchenManager() != null) ? plugin.getKitchenManager().getKitchenByOwner(player.getUniqueId()) : null;
+                if (kitchen != null && kitchen.isPetAssigned()) {
+                    ColorUtil.sendMessage(player, plugin.getConfigManager().getMessage("prefix") +
+                            "<gradient:#ff5f6d:#ffc371>ᴘᴇᴛ ᴋᴀᴍᴜ sᴇᴅᴀɴɢ ʙᴇᴋᴇʀᴊᴀ sᴇʙᴀɢᴀɪ ᴋᴏᴋɪ ᴅɪ ᴅᴀᴘᴜʀ ᴍʙɢ! ᴛᴀʀɪᴋ ᴘᴇᴛ ᴛᴇʀʟᴇʙɪʜ ᴅᴀʜᴜʟᴜ ᴍᴇʟᴀʟᴜɪ ᴍᴇɴᴜ ᴅᴀᴘᴜʀ.</gradient>");
+                    player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.7f, 1.0f);
+                    return;
+                }
                 if (plugin.getPetManager().isPetSummoned(player.getUniqueId())) {
                     plugin.getPetManager().despawnPet(player.getUniqueId());
                     plugin.getPetManager().setSessionDismissed(player.getUniqueId(), true);

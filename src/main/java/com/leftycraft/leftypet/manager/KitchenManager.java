@@ -8,6 +8,7 @@ import com.leftycraft.leftypet.util.BedrockUtil;
 import com.leftycraft.leftypet.util.ColorUtil;
 import com.leftycraft.leftypet.util.HeadUtil;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.*;
 import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.configuration.ConfigurationSection;
@@ -34,15 +35,22 @@ public class KitchenManager {
     private final Map<Location, PetKitchen> kitchens = new HashMap<>();
     private final Map<Location, PetKitchen> blockToKitchen = new HashMap<>();
     private final NamespacedKey kitchenItemKey;
+    private final NamespacedKey kitchenEntityKey;
+    private final NamespacedKey kitchenIdKey;
+    private final NamespacedKey kitchenRoleKey;
     private final File kitchenFile;
 
     public KitchenManager(LeftyPetPlugin plugin) {
         this.plugin = plugin;
         this.structureManager = new KitchenStructureManager(plugin);
         this.kitchenItemKey = new NamespacedKey(plugin, "kitchen_building_item");
+        this.kitchenEntityKey = new NamespacedKey(plugin, "kitchen_entity");
+        this.kitchenIdKey = new NamespacedKey(plugin, "kitchen_id");
+        this.kitchenRoleKey = new NamespacedKey(plugin, "kitchen_role");
         this.kitchenFile = new File(plugin.getDataFolder(), "kitchens.yml");
 
         loadKitchens();
+        purgeAllWorldKitchenGhosts();
         startKitchenTicker();
     }
 
@@ -74,6 +82,16 @@ public class KitchenManager {
     public PetKitchen getKitchenByOwner(UUID ownerUuid) {
         for (PetKitchen k : kitchens.values()) {
             if (k.getOwnerUuid().equals(ownerUuid)) {
+                return k;
+            }
+        }
+        return null;
+    }
+
+    public PetKitchen getKitchenById(UUID id) {
+        if (id == null) return null;
+        for (PetKitchen k : kitchens.values()) {
+            if (k.getKitchenId().equals(id)) {
                 return k;
             }
         }
@@ -155,6 +173,9 @@ public class KitchenManager {
             blockToKitchen.put(bLoc, kitchen);
         }
 
+        // Purge any stray legacy entities in this space before setting up
+        purgeKitchenEntities(origin, null);
+
         saveKitchens();
         updateCashierHologram(kitchen);
 
@@ -199,6 +220,7 @@ public class KitchenManager {
 
         kitchen.setPetAssigned(false);
         kitchen.removeEntities();
+        purgeKitchenEntities(kitchen.getLocation(), kitchen.getKitchenId());
         saveKitchens();
 
         updateCashierHologram(kitchen);
@@ -243,6 +265,7 @@ public class KitchenManager {
         chefLoc.getWorld().spawnParticle(Particle.HEART, chefLoc.clone().add(0, 0.5, 0), 10, 0.3, 0.3, 0.3, 0.05);
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_BURP, 0.8f, 1.2f);
         player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_CELEBRATE, 0.8f, 1.2f);
+        player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.7f, 1.5f);
 
         player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
                 "<gradient:#4facfe:#00f2fe>ᴘᴇᴛ ᴋᴏᴋɪ ᴅɪʙᴇʀɪ ᴍᴀᴋᴀɴ! ᴇɴᴇʀɢɪ: </gradient><yellow>" + (int) restored + "%</yellow>"));
@@ -297,6 +320,7 @@ public class KitchenManager {
 
         Location origin = kitchen.getLocation();
         kitchen.removeEntities();
+        purgeKitchenEntities(origin, kitchen.getKitchenId());
 
         // Clear all blocks
         structureManager.removeKitchen(kitchen.getAllBlockLocations());
@@ -363,14 +387,23 @@ public class KitchenManager {
                 if (progress % 2 == 0 && cookLoc.getWorld() != null) {
                     cookLoc.getWorld().spawnParticle(Particle.SMOKE, cookLoc.clone().add(0, 0.3, 0), 4, 0.2, 0.2, 0.2, 0.02);
                     cookLoc.getWorld().spawnParticle(Particle.FLAME, cookLoc.clone().add(0, 0.1, 0), 2, 0.1, 0.1, 0.1, 0.01);
+                    if (progress % 4 == 0) {
+                        cookLoc.getWorld().playSound(cookLoc, Sound.BLOCK_CAMPFIRE_CRACKLE, 0.4f, 1.2f);
+                    }
                     if (progress % 6 == 0) {
-                        cookLoc.getWorld().playSound(cookLoc, Sound.BLOCK_FURNACE_FIRE_CRACKLE, 0.4f, 1.2f);
+                        cookLoc.getWorld().playSound(cookLoc, Sound.BLOCK_FURNACE_FIRE_CRACKLE, 0.5f, 1.1f);
+                    }
+                    if (progress % 8 == 0) {
+                        cookLoc.getWorld().playSound(cookLoc, Sound.BLOCK_SMOKER_SMOKE, 0.4f, 1.0f);
+                        cookLoc.getWorld().playSound(cookLoc, Sound.BLOCK_LAVA_EXTINGUISH, 0.2f, 1.6f);
                     }
                 }
                 if (progress >= PetKitchen.KitchenStation.COOKING.getDurationSeconds()) {
                     kitchen.setCurrentProgressSeconds(0);
                     if (cookLoc.getWorld() != null) {
+                        cookLoc.getWorld().playSound(cookLoc, Sound.BLOCK_BELL_USE, 0.6f, 1.8f);
                         cookLoc.getWorld().playSound(cookLoc, Sound.BLOCK_BREWING_STAND_BREW, 0.7f, 1.2f);
+                        cookLoc.getWorld().playSound(cookLoc, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.6f, 1.3f);
                     }
                     glideChefToStation(kitchen, PetKitchen.KitchenStation.PACKING);
                 }
@@ -379,14 +412,23 @@ public class KitchenManager {
                 Location packLoc = structureManager.getStationLocation(origin, PetKitchen.KitchenStation.PACKING, rotation);
                 if (progress % 2 == 0 && packLoc.getWorld() != null) {
                     packLoc.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, packLoc.clone().add(0, 0.5, 0), 3, 0.3, 0.2, 0.3, 0.02);
+                    if (progress % 4 == 0) {
+                        packLoc.getWorld().playSound(packLoc, Sound.BLOCK_WOOL_PLACE, 0.4f, 1.3f);
+                    }
                     if (progress % 6 == 0) {
                         packLoc.getWorld().playSound(packLoc, Sound.ENTITY_VILLAGER_WORK_CLERIC, 0.5f, 1.3f);
+                    }
+                    if (progress % 8 == 0) {
+                        packLoc.getWorld().playSound(packLoc, Sound.ITEM_ARMOR_EQUIP_LEATHER, 0.5f, 1.2f);
+                        packLoc.getWorld().playSound(packLoc, Sound.BLOCK_WOODEN_BUTTON_CLICK_ON, 0.3f, 1.5f);
                     }
                 }
                 if (progress >= PetKitchen.KitchenStation.PACKING.getDurationSeconds()) {
                     kitchen.setCurrentProgressSeconds(0);
                     if (packLoc.getWorld() != null) {
+                        packLoc.getWorld().playSound(packLoc, Sound.BLOCK_CHEST_CLOSE, 0.6f, 1.3f);
                         packLoc.getWorld().playSound(packLoc, Sound.ITEM_ARMOR_EQUIP_GENERIC, 0.7f, 1.2f);
+                        packLoc.getWorld().playSound(packLoc, Sound.BLOCK_NOTE_BLOCK_PLING, 0.7f, 1.6f);
                     }
                     glideChefToStation(kitchen, PetKitchen.KitchenStation.DELIVERY);
                 }
@@ -395,6 +437,10 @@ public class KitchenManager {
                 Location delLoc = structureManager.getStationLocation(origin, PetKitchen.KitchenStation.DELIVERY, rotation);
                 if (delLoc.getWorld() != null) {
                     delLoc.getWorld().spawnParticle(Particle.WAX_ON, delLoc.clone().add(0, 0.3, 0), 3, 0.2, 0.2, 0.2, 0.02);
+                    if (progress == 1) {
+                        delLoc.getWorld().playSound(delLoc, Sound.BLOCK_WOODEN_DOOR_OPEN, 0.5f, 1.2f);
+                        delLoc.getWorld().playSound(delLoc, Sound.ENTITY_VILLAGER_TRADE, 0.6f, 1.0f);
+                    }
                 }
                 if (progress >= PetKitchen.KitchenStation.DELIVERY.getDurationSeconds()) {
                     // ORDER COMPLETED!
@@ -409,8 +455,12 @@ public class KitchenManager {
 
                     // SFX & FX
                     if (delLoc.getWorld() != null) {
+                        delLoc.getWorld().playSound(delLoc, Sound.BLOCK_NOTE_BLOCK_CHIME, 0.8f, 1.8f);
+                        delLoc.getWorld().playSound(delLoc, Sound.BLOCK_AMETHYST_BLOCK_CHIME, 0.7f, 1.5f);
                         delLoc.getWorld().playSound(delLoc, Sound.ENTITY_PLAYER_LEVELUP, 0.7f, 1.6f);
-                        delLoc.getWorld().playSound(delLoc, Sound.ENTITY_VILLAGER_YES, 0.7f, 1.1f);
+                        delLoc.getWorld().playSound(delLoc, Sound.ENTITY_VILLAGER_YES, 0.8f, 1.1f);
+                        delLoc.getWorld().playSound(delLoc, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, 1.4f);
+                        delLoc.getWorld().playSound(delLoc, Sound.BLOCK_WOODEN_DOOR_CLOSE, 0.5f, 1.2f);
                         delLoc.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, delLoc.clone().add(0, 0.6, 0), 10, 0.4, 0.4, 0.4, 0.05);
                     }
 
@@ -421,7 +471,8 @@ public class KitchenManager {
                         kitchen.setCurrentStation(PetKitchen.KitchenStation.TIRED);
                         owner.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
                                 "<gradient:#ff5f6d:#ffc371>ᴘᴇᴛ ᴋᴏᴋɪ ᴋᴀᴍᴜ ᴋᴇʜᴀʙɪsᴀɴ ᴇɴᴇʀɢɪ! ᴋʟɪᴋ ᴋᴀɴᴀɴ ᴘᴇᴛ ᴅɪ ᴅᴀᴘᴜʀ sᴀᴍʙɪʟ ʙᴀᴡᴀ ᴍᴀᴋᴀɴᴀɴ.</gradient>"));
-                        owner.playSound(owner.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.7f, 1.0f);
+                        owner.playSound(owner.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+                        owner.playSound(owner.getLocation(), Sound.ENTITY_CAT_BEG_FOR_FOOD, 0.7f, 1.1f);
                         spawnOrUpdateChefDisplay(kitchen);
                     } else {
                         glideChefToStation(kitchen, PetKitchen.KitchenStation.COOKING);
@@ -500,7 +551,11 @@ public class KitchenManager {
                     kitchen.getInteractionEntity().teleport(currentLoc.clone().subtract(0, 0.5, 0));
                 }
                 if (kitchen.getHologramDisplay() != null && kitchen.getHologramDisplay().isValid()) {
-                    kitchen.getHologramDisplay().teleport(currentLoc.clone().add(0, 0.75, 0));
+                    kitchen.getHologramDisplay().teleport(currentLoc.clone().add(0, 0.55, 0));
+                }
+
+                if (currentTick % 5 == 0) {
+                    currentLoc.getWorld().playSound(currentLoc, Sound.BLOCK_WOOD_STEP, 0.35f, 1.2f);
                 }
 
                 if (currentTick % 3 == 0) {
@@ -519,7 +574,7 @@ public class KitchenManager {
                         kitchen.getInteractionEntity().teleport(to.clone().subtract(0, 0.5, 0));
                     }
                     if (kitchen.getHologramDisplay() != null && kitchen.getHologramDisplay().isValid()) {
-                        kitchen.getHologramDisplay().teleport(to.clone().add(0, 0.75, 0));
+                        kitchen.getHologramDisplay().teleport(to.clone().add(0, 0.55, 0));
                     }
                     spawnOrUpdateChefDisplay(kitchen);
                     cancel();
@@ -539,6 +594,7 @@ public class KitchenManager {
 
         ItemDisplay chef = kitchen.getChefDisplay();
         if (chef == null || !chef.isValid()) {
+            cleanStrayChefEntities(targetLoc, kitchen);
             chef = targetLoc.getWorld().spawn(targetLoc, ItemDisplay.class, d -> {
                 d.setPersistent(false);
                 d.setBillboard(Display.Billboard.FIXED);
@@ -552,6 +608,9 @@ public class KitchenManager {
                 );
                 d.setTransformation(t);
                 d.setItemStack(head);
+                d.getPersistentDataContainer().set(kitchenEntityKey, PersistentDataType.BOOLEAN, true);
+                d.getPersistentDataContainer().set(kitchenIdKey, PersistentDataType.STRING, kitchen.getKitchenId().toString());
+                d.getPersistentDataContainer().set(kitchenRoleKey, PersistentDataType.STRING, "CHEF_DISPLAY");
             });
             kitchen.setChefDisplay(chef);
 
@@ -569,6 +628,9 @@ public class KitchenManager {
                 if (s.getEquipment() != null) {
                     s.getEquipment().setHelmet(head);
                 }
+                s.getPersistentDataContainer().set(kitchenEntityKey, PersistentDataType.BOOLEAN, true);
+                s.getPersistentDataContainer().set(kitchenIdKey, PersistentDataType.STRING, kitchen.getKitchenId().toString());
+                s.getPersistentDataContainer().set(kitchenRoleKey, PersistentDataType.STRING, "BEDROCK_STAND");
             });
             kitchen.setBedrockStand(stand);
 
@@ -592,14 +654,17 @@ public class KitchenManager {
                 i.setInteractionWidth(0.8f);
                 i.setInteractionHeight(1.0f);
                 i.setResponsive(true);
+                i.getPersistentDataContainer().set(kitchenEntityKey, PersistentDataType.BOOLEAN, true);
+                i.getPersistentDataContainer().set(kitchenIdKey, PersistentDataType.STRING, kitchen.getKitchenId().toString());
+                i.getPersistentDataContainer().set(kitchenRoleKey, PersistentDataType.STRING, "INTERACTION");
             });
             kitchen.setInteractionEntity(interact);
         } else if (!kitchen.isGliding()) {
             interact.teleport(interactLoc);
         }
 
-        // Hologram above chef
-        Location holoLoc = targetLoc.clone().add(0, 0.75, 0);
+        // Hologram above chef (lowered by 0.2 to +0.55 above targetLoc)
+        Location holoLoc = targetLoc.clone().add(0, 0.55, 0);
         TextDisplay holo = kitchen.getHologramDisplay();
         String text = buildChefHoloText(kitchen, data);
 
@@ -609,6 +674,9 @@ public class KitchenManager {
                 t.setBillboard(Display.Billboard.CENTER);
                 t.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
                 t.text(ColorUtil.component(text));
+                t.getPersistentDataContainer().set(kitchenEntityKey, PersistentDataType.BOOLEAN, true);
+                t.getPersistentDataContainer().set(kitchenIdKey, PersistentDataType.STRING, kitchen.getKitchenId().toString());
+                t.getPersistentDataContainer().set(kitchenRoleKey, PersistentDataType.STRING, "CHEF_HOLO");
             });
             kitchen.setHologramDisplay(holo);
             kitchen.setLastRenderedText(text);
@@ -657,12 +725,11 @@ public class KitchenManager {
                     "<gray>ᴇɴᴇʀɢɪ: </gray>" + energyBar;
         }
 
-        String timerLine = (st == PetKitchen.KitchenStation.DELIVERY) ?
-                "<green><b>[sᴇʀᴀʜᴋᴀɴ ᴘᴇsᴀɴᴀɴ]</b></green>" :
-                "<aqua>ᴡᴀᴋᴛᴜ: </aqua><white>" + kitchen.getCurrentProgressSeconds() + "s / " + st.getDurationSeconds() + "s</white>";
+        int remaining = Math.max(0, st.getDurationSeconds() - kitchen.getCurrentProgressSeconds());
+        String timerLine = "<gradient:#4facfe:#00f2fe>sɪsᴀ ᴡᴀᴋᴛᴜ: </gradient><white>" + remaining + " detik</white>";
 
         return line1 + "\n" +
-                "<gray>sᴛᴀᴛᴜs: </gray>" + st.getDisplayName() + "\n" +
+                "<gray>sᴛᴀᴛᴜs: </gray><gradient:#4facfe:#00f2fe>" + st.getDisplayName() + "</gradient>\n" +
                 timerLine + "\n" +
                 "<gray>ᴇɴᴇʀɢɪ: </gray>" + energyBar;
     }
@@ -693,11 +760,15 @@ public class KitchenManager {
                 "&e▶ ᴋʟɪᴋ ᴋᴀɴᴀɴ ᴜɴᴛᴜᴋ ʙᴜᴋᴀ ᴍᴇɴᴜ";
 
         if (cashier == null || !cashier.isValid()) {
+            cleanStrayCashierEntities(holoLoc, kitchen);
             cashier = holoLoc.getWorld().spawn(holoLoc, TextDisplay.class, t -> {
                 t.setPersistent(false);
                 t.setBillboard(Display.Billboard.FIXED);
                 t.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
                 t.text(ColorUtil.component(text));
+                t.getPersistentDataContainer().set(kitchenEntityKey, PersistentDataType.BOOLEAN, true);
+                t.getPersistentDataContainer().set(kitchenIdKey, PersistentDataType.STRING, kitchen.getKitchenId().toString());
+                t.getPersistentDataContainer().set(kitchenRoleKey, PersistentDataType.STRING, "CASHIER_HOLO");
             });
             kitchen.setCashierDisplay(cashier);
         } else {
@@ -712,6 +783,7 @@ public class KitchenManager {
         PetKitchen k = kitchens.remove(loc.getBlock().getLocation());
         if (k != null) {
             k.removeEntities();
+            purgeKitchenEntities(k.getLocation(), k.getKitchenId());
             for (Location bLoc : k.getAllBlockLocations()) {
                 blockToKitchen.remove(bLoc);
             }
@@ -815,10 +887,166 @@ public class KitchenManager {
     public void cleanup() {
         for (PetKitchen k : kitchens.values()) {
             k.removeEntities();
+            purgeKitchenEntities(k.getLocation(), k.getKitchenId());
         }
     }
 
     public void removeAllEntities() {
         cleanup();
+    }
+
+    public boolean isTaggedKitchenEntity(Entity entity) {
+        if (entity == null) return false;
+        return entity.getPersistentDataContainer().has(kitchenEntityKey, PersistentDataType.BOOLEAN);
+    }
+
+    public boolean isOrphanedOrLegacyKitchenEntity(Entity e) {
+        if (e == null || e instanceof Player) return false;
+
+        // 1. Tagged entities
+        if (isTaggedKitchenEntity(e)) {
+            String idStr = e.getPersistentDataContainer().get(kitchenIdKey, PersistentDataType.STRING);
+            if (idStr == null) return true;
+            try {
+                UUID kid = UUID.fromString(idStr);
+                PetKitchen k = getKitchenById(kid);
+                if (k == null) return true; // Kitchen dismantled or non-existent
+                // Check if e is currently one of k's active entities
+                boolean isCurrent = e.equals(k.getChefDisplay()) || e.equals(k.getBedrockStand())
+                        || e.equals(k.getInteractionEntity()) || e.equals(k.getHologramDisplay())
+                        || e.equals(k.getCashierDisplay());
+                return !isCurrent;
+            } catch (Exception ex) {
+                return true;
+            }
+        }
+
+        // 2. Legacy / untagged TextDisplays
+        if (e instanceof TextDisplay td) {
+            Component c = td.text();
+            if (c != null) {
+                String plain = PlainTextComponentSerializer.plainText().serialize(c);
+                if (plain.contains("KOKI") || plain.contains("koki") || plain.contains("ᴋᴏᴋɪ")
+                        || plain.contains("DAPUR") || plain.contains("dapur") || plain.contains("ᴅᴀᴘᴜʀ")
+                        || plain.contains("MBG") || plain.contains("ᴍʙɢ")
+                        || plain.contains("Furnace") || plain.contains("Meja") || plain.contains("Jendela")
+                        || plain.contains("sᴛᴀᴛᴜs ᴋᴏᴋɪ") || plain.contains("ᴜᴀɴɢ ᴅɪ ᴋᴀsɪʀ")) {
+                    for (PetKitchen k : kitchens.values()) {
+                        if (e.equals(k.getHologramDisplay()) || e.equals(k.getCashierDisplay())) {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public void cleanStrayChefEntities(Location loc, PetKitchen kitchen) {
+        if (loc == null || loc.getWorld() == null) return;
+        Collection<Entity> nearby = loc.getWorld().getNearbyEntities(loc, 3.5, 3.5, 3.5);
+        for (Entity e : nearby) {
+            if (e instanceof Player) continue;
+            if (isTaggedKitchenEntity(e)) {
+                e.remove();
+            } else if (e instanceof TextDisplay td) {
+                Component c = td.text();
+                if (c != null) {
+                    String plain = PlainTextComponentSerializer.plainText().serialize(c);
+                    if (plain.contains("KOKI") || plain.contains("koki") || plain.contains("ᴋᴏᴋɪ")
+                            || plain.contains("sᴛᴀᴛᴜs") || plain.contains("ᴍʙɢ")) {
+                        e.remove();
+                    }
+                }
+            } else if (e instanceof ArmorStand as) {
+                if (as.isMarker() && as.isSmall() && !as.isVisible()) {
+                    e.remove();
+                }
+            } else if (e instanceof ItemDisplay id) {
+                if (id.getItemDisplayTransform() == ItemDisplay.ItemDisplayTransform.HEAD) {
+                    e.remove();
+                }
+            } else if (e instanceof Interaction in) {
+                if (Math.abs(in.getInteractionWidth() - 0.8f) < 0.15f) {
+                    e.remove();
+                }
+            }
+        }
+    }
+
+    public void cleanStrayCashierEntities(Location loc, PetKitchen kitchen) {
+        if (loc == null || loc.getWorld() == null) return;
+        Collection<Entity> nearby = loc.getWorld().getNearbyEntities(loc, 3.0, 3.0, 3.0);
+        for (Entity e : nearby) {
+            if (e instanceof Player) continue;
+            if (isTaggedKitchenEntity(e)) {
+                e.remove();
+            } else if (e instanceof TextDisplay td) {
+                Component c = td.text();
+                if (c != null) {
+                    String plain = PlainTextComponentSerializer.plainText().serialize(c);
+                    if (plain.contains("DAPUR") || plain.contains("dapur") || plain.contains("ᴅᴀᴘᴜʀ") || plain.contains("ᴋᴀsɪʀ")) {
+                        e.remove();
+                    }
+                }
+            }
+        }
+    }
+
+    public void purgeKitchenEntities(Location origin, UUID specificKitchenId) {
+        if (origin == null || origin.getWorld() == null) return;
+        World world = origin.getWorld();
+        Collection<Entity> nearby = world.getNearbyEntities(origin, 25.0, 15.0, 25.0);
+        for (Entity e : nearby) {
+            if (e instanceof Player) continue;
+            boolean remove = false;
+            if (isTaggedKitchenEntity(e)) {
+                String kId = e.getPersistentDataContainer().get(kitchenIdKey, PersistentDataType.STRING);
+                if (specificKitchenId == null || (kId != null && kId.equals(specificKitchenId.toString()))) {
+                    remove = true;
+                }
+            } else if (e instanceof TextDisplay td) {
+                Component c = td.text();
+                if (c != null) {
+                    String plain = PlainTextComponentSerializer.plainText().serialize(c);
+                    if (plain.contains("KOKI") || plain.contains("koki") || plain.contains("ᴋᴏᴋɪ")
+                            || plain.contains("DAPUR") || plain.contains("dapur") || plain.contains("ᴅᴀᴘᴜʀ")
+                            || plain.contains("MBG") || plain.contains("ᴍʙɢ")) {
+                        remove = true;
+                    }
+                }
+            } else if (e instanceof Interaction in) {
+                if (Math.abs(in.getInteractionWidth() - 0.8f) < 0.15f) {
+                    remove = true;
+                }
+            } else if (e instanceof ArmorStand as) {
+                if (as.isMarker() && as.isSmall() && !as.isVisible()) {
+                    remove = true;
+                }
+            } else if (e instanceof ItemDisplay id) {
+                if (id.getItemDisplayTransform() == ItemDisplay.ItemDisplayTransform.HEAD) {
+                    remove = true;
+                }
+            }
+            if (remove) {
+                e.remove();
+            }
+        }
+    }
+
+    public int purgeAllWorldKitchenGhosts() {
+        int count = 0;
+        for (World world : Bukkit.getWorlds()) {
+            for (Entity e : world.getEntities()) {
+                if (e instanceof Player) continue;
+                if (isOrphanedOrLegacyKitchenEntity(e)) {
+                    e.remove();
+                    count++;
+                }
+            }
+        }
+        return count;
     }
 }

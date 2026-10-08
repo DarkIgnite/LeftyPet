@@ -233,20 +233,20 @@ public class PetKitchen {
     }
 
     public void removeEntities() {
-        if (chefDisplay != null && chefDisplay.isValid()) {
-            chefDisplay.remove();
+        if (chefDisplay != null) {
+            try { chefDisplay.remove(); } catch (Throwable ignored) {}
         }
-        if (bedrockStand != null && bedrockStand.isValid()) {
-            bedrockStand.remove();
+        if (bedrockStand != null) {
+            try { bedrockStand.remove(); } catch (Throwable ignored) {}
         }
-        if (interactionEntity != null && interactionEntity.isValid()) {
-            interactionEntity.remove();
+        if (interactionEntity != null) {
+            try { interactionEntity.remove(); } catch (Throwable ignored) {}
         }
-        if (hologramDisplay != null && hologramDisplay.isValid()) {
-            hologramDisplay.remove();
+        if (hologramDisplay != null) {
+            try { hologramDisplay.remove(); } catch (Throwable ignored) {}
         }
-        if (cashierDisplay != null && cashierDisplay.isValid()) {
-            cashierDisplay.remove();
+        if (cashierDisplay != null) {
+            try { cashierDisplay.remove(); } catch (Throwable ignored) {}
         }
         chefDisplay = null;
         bedrockStand = null;

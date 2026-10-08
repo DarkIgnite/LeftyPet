@@ -27,13 +27,16 @@ public class PlayerListener implements Listener {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             PetData data = plugin.getPetManager().getPetData(player.getUniqueId());
             boolean isDismissed = plugin.getPetManager().isSessionDismissed(player.getUniqueId());
-            if (!isDismissed && !data.isTraining()) {
-                Bukkit.getScheduler().runTask(plugin, () -> {
-                    if (player.isOnline()) {
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                if (player.isOnline()) {
+                    com.leftycraft.leftypet.model.PetKitchen kitchen = (plugin.getKitchenManager() != null) ?
+                            plugin.getKitchenManager().getKitchenByOwner(player.getUniqueId()) : null;
+                    boolean isKitchenAssigned = (kitchen != null && kitchen.isPetAssigned());
+                    if (!isDismissed && !data.isTraining() && !isKitchenAssigned) {
                         plugin.getPetManager().summonPet(player);
                     }
-                });
-            }
+                }
+            });
         });
 
         // Refresh altar display if player owns an altar

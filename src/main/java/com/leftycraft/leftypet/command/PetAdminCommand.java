@@ -24,7 +24,7 @@ import java.util.List;
 public class PetAdminCommand implements CommandExecutor, TabCompleter {
 
     private final LeftyPetPlugin plugin;
-    private final List<String> subCommands = Arrays.asList("reload", "setlevel", "setenergy", "givealtar", "removealtar", "tpaltar", "givekitchen", "removekitchen", "tpkitchen");
+    private final List<String> subCommands = Arrays.asList("reload", "setlevel", "setenergy", "givealtar", "removealtar", "tpaltar", "givekitchen", "removekitchen", "tpkitchen", "cleankitchen", "purgeghosts");
 
     public PetAdminCommand(LeftyPetPlugin plugin) {
         this.plugin = plugin;
@@ -48,6 +48,7 @@ public class PetAdminCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(ColorUtil.component("<aqua>/leftypet givekitchen [player]</aqua> <gray>- ʙᴇʀɪᴋᴀɴ ᴅᴀᴘᴜʀ ᴍʙɢ ᴋᴇ ᴘʟᴀʏᴇʀ</gray>"));
             sender.sendMessage(ColorUtil.component("<aqua>/leftypet removekitchen [player]</aqua> <gray>- ʜᴀᴘᴜs ᴅᴀᴘᴜʀ ᴍʙɢ ᴍɪʟɪᴋ ᴘʟᴀʏᴇʀ</gray>"));
             sender.sendMessage(ColorUtil.component("<aqua>/leftypet tpkitchen [player]</aqua> <gray>- ᴛᴇʟᴇᴘᴏʀᴛ ᴋᴇ ᴅᴀᴘᴜʀ ᴍʙɢ ᴍɪʟɪᴋ ᴘʟᴀʏᴇʀ</gray>"));
+            sender.sendMessage(ColorUtil.component("<aqua>/leftypet cleankitchen</aqua> <gray>- ᴘᴜʀɢᴇ sᴇᴍᴜᴀ ɢʜᴏsᴛ ᴇɴᴛɪᴛɪᴇs ᴅᴀᴘᴜʀ ᴍʙɢ</gray>"));
             sender.sendMessage(ColorUtil.component("<gradient:#00f2fe:#4facfe><b>--------------------------------------------------</b></gradient>"));
             return true;
         }
@@ -236,6 +237,11 @@ public class PetAdminCommand implements CommandExecutor, TabCompleter {
                 adminPlayer.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
                         "<gradient:#43e97b:#38f9d7>ʙᴇʀʜᴀsɪʟ ᴛᴇʟᴇᴘᴏʀᴛ ᴋᴇ ᴅᴀᴘᴜʀ ᴍʙɢ ᴍɪʟɪᴋ <yellow>" + (target.getName() != null ? target.getName() : args[1]) + "</yellow>!</gradient>"));
                 adminPlayer.playSound(adminPlayer.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 0.7f, 1.0f);
+            }
+            case "cleankitchen", "purgeghosts" -> {
+                int count = plugin.getKitchenManager().purgeAllWorldKitchenGhosts();
+                sender.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                        "<gradient:#4facfe:#00f2fe>ʙᴇʀʜᴀsɪʟ ᴍᴇᴍʙᴇʀsɪʜᴋᴀɴ " + count + " ɢʜᴏsᴛ ᴇɴᴛɪᴛʏ ᴅᴀᴘᴜʀ ᴍʙɢ ᴅɪ sᴇʟᴜʀᴜʜ ᴡᴏʀʟᴅ!</gradient>"));
             }
             default -> {
                 sender.sendMessage(ColorUtil.component("<red>sᴜʙᴄᴏᴍᴍᴀɴᴅ ᴛɪᴅᴀᴋ ᴅɪᴋᴇᴛᴀʜᴜɪ!</red>"));

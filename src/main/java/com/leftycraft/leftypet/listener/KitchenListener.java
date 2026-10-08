@@ -283,4 +283,14 @@ public class KitchenListener implements Listener {
             event.setCancelled(true);
         }
     }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onChunkLoad(org.bukkit.event.world.ChunkLoadEvent event) {
+        for (Entity e : event.getChunk().getEntities()) {
+            if (e instanceof Player) continue;
+            if (plugin.getKitchenManager().isOrphanedOrLegacyKitchenEntity(e)) {
+                e.remove();
+            }
+        }
+    }
 }
