@@ -14,7 +14,7 @@ public class PetKitchen {
 
     public enum KitchenStation {
         COOKING("🔥 Memasak di Furnace", 30),
-        PACKING("📦 Mengemas di Meja Diorite", 30),
+        PACKING("📦 Mengemas di Meja", 30),
         DELIVERY("🍱 Menyerahkan di Jendela", 5),
         TIRED("😴 Istirahat (Lapar / Habis Energi)", 0);
 
@@ -55,6 +55,7 @@ public class PetKitchen {
     private transient TextDisplay hologramDisplay;
     private transient TextDisplay cashierDisplay;
     private transient String lastRenderedText;
+    private transient boolean isGliding;
 
     public PetKitchen(UUID kitchenId, UUID ownerUuid, String cachedOwnerName, Location location,
                       StructureRotation rotation, String facing, boolean isPetAssigned,
@@ -211,6 +212,14 @@ public class PetKitchen {
 
     public void setLastRenderedText(String lastRenderedText) {
         this.lastRenderedText = lastRenderedText;
+    }
+
+    public boolean isGliding() {
+        return isGliding;
+    }
+
+    public void setGliding(boolean gliding) {
+        isGliding = gliding;
     }
 
     public void removeEntities() {

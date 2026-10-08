@@ -52,6 +52,9 @@ public class PlayerListener implements Listener {
                 for (com.leftycraft.leftypet.model.PetAltar a : plugin.getAltarManager().getAltars().values()) {
                     plugin.getAltarManager().updateAltarHeadVisibilityFor(a, player);
                 }
+                for (com.leftycraft.leftypet.model.PetKitchen k : plugin.getKitchenManager().getKitchensMap().values()) {
+                    plugin.getKitchenManager().updateChefVisibilityFor(k, player);
+                }
             }
         }, 5L);
     }

@@ -78,6 +78,15 @@ public class KitchenListener implements Listener {
             return;
         }
 
+        org.bukkit.block.structure.StructureRotation rotation = plugin.getKitchenManager().getStructureManager().getRotationFromYaw(player.getLocation().getYaw());
+        if (!plugin.getKitchenManager().getStructureManager().canPlaceKitchen(loc, rotation)) {
+            event.setCancelled(true);
+            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                    "<gradient:#ff5f6d:#ffc371>ʟᴀʜᴀɴ ᴛᴇʀʜᴀʟᴀɴɢ! ᴘᴀsᴛɪᴋᴀɴ ᴀʀᴇᴀ 14x7x13 ʙᴇʀsɪʜ ᴅᴀʀɪ ʀɪɴᴛᴀɴɢᴀɴ/ʙᴀɴɢᴜɴᴀɴ ʟᴀɪɴ.</gradient>"));
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
+            return;
+        }
+
         // Cancel standard single-block placement so the building is generated instead
         event.setCancelled(true);
         if (player.getGameMode() != GameMode.CREATIVE) {

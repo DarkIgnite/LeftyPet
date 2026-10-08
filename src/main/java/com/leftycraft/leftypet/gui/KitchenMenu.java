@@ -20,7 +20,7 @@ import java.util.List;
 
 public class KitchenMenu {
 
-    public static final String TITLE = "§8» §6§lᴅᴀᴘᴜʀ ᴍʙɢ §8| §fᴍᴀɴᴀɢᴇᴍᴇɴᴛ";
+    public static final String TITLE = "<gradient:#4facfe:#00f2fe><b>ᴅᴀᴘᴜʀ ᴍʙɢ</b></gradient> <dark_gray>|</dark_gray> <white>ᴍᴀɴᴀɢᴇᴍᴇɴᴛ</white>";
 
     public static void open(Player player, PetKitchen kitchen, LeftyPetPlugin plugin) {
         KitchenMenuHolder holder = new KitchenMenuHolder(kitchen);
@@ -29,16 +29,16 @@ public class KitchenMenu {
 
         // Fillers
         ItemStack darkFiller = createFiller(Material.BLACK_STAINED_GLASS_PANE);
-        ItemStack redCorner = createFiller(Material.RED_STAINED_GLASS_PANE);
-        ItemStack whiteCorner = createFiller(Material.WHITE_STAINED_GLASS_PANE);
+        ItemStack lightBlueCorner = createFiller(Material.LIGHT_BLUE_STAINED_GLASS_PANE);
+        ItemStack cyanCorner = createFiller(Material.CYAN_STAINED_GLASS_PANE);
 
         for (int i = 0; i < 27; i++) {
             inv.setItem(i, darkFiller);
         }
-        inv.setItem(0, redCorner);
-        inv.setItem(8, whiteCorner);
-        inv.setItem(18, whiteCorner);
-        inv.setItem(26, redCorner);
+        inv.setItem(0, lightBlueCorner);
+        inv.setItem(8, cyanCorner);
+        inv.setItem(18, cyanCorner);
+        inv.setItem(26, lightBlueCorner);
 
         PetData data = plugin.getPetManager().getPetData(kitchen.getOwnerUuid());
         boolean assigned = kitchen.isPetAssigned();
@@ -46,11 +46,11 @@ public class KitchenMenu {
         // Slot 11: Assign / Recall Pet
         if (!assigned) {
             inv.setItem(11, createItem(Material.EMERALD_BLOCK, true,
-                    "<gradient:#43e97b:#38f9d7><b>▶ ᴛᴜɢᴀsᴋᴀɴ ᴘᴇᴛ ᴊᴀᴅɪ ᴋᴏᴋɪ</b></gradient>",
+                    "<gradient:#4facfe:#00f2fe><b>▶ ᴛᴜɢᴀsᴋᴀɴ ᴘᴇᴛ ᴊᴀᴅɪ ᴋᴏᴋɪ</b></gradient>",
                     "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
                     "&7ᴛᴜɢᴀsᴋᴀɴ ᴘᴇᴛ ᴋᴀᴍᴜ ᴜɴᴛᴜᴋ ᴍᴇᴍᴀsᴀᴋ ᴅɪ ᴅᴀᴘᴜʀ ɪɴɪ.",
                     "&7ᴘᴇᴛ ᴀᴋᴀɴ ʙᴇʀᴋᴇʟɪʟɪɴɢ ᴍᴇᴍᴀsᴀᴋ ᴅɪ ғᴜʀɴᴀᴄᴇ,",
-                    "&7ᴍᴇɴɢᴇᴍᴀs ᴅɪ ᴍᴇᴊᴀ ᴅɪᴏʀɪᴛᴇ, & ᴍᴇʟᴀʏᴀɴɪ ᴅɪ ᴊᴇɴᴅᴇʟᴀ!",
+                    "&7ᴍᴇɴɢᴇᴍᴀs ᴅɪ ᴍᴇᴊᴀ, & ᴍᴇʟᴀʏᴀɴɪ ᴅɪ ᴊᴇɴᴅᴇʟᴀ!",
                     "&7<i>(ᴘᴇᴛ ʏᴀɴɢ sᴇᴅᴀɴɢ ᴍᴇɴɢɪᴋᴜᴛɪ ᴀᴋᴀɴ ᴏᴛᴏᴍᴀᴛɪs ᴅɪsɪᴍᴘᴀɴ)</i>",
                     "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
                     "&a▶ ᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴍᴇɴᴜɢᴀsᴋᴀɴ ᴘᴇᴛ!"));
@@ -68,7 +68,7 @@ public class KitchenMenu {
         // Slot 13: Kitchen Status & Progress
         String stationText = assigned ? kitchen.getCurrentStation().getDisplayName() : "&cᴛɪᴅᴀᴋ ᴀᴋᴛɪғ";
         inv.setItem(13, createItem(Material.SMOKER, true,
-                "<gradient:#ff512f:#dd2476><b>✦ sᴛᴀᴛᴜs ᴅᴀᴘᴜʀ & ᴋᴏᴋɪ ✦</b></gradient>",
+                "<gradient:#4facfe:#00f2fe><b>✦ sᴛᴀᴛᴜs ᴅᴀᴘᴜʀ & ᴋᴏᴋɪ ✦</b></gradient>",
                 "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
                 "&7• ᴘᴇᴍɪʟɪᴋ: &f" + kitchen.getCachedOwnerName(),
                 "&7• ʜᴀᴅᴀᴘ ɢᴇᴅᴜɴɢ: &e" + kitchen.getFacing(),
@@ -83,7 +83,7 @@ public class KitchenMenu {
         double earnings = kitchen.getStoredEarnings();
         if (earnings > 0) {
             inv.setItem(15, createItem(Material.GOLD_BLOCK, true,
-                    "<gradient:#ffe259:#ffa751><b>💰 ᴋʟᴀɪᴍ ᴜᴀɴɢ ᴋᴀsɪʀ (+$" + plugin.getEconomyManager().format(earnings) + ")</b></gradient>",
+                    "<gradient:#4facfe:#00f2fe><b>💰 ᴋʟᴀɪᴍ ᴜᴀɴɢ ᴋᴀsɪʀ (+$" + plugin.getEconomyManager().format(earnings) + ")</b></gradient>",
                     "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
                     "&7ᴛᴀʀɪᴋ ᴜᴀɴɢ ʜᴀsɪʟ ᴘᴇɴᴊᴜᴀʟᴀɴ ᴘᴇsᴀɴᴀɴ ᴍʙɢ",
                     "&7ʟᴀɴɢsᴜɴɢ ᴋᴇ sᴀʟᴅᴏ ᴀᴋᴜɴ ᴋᴀᴍᴜ!",

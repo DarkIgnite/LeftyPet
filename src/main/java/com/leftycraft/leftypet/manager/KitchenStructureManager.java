@@ -26,19 +26,19 @@ public class KitchenStructureManager {
 
     // Base Station Coordinates (in WEST orientation)
     public static final double COOKING_SX = 4.5;
-    public static final double COOKING_SY = 1.2;
+    public static final double COOKING_SY = 2.25;
     public static final double COOKING_SZ = 9.0;
 
     public static final double PACKING_SX = 3.0;
-    public static final double PACKING_SY = 1.2;
+    public static final double PACKING_SY = 2.25;
     public static final double PACKING_SZ = 4.0;
 
     public static final double DELIVERY_SX = 7.5;
-    public static final double DELIVERY_SY = 2.2;
+    public static final double DELIVERY_SY = 2.40;
     public static final double DELIVERY_SZ = 2.0;
 
     public static final double CASHIER_SX = 6.0;
-    public static final double CASHIER_SY = 2.0;
+    public static final double CASHIER_SY = 2.30;
     public static final double CASHIER_SZ = 6.0;
 
     public KitchenStructureManager(LeftyPetPlugin plugin) {
@@ -118,6 +118,34 @@ public class KitchenStructureManager {
         SchematicLoader.Schematic schem = getSchematic();
         if (schem == null || origin == null) return origin;
         return schem.transformLocation(origin, CASHIER_SX, CASHIER_SY, CASHIER_SZ, rotation);
+    }
+
+    public boolean canPlaceKitchen(Location origin, StructureRotation rotation) {
+        SchematicLoader.Schematic schem = getSchematic();
+        if (schem == null || origin == null || origin.getWorld() == null) return false;
+
+        for (SchematicLoader.SchematicBlock sb : schem.getBlocks()) {
+            Location worldLoc = schem.transformLocation(origin, sb.x(), sb.y(), sb.z(), rotation);
+
+            // Check if collides with another kitchen or altar
+            if (plugin.getKitchenManager().isKitchenAreaOrBuilding(worldLoc) ||
+                plugin.getAltarManager().isAltarAreaOrBuilding(worldLoc)) {
+                return false;
+            }
+
+            // For above ground space (y >= 1), ensure it's empty
+            if (sb.y() >= 1) {
+                Block b = worldLoc.getBlock();
+                Material mat = b.getType();
+                if (!mat.isAir() && mat != Material.CAVE_AIR && mat != Material.VOID_AIR
+                        && mat != Material.SHORT_GRASS && mat != Material.TALL_GRASS
+                        && mat != Material.SNOW && !mat.name().contains("FLOWER")
+                        && mat != Material.DEAD_BUSH && mat != Material.FERN) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     /**
