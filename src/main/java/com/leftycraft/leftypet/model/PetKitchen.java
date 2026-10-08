@@ -1,60 +1,81 @@
 package com.leftycraft.leftypet.model;
 
 import org.bukkit.Location;
+import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.TextDisplay;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 public class PetKitchen {
 
     public enum KitchenStation {
-        PREPARING("🥩 Menyiapkan Bahan"),
-        COOKING("🍳 Memasak di Kompor"),
-        PACKING("🍱 Mengemas Box MBG");
+        COOKING("🔥 Memasak di Furnace", 30),
+        PACKING("📦 Mengemas di Meja Diorite", 30),
+        DELIVERY("🍱 Menyerahkan di Jendela", 5),
+        TIRED("😴 Istirahat (Lapar / Habis Energi)", 0);
 
         private final String displayName;
+        private final int durationSeconds;
 
-        KitchenStation(String displayName) {
+        KitchenStation(String displayName, int durationSeconds) {
             this.displayName = displayName;
+            this.durationSeconds = durationSeconds;
         }
 
         public String getDisplayName() {
             return displayName;
+        }
+
+        public int getDurationSeconds() {
+            return durationSeconds;
         }
     }
 
     private final UUID kitchenId;
     private final UUID ownerUuid;
     private String cachedOwnerName;
-    private final Location location;
-    private int kitchenLevel;
-    private int cookedPortions;
+    private final Location location; // Entrance anchor block
+    private StructureRotation rotation;
+    private String facing;
+    private final Set<Location> allBlockLocations = new HashSet<>();
+
+    private boolean isPetAssigned;
+    private double storedEarnings;
+    private int completedOrders;
     private int currentProgressSeconds;
     private KitchenStation currentStation;
-    private boolean isCooking;
 
     // Transient Display Entities
     private transient ItemDisplay chefDisplay;
     private transient ArmorStand bedrockStand;
     private transient TextDisplay hologramDisplay;
+    private transient TextDisplay cashierDisplay;
     private transient String lastRenderedText;
 
-    public PetKitchen(UUID kitchenId, UUID ownerUuid, String cachedOwnerName, Location location, int kitchenLevel, int cookedPortions, int currentProgressSeconds, KitchenStation currentStation, boolean isCooking) {
+    public PetKitchen(UUID kitchenId, UUID ownerUuid, String cachedOwnerName, Location location,
+                      StructureRotation rotation, String facing, boolean isPetAssigned,
+                      double storedEarnings, int completedOrders, int currentProgressSeconds,
+                      KitchenStation currentStation) {
         this.kitchenId = kitchenId;
         this.ownerUuid = ownerUuid;
         this.cachedOwnerName = cachedOwnerName;
         this.location = location;
-        this.kitchenLevel = Math.max(1, Math.min(3, kitchenLevel));
-        this.cookedPortions = Math.max(0, cookedPortions);
+        this.rotation = (rotation != null) ? rotation : StructureRotation.NONE;
+        this.facing = (facing != null) ? facing : "WEST";
+        this.isPetAssigned = isPetAssigned;
+        this.storedEarnings = Math.max(0.0, storedEarnings);
+        this.completedOrders = Math.max(0, completedOrders);
         this.currentProgressSeconds = Math.max(0, currentProgressSeconds);
-        this.currentStation = (currentStation != null) ? currentStation : KitchenStation.PREPARING;
-        this.isCooking = isCooking;
+        this.currentStation = (currentStation != null) ? currentStation : KitchenStation.COOKING;
     }
 
-    public PetKitchen(UUID kitchenId, UUID ownerUuid, String cachedOwnerName, Location location, int kitchenLevel) {
-        this(kitchenId, ownerUuid, cachedOwnerName, location, kitchenLevel, 0, 0, KitchenStation.PREPARING, true);
+    public PetKitchen(UUID kitchenId, UUID ownerUuid, String cachedOwnerName, Location location,
+                      StructureRotation rotation, String facing) {
+        this(kitchenId, ownerUuid, cachedOwnerName, location, rotation, facing, false, 0.0, 0, 0, KitchenStation.COOKING);
     }
 
     public UUID getKitchenId() {
@@ -77,40 +98,63 @@ public class PetKitchen {
         return location;
     }
 
-    public int getKitchenLevel() {
-        return kitchenLevel;
+    public StructureRotation getRotation() {
+        return rotation;
     }
 
-    public void setKitchenLevel(int kitchenLevel) {
-        this.kitchenLevel = Math.max(1, Math.min(3, kitchenLevel));
+    public void setRotation(StructureRotation rotation) {
+        this.rotation = rotation;
     }
 
-    public int getCookedPortions() {
-        return cookedPortions;
+    public String getFacing() {
+        return facing;
     }
 
-    public void setCookedPortions(int cookedPortions) {
-        this.cookedPortions = Math.max(0, cookedPortions);
+    public void setFacing(String facing) {
+        this.facing = facing;
     }
 
-    public void addCookedPortion() {
-        this.cookedPortions = Math.min(getMaxCapacity(), this.cookedPortions + 1);
+    public Set<Location> getAllBlockLocations() {
+        return allBlockLocations;
     }
 
-    public int getMaxCapacity() {
-        return switch (kitchenLevel) {
-            case 3 -> 30;
-            case 2 -> 20;
-            default -> 10;
-        };
+    public void setAllBlockLocations(Set<Location> locs) {
+        allBlockLocations.clear();
+        if (locs != null) {
+            allBlockLocations.addAll(locs);
+        }
     }
 
-    public int getRewardPerPortion() {
-        return switch (kitchenLevel) {
-            case 3 -> 1000;
-            case 2 -> 500;
-            default -> 250;
-        };
+    public boolean isPetAssigned() {
+        return isPetAssigned;
+    }
+
+    public void setPetAssigned(boolean petAssigned) {
+        isPetAssigned = petAssigned;
+    }
+
+    public double getStoredEarnings() {
+        return storedEarnings;
+    }
+
+    public void setStoredEarnings(double storedEarnings) {
+        this.storedEarnings = Math.max(0.0, storedEarnings);
+    }
+
+    public void addEarnings(double amount) {
+        this.storedEarnings += Math.max(0.0, amount);
+    }
+
+    public int getCompletedOrders() {
+        return completedOrders;
+    }
+
+    public void setCompletedOrders(int completedOrders) {
+        this.completedOrders = Math.max(0, completedOrders);
+    }
+
+    public void incrementCompletedOrders() {
+        this.completedOrders++;
     }
 
     public int getCurrentProgressSeconds() {
@@ -118,7 +162,7 @@ public class PetKitchen {
     }
 
     public void setCurrentProgressSeconds(int currentProgressSeconds) {
-        this.currentProgressSeconds = currentProgressSeconds;
+        this.currentProgressSeconds = Math.max(0, currentProgressSeconds);
     }
 
     public KitchenStation getCurrentStation() {
@@ -127,18 +171,6 @@ public class PetKitchen {
 
     public void setCurrentStation(KitchenStation currentStation) {
         this.currentStation = currentStation;
-    }
-
-    public boolean isCooking() {
-        return isCooking;
-    }
-
-    public void setCooking(boolean cooking) {
-        isCooking = cooking;
-    }
-
-    public boolean isStorageFull() {
-        return cookedPortions >= getMaxCapacity();
     }
 
     public ItemDisplay getChefDisplay() {
@@ -165,6 +197,14 @@ public class PetKitchen {
         this.hologramDisplay = hologramDisplay;
     }
 
+    public TextDisplay getCashierDisplay() {
+        return cashierDisplay;
+    }
+
+    public void setCashierDisplay(TextDisplay cashierDisplay) {
+        this.cashierDisplay = cashierDisplay;
+    }
+
     public String getLastRenderedText() {
         return lastRenderedText;
     }
@@ -183,9 +223,13 @@ public class PetKitchen {
         if (hologramDisplay != null && hologramDisplay.isValid()) {
             hologramDisplay.remove();
         }
+        if (cashierDisplay != null && cashierDisplay.isValid()) {
+            cashierDisplay.remove();
+        }
         chefDisplay = null;
         bedrockStand = null;
         hologramDisplay = null;
+        cashierDisplay = null;
         lastRenderedText = null;
     }
 }

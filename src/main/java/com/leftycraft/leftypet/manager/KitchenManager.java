@@ -9,6 +9,7 @@ import com.leftycraft.leftypet.util.ColorUtil;
 import com.leftycraft.leftypet.util.HeadUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.*;
+import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -29,14 +30,14 @@ public class KitchenManager {
     private final LeftyPetPlugin plugin;
     private final KitchenStructureManager structureManager;
     private final Map<Location, PetKitchen> kitchens = new HashMap<>();
-    private final Set<Location> buildingKitchens = new HashSet<>();
-    private final NamespacedKey kitchenLevelKey;
+    private final Map<Location, PetKitchen> blockToKitchen = new HashMap<>();
+    private final NamespacedKey kitchenItemKey;
     private final File kitchenFile;
 
     public KitchenManager(LeftyPetPlugin plugin) {
         this.plugin = plugin;
         this.structureManager = new KitchenStructureManager(plugin);
-        this.kitchenLevelKey = new NamespacedKey(plugin, "kitchen_level");
+        this.kitchenItemKey = new NamespacedKey(plugin, "kitchen_building_item");
         this.kitchenFile = new File(plugin.getDataFolder(), "kitchens.yml");
 
         loadKitchens();
@@ -52,24 +53,19 @@ public class KitchenManager {
     }
 
     public PetKitchen getKitchenAt(Location loc) {
+        if (loc == null) return null;
         return kitchens.get(loc.getBlock().getLocation());
     }
 
     public PetKitchen getKitchenOfBlock(Location loc) {
         if (loc == null || loc.getWorld() == null) return null;
-        PetKitchen direct = kitchens.get(loc.getBlock().getLocation());
+        Location bLoc = loc.getBlock().getLocation();
+        PetKitchen direct = kitchens.get(bLoc);
         if (direct != null) return direct;
-        for (Map.Entry<Location, PetKitchen> entry : kitchens.entrySet()) {
-            if (structureManager.isPartOfStructure(entry.getKey(), loc)) {
-                return entry.getValue();
-            }
-        }
-        return null;
+        return blockToKitchen.get(bLoc);
     }
 
     public boolean isKitchenAreaOrBuilding(Location loc) {
-        if (loc == null || loc.getWorld() == null) return false;
-        if (isBuilding(loc)) return true;
         return getKitchenOfBlock(loc) != null;
     }
 
@@ -82,37 +78,28 @@ public class KitchenManager {
         return null;
     }
 
-    public boolean isBuilding(Location loc) {
-        return buildingKitchens.contains(loc.getBlock().getLocation());
-    }
-
-    public void setBuilding(Location loc, boolean building) {
-        if (building) {
-            buildingKitchens.add(loc.getBlock().getLocation());
-        } else {
-            buildingKitchens.remove(loc.getBlock().getLocation());
-        }
-    }
-
-    public ItemStack createKitchenItem(int level) {
-        int lvl = Math.max(1, Math.min(3, level));
+    public ItemStack createKitchenItem() {
         ItemStack item = new ItemStack(Material.SMOKER);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.displayName(ColorUtil.component("<gradient:#ff512f:#dd2476><b>🍱 ᴅᴀᴘᴜʀ ᴍʙɢ [ʟᴠ." + lvl + "]</b></gradient>"));
+            meta.displayName(ColorUtil.component("<gradient:#ff512f:#dd2476><b>🍱 ᴅᴀᴘᴜʀ ᴍʙɢ (ʙᴜɪʟᴅɪɴɢ)</b></gradient>"));
             List<Component> lore = new ArrayList<>();
             lore.add(ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"));
-            lore.add(ColorUtil.component("&7ᴘᴀʙʀɪᴋ & ᴅᴀᴘᴜʀ ᴋᴀᴛᴇʀɪɴɢ ᴏᴛᴏᴍᴀᴛɪs!"));
-            lore.add(ColorUtil.component("&7ᴘᴇᴛ ᴀᴋᴀɴ ʙᴇᴋᴇʀᴊᴀ ᴍᴇᴍᴀsᴀᴋ & ᴍᴇɴɢᴇᴍᴀs"));
-            lore.add(ColorUtil.component("&7ɴᴀsɪ ᴋᴏᴛᴀᴋ ᴜɴᴛᴜᴋ ᴍᴇɴɢʜᴀsɪʟᴋᴀɴ ᴜᴀɴɢ."));
+            lore.add(ColorUtil.component("&7ɢᴇᴅᴜɴɢ ᴅᴀᴘᴜʀ & ᴋᴀᴛᴇʀɪɴɢ ᴏᴛᴏᴍᴀᴛɪs (14x7x13)!"));
+            lore.add(ColorUtil.component("&7ᴘᴇᴛ ᴋᴀᴍᴜ ᴀᴋᴀɴ ʙᴇᴋᴇʀᴊᴀ sᴇʙᴀɢᴀɪ ᴋᴏᴋɪ:"));
+            lore.add(ColorUtil.component("&e• 30s ᴍᴀsᴀᴋ ᴅɪ ғᴜʀɴᴀᴄᴇ"));
+            lore.add(ColorUtil.component("&b• 30s ᴘᴀᴄᴋɪɴɢ ᴅɪ ᴍᴇᴊᴀ ᴅɪᴏʀɪᴛᴇ"));
+            lore.add(ColorUtil.component("&a• 5s sᴇʀᴀʜᴋᴀɴ ᴘᴇsᴀɴᴀɴ ᴅɪ ᴊᴇɴᴅᴇʟᴀ"));
             lore.add(ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"));
-            lore.add(ColorUtil.component("&7• ʟᴇᴠᴇʟ ᴅᴀᴘᴜʀ: &e" + lvl));
-            lore.add(ColorUtil.component("&7• ʜᴀsɪʟ: &a$" + (lvl == 3 ? "1,000" : (lvl == 2 ? "500" : "250")) + " &7/ ʙᴏx"));
-            lore.add(ColorUtil.component("&7• ᴋᴀᴘᴀsɪᴛᴀs: &b" + (lvl == 3 ? "30" : (lvl == 2 ? "20" : "10")) + " ʙᴏx"));
+            lore.add(ColorUtil.component("&7• ʜᴀsɪʟ: &a+$100 &7ᴘᴇʀ ᴘᴇsᴀɴᴀɴ (ᴅɪsɪᴍᴘᴀɴ ᴅɪ ᴋᴀsɪʀ)"));
+            lore.add(ColorUtil.component("&7• ᴋᴏɴsᴜᴍsɪ: &c-10% ᴇɴᴇʀɢɪ ᴘᴇᴛ &7ᴘᴇʀ ᴘᴇsᴀɴᴀɴ"));
             lore.add(ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"));
-            lore.add(ColorUtil.component("&a▶ ʟᴇᴛᴀᴋᴋᴀɴ ᴅɪ ᴀʀᴇᴀ 3x3x4 ᴛᴇʀʙᴜᴋᴀ!"));
+            lore.add(ColorUtil.component("&a▶ ʟᴇᴛᴀᴋᴋᴀɴ ᴅɪ ᴛᴀɴᴀʜ ᴜɴᴛᴜᴋ ᴍᴇᴍʙᴀɴɢᴜɴ ɢᴇᴅᴜɴɢ!"));
             meta.lore(lore);
-            meta.getPersistentDataContainer().set(kitchenLevelKey, PersistentDataType.INTEGER, lvl);
+            meta.getPersistentDataContainer().set(kitchenItemKey, PersistentDataType.BOOLEAN, true);
+            try {
+                meta.setEnchantmentGlintOverride(true);
+            } catch (Throwable ignored) {}
             item.setItemMeta(meta);
         }
         return item;
@@ -120,13 +107,7 @@ public class KitchenManager {
 
     public boolean isKitchenItem(ItemStack item) {
         if (item == null || !item.hasItemMeta()) return false;
-        return item.getItemMeta().getPersistentDataContainer().has(kitchenLevelKey, PersistentDataType.INTEGER);
-    }
-
-    public int getKitchenItemLevel(ItemStack item) {
-        if (item == null || !item.hasItemMeta()) return 1;
-        Integer lvl = item.getItemMeta().getPersistentDataContainer().get(kitchenLevelKey, PersistentDataType.INTEGER);
-        return (lvl != null) ? Math.max(1, Math.min(3, lvl)) : 1;
+        return item.getItemMeta().getPersistentDataContainer().has(kitchenItemKey, PersistentDataType.BOOLEAN);
     }
 
     public boolean claimKitchenItem(Player player) {
@@ -147,425 +128,529 @@ public class KitchenManager {
             return false;
         }
 
-        player.getInventory().addItem(createKitchenItem(1));
+        player.getInventory().addItem(createKitchenItem());
         player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                "<gradient:#43e97b:#38f9d7>ᴋᴀᴍᴜ ᴍᴇɴᴇʀɪᴍᴀ 1x ʙʟᴏᴋ ᴅᴀᴘᴜʀ ᴍʙɢ [ʟᴠ.1]! ʟᴇᴛᴀᴋᴋᴀɴ ᴅɪ ᴀʀᴇᴀ 3x3x4 ᴛᴇʀʙᴜᴋᴀ.</gradient>"));
+                "<gradient:#43e97b:#38f9d7>ᴋᴀᴍᴜ ᴍᴇɴᴇʀɪᴍᴀ 1x ʙʟᴏᴋ ɢᴇᴅᴜɴɢ ᴅᴀᴘᴜʀ ᴍʙɢ! ʟᴇᴛᴀᴋᴋᴀɴ ᴅɪ ᴛᴀɴᴀʜ ᴅᴇɴɢᴀɴ ʟᴀʜᴀɴ ʟᴜᴀs.</gradient>"));
         player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 0.7f, 1.4f);
         return true;
     }
 
-    public void registerKitchen(UUID kitchenId, UUID ownerUuid, String ownerName, Location loc, int level) {
-        Location center = loc.getBlock().getLocation();
-        PetKitchen kitchen = new PetKitchen(kitchenId, ownerUuid, ownerName, center, level);
-        kitchens.put(center, kitchen);
+    public PetKitchen placeKitchenBuilding(Player player, Location placedLoc) {
+        StructureRotation rotation = structureManager.getRotationFromYaw(player.getLocation().getYaw());
+        String facing = structureManager.getFacingFromRotation(rotation);
+
+        UUID kitchenId = UUID.randomUUID();
+        Location origin = placedLoc.getBlock().getLocation();
+
+        // Build structure
+        Set<Location> placedBlocks = structureManager.buildKitchen(origin, rotation);
+
+        PetKitchen kitchen = new PetKitchen(kitchenId, player.getUniqueId(), player.getName(), origin, rotation, facing);
+        kitchen.setAllBlockLocations(placedBlocks);
+
+        kitchens.put(origin, kitchen);
+        for (Location bLoc : placedBlocks) {
+            blockToKitchen.put(bLoc, kitchen);
+        }
+
         saveKitchens();
+        updateCashierHologram(kitchen);
+
+        player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                "<gradient:#43e97b:#38f9d7>🎉 ɢᴇᴅᴜɴɢ ᴅᴀᴘᴜʀ ᴍʙɢ ʙᴇʀʜᴀsɪʟ ᴅɪʙᴀɴɢᴜɴ (ʜᴀᴅᴀᴘ " + facing + ")!</gradient>"));
+        player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                "<yellow>ᴋʟɪᴋ ᴋᴀɴᴀɴ ʙʟᴏᴋ ᴅᴀᴘᴜʀ ᴜɴᴛᴜᴋ ᴍᴇɴᴜɢᴀsᴋᴀɴ ᴘᴇᴛ ᴋᴀᴍᴜ ᴍᴇɴᴊᴀᴅɪ ᴋᴏᴋɪ!</yellow>"));
+
+        return kitchen;
+    }
+
+    public void assignPet(Player player, PetKitchen kitchen) {
+        if (!kitchen.getOwnerUuid().equals(player.getUniqueId()) && !player.hasPermission("leftypet.admin")) {
+            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<red>ɪɴɪ ʙᴜᴋᴀɴ ᴅᴀᴘᴜʀ ᴍʙɢ ᴍɪʟɪᴋᴍᴜ!</red>"));
+            return;
+        }
+
+        // Dismiss active following pet so it doesn't duplicate
+        if (plugin.getPetManager().isPetSummoned(player.getUniqueId())) {
+            plugin.getPetManager().despawnPet(player.getUniqueId());
+            plugin.getPetManager().setSessionDismissed(player.getUniqueId(), true);
+        }
+
+        kitchen.setPetAssigned(true);
+        kitchen.setCurrentStation(PetKitchen.KitchenStation.COOKING);
+        kitchen.setCurrentProgressSeconds(0);
+        saveKitchens();
+
+        spawnOrUpdateChefDisplay(kitchen);
+        updateCashierHologram(kitchen);
+
+        player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                "<gradient:#43e97b:#38f9d7>👨‍🍳 ᴘᴇᴛ ᴋᴀᴍᴜ ᴍᴜʟᴀɪ ʙᴇᴋᴇʀᴊᴀ sᴇʙᴀɢᴀɪ ᴋᴏᴋɪ ᴅɪ ᴅᴀᴘᴜʀ ᴍʙɢ!</gradient>"));
+        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.7f, 1.4f);
+    }
+
+    public void recallPet(Player player, PetKitchen kitchen) {
+        if (!kitchen.getOwnerUuid().equals(player.getUniqueId()) && !player.hasPermission("leftypet.admin")) {
+            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<red>ɪɴɪ ʙᴜᴋᴀɴ ᴅᴀᴘᴜʀ ᴍʙɢ ᴍɪʟɪᴋᴍᴜ!</red>"));
+            return;
+        }
+
+        kitchen.setPetAssigned(false);
+        kitchen.removeEntities();
+        saveKitchens();
+
+        updateCashierHologram(kitchen);
+
+        player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                "<gradient:#ff5f6d:#ffc371>🛑 ᴘᴇᴛ ᴋᴀᴍᴜ ᴅɪᴛᴀʀɪᴋ ᴋᴇᴍʙᴀʟɪ ᴅᴀʀɪ ᴅᴀᴘᴜʀ ᴍʙɢ!</gradient>"));
+        player.playSound(player.getLocation(), Sound.BLOCK_DISPENSER_FAIL, 0.7f, 1.0f);
+    }
+
+    public void feedPetInKitchen(Player player, PetKitchen kitchen) {
+        ItemStack hand = player.getInventory().getItemInMainHand();
+        if (hand.getType().isAir() || !isFoodItem(hand.getType())) {
+            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                    "<yellow>ᴘᴇɢᴀɴɢ ᴍᴀᴋᴀɴᴀɴ (ᴅᴀɢɪɴɢ, ʀᴏᴛɪ, ᴡᴏʀᴛᴇʟ, ᴅʟʟ) ᴜɴᴛᴜᴋ ᴍᴇᴍʙᴇʀɪ ᴍᴀᴋᴀɴ ᴘᴇᴛ ᴋᴏᴋɪ!</yellow>"));
+            return;
+        }
+
+        PetData data = plugin.getPetManager().getPetData(kitchen.getOwnerUuid());
+        double currentEnergy = data.getEnergy();
+        if (currentEnergy >= 100.0) {
+            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                    "<green>ᴇɴᴇʀɢɪ ᴘᴇᴛ sᴜᴅᴀʜ ᴘᴇɴᴜʜ (100%)!</green>"));
+            return;
+        }
+
+        hand.subtract(1);
+        double restored = Math.min(100.0, currentEnergy + 30.0);
+        data.setEnergy(restored);
+        plugin.getPetManager().savePetData(kitchen.getOwnerUuid());
+
+        if (kitchen.getCurrentStation() == PetKitchen.KitchenStation.TIRED) {
+            kitchen.setCurrentStation(PetKitchen.KitchenStation.COOKING);
+            kitchen.setCurrentProgressSeconds(0);
+        }
+        saveKitchens();
+
+        Location chefLoc = (kitchen.getChefDisplay() != null) ? kitchen.getChefDisplay().getLocation() : player.getLocation();
+        chefLoc.getWorld().spawnParticle(Particle.HEART, chefLoc.clone().add(0, 0.5, 0), 10, 0.3, 0.3, 0.3, 0.05);
+        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_BURP, 0.8f, 1.2f);
+        player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_CELEBRATE, 0.8f, 1.2f);
+
+        player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                "<gradient:#43e97b:#38f9d7>🍖 ᴘᴇᴛ ᴋᴏᴋɪ ᴅɪʙᴇʀɪ ᴍᴀᴋᴀɴ! ᴇɴᴇʀɢɪ: </gradient><yellow>" + (int) restored + "%</yellow>"));
+
+        spawnOrUpdateChefDisplay(kitchen);
+        updateCashierHologram(kitchen);
+    }
+
+    private boolean isFoodItem(Material material) {
+        String name = material.name();
+        return material.isEdible() || name.contains("BEEF") || name.contains("PORK") || name.contains("MUTTON")
+                || name.contains("CHICKEN") || name.contains("BREAD") || name.contains("CARROT")
+                || name.contains("POTATO") || name.contains("APPLE") || name.contains("FISH") || name.contains("SALMON");
+    }
+
+    public void claimEarnings(Player player, PetKitchen kitchen) {
+        double amount = kitchen.getStoredEarnings();
+        if (amount <= 0) {
+            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                    "<gradient:#ff5f6d:#ffc371>ʙᴇʟᴜᴍ ᴀᴅᴀ ᴜᴀɴɢ ʜᴀsɪʟ ᴘᴇsᴀɴᴀɴ ʏᴀɴɢ sɪᴀᴘ ᴅɪᴀᴍʙɪʟ ᴅɪ ᴋᴀsɪʀ!</gradient>"));
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
+            return;
+        }
+
+        plugin.getEconomyManager().deposit(player, amount);
+        kitchen.setStoredEarnings(0.0);
+        saveKitchens();
+
+        player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                "<gradient:#43e97b:#38f9d7>💰 ʙᴇʀʜᴀsɪʟ ᴍᴇɴᴀʀɪᴋ ᴜᴀɴɢ ᴋᴀsɪʀ: </gradient><green><b>+$" + plugin.getEconomyManager().format(amount) + "</b></green>"));
+        player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1.2f);
+
+        updateCashierHologram(kitchen);
+    }
+
+    public void dismantleKitchen(Player player, PetKitchen kitchen) {
+        if (!kitchen.getOwnerUuid().equals(player.getUniqueId()) && !player.hasPermission("leftypet.admin")) {
+            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<red>ɪɴɪ ʙᴜᴋᴀɴ ᴅᴀᴘᴜʀ ᴍʙɢ ᴍɪʟɪᴋᴍᴜ!</red>"));
+            return;
+        }
+
+        if (player.getInventory().firstEmpty() == -1) {
+            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<red>ɪɴᴠᴇɴᴛᴏʀʏ ᴋᴀᴍᴜ ᴘᴇɴᴜʜ! ᴋᴏsᴏɴɢᴋᴀɴ sʟᴏᴛ ᴛᴇʀʟᴇʙɪʜ ᴅᴀʜᴜʟᴜ.</red>"));
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
+            return;
+        }
+
+        // Auto claim earnings if any
+        if (kitchen.getStoredEarnings() > 0) {
+            claimEarnings(player, kitchen);
+        }
+
+        Location origin = kitchen.getLocation();
+        kitchen.removeEntities();
+
+        // Clear all blocks
+        structureManager.removeKitchen(kitchen.getAllBlockLocations());
+
+        // Unregister
+        kitchens.remove(origin);
+        for (Location bLoc : kitchen.getAllBlockLocations()) {
+            blockToKitchen.remove(bLoc);
+        }
+        saveKitchens();
+
+        player.getInventory().addItem(createKitchenItem());
+        player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                "<gradient:#43e97b:#38f9d7>ɢᴇᴅᴜɴɢ ᴅᴀᴘᴜʀ ᴍʙɢ ʙᴇʀʜᴀsɪʟ ᴅɪʙᴏɴɢᴋᴀʀ ᴅᴀɴ ᴅɪᴋᴇᴍʙᴀʟɪᴋᴀɴ ᴋᴇ ɪɴᴠᴇɴᴛᴏʀʏ!</gradient>"));
+        player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_DESTROY, 0.7f, 1.2f);
+    }
+
+    private void startKitchenTicker() {
+        Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            for (PetKitchen kitchen : kitchens.values()) {
+                Player owner = Bukkit.getPlayer(kitchen.getOwnerUuid());
+                boolean isOnline = (owner != null && owner.isOnline());
+
+                // Tycoon loop progresses when owner is online & pet is assigned
+                if (isOnline && kitchen.isPetAssigned()) {
+                    tickKitchenTycoon(kitchen, owner);
+                }
+
+                // Periodic check for displays
+                if (kitchen.isPetAssigned()) {
+                    spawnOrUpdateChefDisplay(kitchen);
+                }
+                updateCashierHologram(kitchen);
+            }
+        }, 20L, 20L);
+    }
+
+    private void tickKitchenTycoon(PetKitchen kitchen, Player owner) {
+        PetData data = plugin.getPetManager().getPetData(kitchen.getOwnerUuid());
+        double energy = data.getEnergy();
+
+        if (energy <= 0.0) {
+            kitchen.setCurrentStation(PetKitchen.KitchenStation.TIRED);
+            kitchen.setCurrentProgressSeconds(0);
+            return;
+        }
+
+        PetKitchen.KitchenStation currentStation = kitchen.getCurrentStation();
+        int progress = kitchen.getCurrentProgressSeconds() + 1;
+        kitchen.setCurrentProgressSeconds(progress);
+
+        Location origin = kitchen.getLocation();
+        StructureRotation rotation = kitchen.getRotation();
+
+        switch (currentStation) {
+            case COOKING -> {
+                Location cookLoc = structureManager.getStationLocation(origin, PetKitchen.KitchenStation.COOKING, rotation);
+                if (progress % 2 == 0 && cookLoc.getWorld() != null) {
+                    cookLoc.getWorld().spawnParticle(Particle.SMOKE, cookLoc.clone().add(0, 0.3, 0), 4, 0.2, 0.2, 0.2, 0.02);
+                    cookLoc.getWorld().spawnParticle(Particle.FLAME, cookLoc.clone().add(0, 0.1, 0), 2, 0.1, 0.1, 0.1, 0.01);
+                    if (progress % 6 == 0) {
+                        cookLoc.getWorld().playSound(cookLoc, Sound.BLOCK_FURNACE_FIRE_CRACKLE, 0.4f, 1.2f);
+                    }
+                }
+                if (progress >= PetKitchen.KitchenStation.COOKING.getDurationSeconds()) {
+                    kitchen.setCurrentStation(PetKitchen.KitchenStation.PACKING);
+                    kitchen.setCurrentProgressSeconds(0);
+                    if (cookLoc.getWorld() != null) {
+                        cookLoc.getWorld().playSound(cookLoc, Sound.BLOCK_BREWING_STAND_BREW, 0.7f, 1.2f);
+                    }
+                }
+            }
+            case PACKING -> {
+                Location packLoc = structureManager.getStationLocation(origin, PetKitchen.KitchenStation.PACKING, rotation);
+                if (progress % 2 == 0 && packLoc.getWorld() != null) {
+                    packLoc.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, packLoc.clone().add(0, 0.5, 0), 3, 0.3, 0.2, 0.3, 0.02);
+                    if (progress % 6 == 0) {
+                        packLoc.getWorld().playSound(packLoc, Sound.ENTITY_VILLAGER_WORK_CLERIC, 0.5f, 1.3f);
+                    }
+                }
+                if (progress >= PetKitchen.KitchenStation.PACKING.getDurationSeconds()) {
+                    kitchen.setCurrentStation(PetKitchen.KitchenStation.DELIVERY);
+                    kitchen.setCurrentProgressSeconds(0);
+                    if (packLoc.getWorld() != null) {
+                        packLoc.getWorld().playSound(packLoc, Sound.ITEM_ARMOR_EQUIP_GENERIC, 0.7f, 1.2f);
+                    }
+                }
+            }
+            case DELIVERY -> {
+                Location delLoc = structureManager.getStationLocation(origin, PetKitchen.KitchenStation.DELIVERY, rotation);
+                if (delLoc.getWorld() != null) {
+                    delLoc.getWorld().spawnParticle(Particle.WAX_ON, delLoc.clone().add(0, 0.3, 0), 3, 0.2, 0.2, 0.2, 0.02);
+                }
+                if (progress >= PetKitchen.KitchenStation.DELIVERY.getDurationSeconds()) {
+                    // ORDER COMPLETED!
+                    kitchen.addEarnings(100.0);
+                    kitchen.incrementCompletedOrders();
+                    kitchen.setCurrentStation(PetKitchen.KitchenStation.COOKING);
+                    kitchen.setCurrentProgressSeconds(0);
+
+                    // Deduct 10% energy
+                    double newEnergy = Math.max(0.0, data.getEnergy() - 10.0);
+                    data.setEnergy(newEnergy);
+                    plugin.getPetManager().savePetData(owner.getUniqueId());
+
+                    // SFX & FX
+                    if (delLoc.getWorld() != null) {
+                        delLoc.getWorld().playSound(delLoc, Sound.ENTITY_PLAYER_LEVELUP, 0.7f, 1.6f);
+                        delLoc.getWorld().playSound(delLoc, Sound.ENTITY_VILLAGER_YES, 0.7f, 1.1f);
+                        delLoc.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, delLoc.clone().add(0, 0.6, 0), 10, 0.4, 0.4, 0.4, 0.05);
+                    }
+
+                    owner.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                            "<gradient:#43e97b:#38f9d7>🍱 1x ᴘᴇsᴀɴᴀɴ ᴍʙɢ sᴇʟᴇsᴀɪ! </gradient><yellow>+$100 ᴅɪsɪᴍᴘᴀɴ ᴅɪ ᴋᴀsɪʀ</yellow> <gray>(ᴇɴᴇʀɢɪ ᴘᴇᴛ: " + (int) newEnergy + "%)</gray>"));
+
+                    if (newEnergy <= 0.0) {
+                        kitchen.setCurrentStation(PetKitchen.KitchenStation.TIRED);
+                        owner.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                                "<gradient:#ff5f6d:#ffc371>😴 ᴘᴇᴛ ᴋᴏᴋɪ ᴋᴀᴍᴜ ᴋᴇʜᴀʙɪsᴀɴ ᴇɴᴇʀɢɪ! ᴋʟɪᴋ ᴋᴀɴᴀɴ ᴘᴇᴛ ᴅɪ ᴅᴀᴘᴜʀ sᴀᴍʙɪʟ ʙᴀᴡᴀ ᴍᴀᴋᴀɴᴀɴ.</gradient>"));
+                        owner.playSound(owner.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.7f, 1.0f);
+                    }
+
+                    saveKitchens();
+                }
+            }
+            case TIRED -> {
+                // Waits for food
+            }
+        }
+    }
+
+    private void spawnOrUpdateChefDisplay(PetKitchen kitchen) {
+        Location targetLoc = structureManager.getStationLocation(kitchen.getLocation(), kitchen.getCurrentStation(), kitchen.getRotation());
+        if (targetLoc == null || targetLoc.getWorld() == null) return;
+
+        PetData data = plugin.getPetManager().getPetData(kitchen.getOwnerUuid());
+        PetSkin skin = plugin.getConfigManager().getSkin(data.getSkinKey());
+        ItemStack head = (skin != null) ? HeadUtil.createCustomHead(skin.getTexture()) : new ItemStack(Material.PLAYER_HEAD);
+
+        ItemDisplay chef = kitchen.getChefDisplay();
+        if (chef == null || !chef.isValid()) {
+            chef = targetLoc.getWorld().spawn(targetLoc, ItemDisplay.class, d -> {
+                d.setPersistent(false);
+                d.setBillboard(Display.Billboard.FIXED);
+                d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.HEAD);
+                float scale = 1.15f;
+                Transformation t = new Transformation(
+                        new Vector3f(0f, 0f, 0f),
+                        new AxisAngle4f(0f, 0f, 1f, 0f),
+                        new Vector3f(scale, scale, scale),
+                        new AxisAngle4f(0f, 0f, 1f, 0f)
+                );
+                d.setTransformation(t);
+                d.setItemStack(head);
+            });
+            kitchen.setChefDisplay(chef);
+
+            // Bedrock Stand
+            Location standLoc = targetLoc.clone().subtract(0, 0.70, 0);
+            ArmorStand stand = standLoc.getWorld().spawn(standLoc, ArmorStand.class, s -> {
+                s.setPersistent(false);
+                s.setVisible(false);
+                s.setGravity(false);
+                s.setMarker(true);
+                s.setSmall(true);
+                s.setCustomNameVisible(false);
+                if (s.getEquipment() != null) {
+                    s.getEquipment().setHelmet(head);
+                }
+            });
+            kitchen.setBedrockStand(stand);
+        } else {
+            // Smoothly move chef to current station
+            chef.teleport(targetLoc);
+            if (kitchen.getBedrockStand() != null && kitchen.getBedrockStand().isValid()) {
+                kitchen.getBedrockStand().teleport(targetLoc.clone().subtract(0, 0.70, 0));
+            }
+        }
+
+        // Hologram above chef
+        Location holoLoc = targetLoc.clone().add(0, 0.85, 0);
+        TextDisplay holo = kitchen.getHologramDisplay();
+        String text = buildChefHoloText(kitchen, data);
+
+        if (holo == null || !holo.isValid()) {
+            holo = holoLoc.getWorld().spawn(holoLoc, TextDisplay.class, t -> {
+                t.setPersistent(false);
+                t.setBillboard(Display.Billboard.CENTER);
+                t.setBackgroundColor(Color.fromARGB(140, 20, 20, 25));
+                t.text(ColorUtil.component(text));
+            });
+            kitchen.setHologramDisplay(holo);
+            kitchen.setLastRenderedText(text);
+        } else {
+            holo.teleport(holoLoc);
+            if (!text.equals(kitchen.getLastRenderedText())) {
+                holo.text(ColorUtil.component(text));
+                kitchen.setLastRenderedText(text);
+            }
+        }
+    }
+
+    private String buildChefHoloText(PetKitchen kitchen, PetData data) {
+        PetKitchen.KitchenStation st = kitchen.getCurrentStation();
+        String energyBar = data.getEnergyProgressBar() + " &f" + (int) data.getEnergy() + "%";
+
+        if (st == PetKitchen.KitchenStation.TIRED) {
+            return "<gradient:#ff5f6d:#ffc371><b>😴 ᴘᴇᴛ ᴋᴏᴋɪ ʟᴀᴘᴀʀ!</b></gradient>\n" +
+                    "&7ᴇɴᴇʀɢɪ: " + energyBar + "\n" +
+                    "&e▶ ᴋʟɪᴋ ᴋᴀɴᴀɴ ᴅᴇɴɢᴀɴ ᴍᴀᴋᴀɴᴀɴ";
+        }
+
+        String timerInfo = (st == PetKitchen.KitchenStation.DELIVERY) ?
+                "&a&l[sᴇʀᴀʜᴋᴀɴ ᴘᴇsᴀɴᴀɴ]" :
+                "&e" + kitchen.getCurrentProgressSeconds() + "s / " + st.getDurationSeconds() + "s";
+
+        return "<gradient:#ff512f:#dd2476><b>👨‍🍳 " + data.getName() + " [ᴋᴏᴋɪ ᴍʙɢ]</b></gradient>\n" +
+                "&7sᴛᴀᴛᴜs: " + st.getDisplayName() + " " + timerInfo + "\n" +
+                "&7ᴇɴᴇʀɢɪ: " + energyBar;
+    }
+
+    private void updateCashierHologram(PetKitchen kitchen) {
+        Location holoLoc = structureManager.getCashierHologramLocation(kitchen.getLocation(), kitchen.getRotation());
+        if (holoLoc == null || holoLoc.getWorld() == null) return;
+
+        TextDisplay cashier = kitchen.getCashierDisplay();
+        String status = kitchen.isPetAssigned() ?
+                kitchen.getCurrentStation().getDisplayName() :
+                "<red>ᴛɪᴅᴀᴋ ᴀᴋᴛɪғ (ʙᴇʟᴜᴍ ᴅɪᴛᴜɢᴀsᴋᴀɴ)</red>";
+
+        String text = "<gradient:#ff512f:#dd2476><b>🍱 ᴅᴀᴘᴜʀ ᴍʙɢ [ᴛʏᴄᴏᴏɴ]</b></gradient>\n" +
+                "&7ᴘᴇᴍɪʟɪᴋ: &f" + kitchen.getCachedOwnerName() + "\n" +
+                "&7sᴛᴀᴛᴜs ᴋᴏᴋɪ: " + status + "\n" +
+                "&7ᴜᴀɴɢ ᴅɪ ᴋᴀsɪʀ: &a+$" + plugin.getEconomyManager().format(kitchen.getStoredEarnings()) + " &7(" + kitchen.getCompletedOrders() + " ʙᴏx)\n" +
+                "&e▶ ᴋʟɪᴋ ᴋᴀɴᴀɴ ᴜɴᴛᴜᴋ ʙᴜᴋᴀ ᴍᴇɴᴜ";
+
+        if (cashier == null || !cashier.isValid()) {
+            cashier = holoLoc.getWorld().spawn(holoLoc, TextDisplay.class, t -> {
+                t.setPersistent(false);
+                t.setBillboard(Display.Billboard.CENTER);
+                t.setBackgroundColor(Color.fromARGB(150, 15, 15, 20));
+                t.text(ColorUtil.component(text));
+            });
+            kitchen.setCashierDisplay(cashier);
+        } else {
+            cashier.text(ColorUtil.component(text));
+        }
     }
 
     public void removeKitchen(Location loc) {
         PetKitchen k = kitchens.remove(loc.getBlock().getLocation());
         if (k != null) {
             k.removeEntities();
+            for (Location bLoc : k.getAllBlockLocations()) {
+                blockToKitchen.remove(bLoc);
+            }
             saveKitchens();
         }
     }
 
-    public void dismantleKitchen(Player player, PetKitchen kitchen) {
-        if (!kitchen.getOwnerUuid().equals(player.getUniqueId()) && !player.hasPermission("leftypet.admin")) {
-            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<gradient:#ff5f6d:#ffc371>ɪɴɪ ʙᴜᴋᴀɴ ᴅᴀᴘᴜʀ ᴍʙɢ ᴍɪʟɪᴋᴍᴜ!</gradient>"));
-            return;
-        }
-
-        if (player.getInventory().firstEmpty() == -1) {
-            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<gradient:#ff5f6d:#ffc371>ɪɴᴠᴇɴᴛᴏʀʏ ᴋᴀᴍᴜ ᴘᴇɴᴜʜ! ᴋᴏsᴏɴɢᴋᴀɴ sʟᴏᴛ ᴛᴇʀʟᴇʙɪʜ ᴅᴀʜᴜʟᴜ ᴜɴᴛᴜᴋ ᴍᴇᴍʙᴏɴɢᴋᴀʀ ᴅᴀᴘᴜʀ.</gradient>"));
-            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
-            return;
-        }
-
-        // Auto collect pending earnings if any
-        if (kitchen.getCookedPortions() > 0) {
-            claimPortions(player, kitchen);
-        }
-
-        Location loc = kitchen.getLocation();
-        kitchen.removeEntities();
-        structureManager.removeStructure(loc);
-        removeKitchen(loc);
-
-        player.getInventory().addItem(createKitchenItem(kitchen.getKitchenLevel()));
-        player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                "<gradient:#43e97b:#38f9d7>ᴅᴀᴘᴜʀ ᴍʙɢ [ʟᴠ." + kitchen.getKitchenLevel() + "] ʙᴇʀʜᴀsɪʟ ᴅɪʙᴏɴɢᴋᴀʀ ᴅᴀɴ ᴅɪᴍᴀsᴜᴋᴋᴀɴ ᴋᴇ ɪɴᴠᴇɴᴛᴏʀʏ!</gradient>"));
-        player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_DESTROY, 0.7f, 1.2f);
-    }
-
-    public void claimPortions(Player player, PetKitchen kitchen) {
-        int portions = kitchen.getCookedPortions();
-        if (portions <= 0) {
-            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                    "<gradient:#ff5f6d:#ffc371>ʙᴇʟᴜᴍ ᴀᴅᴀ ɴᴀsɪ ᴋᴏᴛᴀᴋ ᴍʙɢ ʏᴀɴɢ sɪᴀᴘ ᴅɪᴀᴍʙɪʟ! ᴛᴜɴɢɢᴜ ᴘᴇᴛ ᴍᴇᴍᴀsᴀᴋ.</gradient>"));
-            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
-            return;
-        }
-
-        double money = portions * kitchen.getRewardPerPortion();
-        plugin.getEconomyManager().deposit(player, money);
-
-        kitchen.setCookedPortions(0);
-        saveKitchens();
-
-        player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                "<gradient:#43e97b:#38f9d7>ʙᴇʀʜᴀsɪʟ ᴍᴇɴᴅɪsᴛʀɪʙᴜsɪᴋᴀɴ </gradient><yellow><b>" + portions + "x ʙᴏx ᴍʙɢ</b></yellow><gradient:#43e97b:#38f9d7>! ᴍᴇɴᴇʀɪᴍᴀ sᴜʙsɪᴅɪ: </gradient><green><b>+$" + plugin.getEconomyManager().format(money) + "</b></green>"));
-
-        // 20% chance for bonus food supply
-        if (Math.random() < 0.20) {
-            ItemStack bonusFood = switch (new Random().nextInt(4)) {
-                case 0 -> new ItemStack(Material.GOLDEN_CARROT, 4);
-                case 1 -> new ItemStack(Material.COOKED_BEEF, 8);
-                case 2 -> new ItemStack(Material.BREAD, 16);
-                default -> new ItemStack(Material.RAW_GOLD, 3);
-            };
-            if (player.getInventory().firstEmpty() != -1) {
-                player.getInventory().addItem(bonusFood);
-                player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                        "<gradient:#ffd200:#f7971e>🎁 ʙᴏɴᴜs ʟᴏɢɪsᴛɪᴋ ᴅᴀᴘᴜʀ: ᴋᴀᴍᴜ ᴍᴇɴᴅᴀᴘᴀᴛᴋᴀɴ </gradient><white>" + bonusFood.getAmount() + "x " + bonusFood.getType().name() + "</white>!"));
-            }
-        }
-
-        player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1.2f);
-        updateKitchenHologram(kitchen);
-    }
-
-    public void upgradeKitchen(Player player, PetKitchen kitchen) {
-        int currentLvl = kitchen.getKitchenLevel();
-        if (currentLvl >= 3) {
-            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                    "<gradient:#ff5f6d:#ffc371>ᴅᴀᴘᴜʀ ᴍʙɢ sᴜᴅᴀʜ ᴍᴇɴᴄᴀᴘᴀɪ ʟᴇᴠᴇʟ ᴍᴀᴋsɪᴍᴀʟ (ʟᴠ.3)!</gradient>"));
-            return;
-        }
-
-        int targetLvl = currentLvl + 1;
-        double cost = (targetLvl == 2) ? 15000.0 : 35000.0;
-
-        if (!plugin.getEconomyManager().hasEnough(player, cost)) {
-            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                    "<gradient:#ff5f6d:#ffc371>ᴜᴀɴɢ ᴋᴀᴍᴜ ᴛɪᴅᴀᴋ ᴄᴜᴋᴜᴘ ᴜɴᴛᴜᴋ ᴜᴘɢʀᴀᴅᴇ! ʙɪᴀʏᴀ: </gradient><yellow>$" + plugin.getEconomyManager().format(cost) + "</yellow>"));
-            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
-            return;
-        }
-
-        plugin.getEconomyManager().withdraw(player, cost);
-        kitchen.setKitchenLevel(targetLvl);
-        saveKitchens();
-
-        structureManager.buildStructure(kitchen.getLocation(), targetLvl);
-
-        player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                "<gradient:#43e97b:#38f9d7>🎉 sᴇʟᴀᴍᴀᴛ! ᴅᴀᴘᴜʀ ᴍʙɢ ʙᴇʀʜᴀsɪʟ ᴅɪ-ᴜᴘɢʀᴀᴅᴇ ᴋᴇ </gradient><yellow><b>ʟᴇᴠᴇʟ " + targetLvl + "</b></yellow>!"));
-        player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.2f);
-        updateKitchenHologram(kitchen);
-    }
-
-    private int tickerStep = 0;
-
-    private void startKitchenTicker() {
-        Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            tickerStep++;
-
-            for (PetKitchen kitchen : kitchens.values()) {
-                Player owner = Bukkit.getPlayer(kitchen.getOwnerUuid());
-                boolean isOnline = (owner != null && owner.isOnline());
-
-                // 1. KITCHEN TYCOON LOGIC: Progresses as long as owner is online
-                if (isOnline && kitchen.isCooking() && !kitchen.isStorageFull()) {
-                    tickKitchenLogic(kitchen);
-                }
-
-                // 2. PROXIMITY CULLING & VISUALS: Only run when chunk loaded and player within 32 blocks
-                Location loc = kitchen.getLocation();
-                World world = loc.getWorld();
-                if (world == null || !world.isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4)) {
-                    continue;
-                }
-
-                boolean hasNearbyPlayer = false;
-                double lx = loc.getX();
-                double ly = loc.getY();
-                double lz = loc.getZ();
-                for (Player p : world.getPlayers()) {
-                    Location pl = p.getLocation();
-                    double dx = pl.getX() - lx;
-                    double dy = pl.getY() - ly;
-                    double dz = pl.getZ() - lz;
-                    if ((dx * dx + dy * dy + dz * dz) <= 1024.0) { // 32 blocks
-                        hasNearbyPlayer = true;
-                        break;
-                    }
-                }
-
-                if (!hasNearbyPlayer) {
-                    continue;
-                }
-
-                // Visual updates
-                ensureHologram(kitchen);
-                updateChefDisplay(kitchen);
-                updateKitchenHologram(kitchen);
-
-                // Ambient particles based on active station
-                spawnStationParticles(kitchen);
-            }
-        }, 20L, 20L); // 1.0s interval
-    }
-
-    private void tickKitchenLogic(PetKitchen kitchen) {
-        int lvl = kitchen.getKitchenLevel();
-        // Station durations per level
-        int prepMax = (lvl == 3) ? 6 : ((lvl == 2) ? 10 : 15);
-        int cookMax = (lvl == 3) ? 10 : ((lvl == 2) ? 15 : 20);
-        int packMax = (lvl == 3) ? 5 : ((lvl == 2) ? 8 : 10);
-
-        int curSec = kitchen.getCurrentProgressSeconds() + 1;
-        PetKitchen.KitchenStation station = kitchen.getCurrentStation();
-
-        switch (station) {
-            case PREPARING -> {
-                if (curSec >= prepMax) {
-                    kitchen.setCurrentStation(PetKitchen.KitchenStation.COOKING);
-                    kitchen.setCurrentProgressSeconds(0);
-                } else {
-                    kitchen.setCurrentProgressSeconds(curSec);
-                }
-            }
-            case COOKING -> {
-                if (curSec >= cookMax) {
-                    kitchen.setCurrentStation(PetKitchen.KitchenStation.PACKING);
-                    kitchen.setCurrentProgressSeconds(0);
-                } else {
-                    kitchen.setCurrentProgressSeconds(curSec);
-                }
-            }
-            case PACKING -> {
-                if (curSec >= packMax) {
-                    kitchen.addCookedPortion();
-                    kitchen.setCurrentStation(PetKitchen.KitchenStation.PREPARING);
-                    kitchen.setCurrentProgressSeconds(0);
-                    saveKitchens();
-                } else {
-                    kitchen.setCurrentProgressSeconds(curSec);
-                }
-            }
-        }
-    }
-
-    private void spawnStationParticles(PetKitchen kitchen) {
-        Location center = kitchen.getLocation();
-        PetKitchen.KitchenStation station = kitchen.getCurrentStation();
-        Location stLoc = structureManager.getStationLocation(center, station);
-
-        switch (station) {
-            case PREPARING -> {
-                // Slice / Prep particles
-                center.getWorld().spawnParticle(Particle.SWEEP_ATTACK, stLoc.clone().subtract(0, 0.4, 0), 1, 0.1, 0.1, 0.1, 0.0);
-            }
-            case COOKING -> {
-                // Flame & Sizzling smoke
-                center.getWorld().spawnParticle(Particle.CAMPFIRE_COSY_SMOKE, stLoc.clone().subtract(0, 0.3, 0), 2, 0.1, 0.1, 0.1, 0.02);
-                center.getWorld().spawnParticle(Particle.FLAME, stLoc.clone().subtract(0, 0.4, 0), 1, 0.1, 0.05, 0.1, 0.01);
-            }
-            case PACKING -> {
-                // Box packing sparks
-                center.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, stLoc.clone().subtract(0, 0.3, 0), 2, 0.2, 0.1, 0.2, 0.0);
-            }
-        }
-    }
-
-    public void updateChefDisplay(PetKitchen kitchen) {
-        Location center = kitchen.getLocation();
-        Location targetLoc = structureManager.getStationLocation(center, kitchen.getCurrentStation());
-
-        ItemDisplay display = kitchen.getChefDisplay();
-        ArmorStand stand = kitchen.getBedrockStand();
-
-        if (display == null || !display.isValid()) {
-            spawnChefEntities(kitchen, targetLoc);
-            return;
-        }
-
-        // Smooth move towards current station
-        if (display.getLocation().distanceSquared(targetLoc) > 0.04) {
-            targetLoc.setYaw((display.getLocation().getYaw() + 4.0f) % 360f);
-            display.teleport(targetLoc);
-            if (stand != null && stand.isValid()) {
-                stand.teleport(targetLoc.clone().subtract(0, 0.70, 0));
-            }
-        } else {
-            // Gentle continuous rotation
-            Location cur = display.getLocation();
-            cur.setYaw((cur.getYaw() + 4.0f) % 360f);
-            display.teleport(cur);
-        }
-    }
-
-    private void spawnChefEntities(PetKitchen kitchen, Location targetLoc) {
-        PetData data = plugin.getPetManager().getPetData(kitchen.getOwnerUuid());
-        PetSkin skin = plugin.getConfigManager().getSkin(data.getSkinKey());
-        ItemStack head = (skin != null) ? HeadUtil.createCustomHead(skin.getTexture()) : new ItemStack(Material.PLAYER_HEAD);
-
-        ItemDisplay display = targetLoc.getWorld().spawn(targetLoc, ItemDisplay.class, d -> {
-            d.setPersistent(false);
-            d.setBillboard(Display.Billboard.FIXED);
-            d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.HEAD);
-            float scale = 1.15f;
-            Transformation t = new Transformation(
-                    new Vector3f(0f, 0f, 0f),
-                    new AxisAngle4f(0f, 0f, 1f, 0f),
-                    new Vector3f(scale, scale, scale),
-                    new AxisAngle4f(0f, 0f, 1f, 0f)
-            );
-            d.setTransformation(t);
-            d.setItemStack(head);
-        });
-        kitchen.setChefDisplay(display);
-
-        // Bedrock ArmorStand fallback
-        Location standLoc = targetLoc.clone().subtract(0, 0.70, 0);
-        ArmorStand stand = standLoc.getWorld().spawn(standLoc, ArmorStand.class, s -> {
-            s.setPersistent(false);
-            s.setInvisible(true);
-            s.setMarker(true);
-            s.setSmall(true);
-            s.setGravity(false);
-            s.setInvulnerable(true);
-            s.setCollidable(false);
-            s.setSilent(true);
-            s.setBasePlate(false);
-            s.setArms(false);
-            s.getEquipment().setHelmet(head);
-        });
-        kitchen.setBedrockStand(stand);
-
-        updateChefVisibility(kitchen);
-    }
-
-    public void updateChefVisibility(PetKitchen kitchen) {
-        ItemDisplay display = kitchen.getChefDisplay();
-        ArmorStand stand = kitchen.getBedrockStand();
-        for (Player p : Bukkit.getOnlinePlayers()) {
-            boolean isBedrock = BedrockUtil.isBedrockPlayer(p);
-            if (display != null && display.isValid()) {
-                if (isBedrock) p.hideEntity(plugin, display);
-                else p.showEntity(plugin, display);
-            }
-            if (stand != null && stand.isValid()) {
-                if (isBedrock) p.showEntity(plugin, stand);
-                else p.hideEntity(plugin, stand);
-            }
-        }
-    }
-
-    public void ensureHologram(PetKitchen kitchen) {
-        Location center = kitchen.getLocation();
-        Location holoLoc = center.clone().add(0.5, 2.3, 0.5);
-
-        TextDisplay text = kitchen.getHologramDisplay();
-        if (text == null || !text.isValid()) {
-            text = holoLoc.getWorld().spawn(holoLoc, TextDisplay.class, t -> {
-                t.setPersistent(false);
-                t.setBillboard(Display.Billboard.CENTER);
-                t.setDefaultBackground(false);
-                t.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
-                t.setShadowed(true);
-            });
-            kitchen.setHologramDisplay(text);
-        }
-    }
-
-    public void updateKitchenHologram(PetKitchen kitchen) {
-        ensureHologram(kitchen);
-        TextDisplay text = kitchen.getHologramDisplay();
-        if (text == null || !text.isValid()) return;
-
-        OfflinePlayer owner = Bukkit.getOfflinePlayer(kitchen.getOwnerUuid());
-        String ownerName = (kitchen.getCachedOwnerName() != null) ? kitchen.getCachedOwnerName() : (owner.getName() != null ? owner.getName() : "Player");
-
-        int portions = kitchen.getCookedPortions();
-        int max = kitchen.getMaxCapacity();
-        boolean isFull = kitchen.isStorageFull();
-        boolean isOnline = owner.isOnline();
-
-        String statusLine;
-        if (isFull) {
-            statusLine = "<gradient:#ff416c:#ff4b2b><b>⚠️ ʙᴏx ᴘᴇɴᴜʜ (" + portions + "/" + max + ")</b></gradient>\n<yellow>ᴋʟɪᴋ ᴋᴀɴᴀɴ ᴜɴᴛᴜᴋ ᴋʟᴀɪᴍ ᴜᴀɴɢ sᴜʙsɪᴅɪ!</yellow>";
-        } else if (!isOnline) {
-            statusLine = "<gradient:#ff416c:#ff4b2b><b>● ᴘʟᴀʏᴇʀ ᴏғғʟɪɴᴇ (ᴛᴇʀᴊᴇᴅᴀ)</b></gradient>";
-        } else {
-            statusLine = "<yellow>sᴛᴀsɪᴜɴ: </yellow><gradient:#00f2fe:#4facfe><b>" + kitchen.getCurrentStation().getDisplayName() + "</b></gradient>\n" +
-                    "<gray>ʙᴏx sɪᴀᴘ sᴀᴊɪ: </gray><green><b>" + portions + "/" + max + " ʙᴏx</b></green>";
-        }
-
-        String full = "<gradient:#ff512f:#dd2476><b>✦ ᴅᴀᴘᴜʀ ᴍʙɢ [ʟᴠ." + kitchen.getKitchenLevel() + "] ✦</b></gradient>\n" +
-                "<gray>ᴘᴇᴍɪʟɪᴋ: </gray><white>" + ownerName + "</white>\n" +
-                statusLine;
-
-        if (!full.equals(kitchen.getLastRenderedText())) {
-            kitchen.setLastRenderedText(full);
-            text.text(ColorUtil.component(full));
-        }
-    }
-
     public void loadKitchens() {
+        kitchens.clear();
+        blockToKitchen.clear();
         if (!kitchenFile.exists()) return;
-        FileConfiguration cfg = YamlConfiguration.loadConfiguration(kitchenFile);
-        ConfigurationSection sec = cfg.getConfigurationSection("kitchens");
+
+        FileConfiguration config = YamlConfiguration.loadConfiguration(kitchenFile);
+        ConfigurationSection sec = config.getConfigurationSection("kitchens");
         if (sec == null) return;
 
         for (String key : sec.getKeys(false)) {
             try {
-                UUID id = UUID.fromString(key);
-                UUID ownerUuid = UUID.fromString(sec.getString(key + ".owner"));
-                String ownerName = sec.getString(key + ".owner-name", null);
-                Location loc = sec.getLocation(key + ".location");
-                int lvl = sec.getInt(key + ".level", 1);
-                int portions = sec.getInt(key + ".portions", 0);
-                int progSec = sec.getInt(key + ".progress-sec", 0);
-                String stationStr = sec.getString(key + ".station", "PREPARING");
-                PetKitchen.KitchenStation station = PetKitchen.KitchenStation.valueOf(stationStr);
-                boolean isCook = sec.getBoolean(key + ".is-cooking", true);
+                UUID kitchenId = UUID.fromString(key);
+                UUID ownerUuid = UUID.fromString(sec.getString(key + ".owner-uuid", ""));
+                String ownerName = sec.getString(key + ".owner-name", "Unknown");
 
-                if (loc != null) {
-                    PetKitchen kitchen = new PetKitchen(id, ownerUuid, ownerName, loc, lvl, portions, progSec, station, isCook);
-                    kitchens.put(loc.getBlock().getLocation(), kitchen);
+                String worldName = sec.getString(key + ".origin.world");
+                World world = Bukkit.getWorld(worldName != null ? worldName : "world");
+                if (world == null) continue;
+
+                int x = sec.getInt(key + ".origin.x");
+                int y = sec.getInt(key + ".origin.y");
+                int z = sec.getInt(key + ".origin.z");
+                Location origin = new Location(world, x, y, z);
+
+                String rotStr = sec.getString(key + ".rotation", "NONE");
+                StructureRotation rotation = StructureRotation.valueOf(rotStr);
+                String facing = sec.getString(key + ".facing", "WEST");
+
+                boolean isPetAssigned = sec.getBoolean(key + ".pet-assigned", false);
+                double earnings = sec.getDouble(key + ".stored-earnings", 0.0);
+                int orders = sec.getInt(key + ".completed-orders", 0);
+                int progress = sec.getInt(key + ".progress-seconds", 0);
+                String stationStr = sec.getString(key + ".current-station", "COOKING");
+                PetKitchen.KitchenStation station = PetKitchen.KitchenStation.valueOf(stationStr);
+
+                PetKitchen kitchen = new PetKitchen(kitchenId, ownerUuid, ownerName, origin, rotation, facing,
+                        isPetAssigned, earnings, orders, progress, station);
+
+                List<String> blockList = sec.getStringList(key + ".blocks");
+                Set<Location> bSet = new HashSet<>();
+                for (String bStr : blockList) {
+                    String[] parts = bStr.split(",");
+                    if (parts.length == 3) {
+                        int bx = Integer.parseInt(parts[0]);
+                        int by = Integer.parseInt(parts[1]);
+                        int bz = Integer.parseInt(parts[2]);
+                        Location bLoc = new Location(world, bx, by, bz);
+                        bSet.add(bLoc);
+                        blockToKitchen.put(bLoc, kitchen);
+                    }
                 }
+                kitchen.setAllBlockLocations(bSet);
+
+                kitchens.put(origin, kitchen);
             } catch (Exception e) {
-                plugin.getLogger().warning("Error loading kitchen: " + e.getMessage());
+                plugin.getLogger().warning("Failed to load kitchen: " + key + " -> " + e.getMessage());
             }
         }
+        plugin.getLogger().info("Loaded " + kitchens.size() + " active Dapur MBG buildings.");
     }
 
     public void saveKitchens() {
-        FileConfiguration cfg = new YamlConfiguration();
+        FileConfiguration config = new YamlConfiguration();
         for (PetKitchen k : kitchens.values()) {
-            String key = "kitchens." + k.getKitchenId().toString();
-            cfg.set(key + ".owner", k.getOwnerUuid().toString());
-            if (k.getCachedOwnerName() != null) {
-                cfg.set(key + ".owner-name", k.getCachedOwnerName());
+            String path = "kitchens." + k.getKitchenId().toString();
+            config.set(path + ".owner-uuid", k.getOwnerUuid().toString());
+            config.set(path + ".owner-name", k.getCachedOwnerName());
+            config.set(path + ".origin.world", k.getLocation().getWorld().getName());
+            config.set(path + ".origin.x", k.getLocation().getBlockX());
+            config.set(path + ".origin.y", k.getLocation().getBlockY());
+            config.set(path + ".origin.z", k.getLocation().getBlockZ());
+            config.set(path + ".rotation", k.getRotation().name());
+            config.set(path + ".facing", k.getFacing());
+            config.set(path + ".pet-assigned", k.isPetAssigned());
+            config.set(path + ".stored-earnings", k.getStoredEarnings());
+            config.set(path + ".completed-orders", k.getCompletedOrders());
+            config.set(path + ".progress-seconds", k.getCurrentProgressSeconds());
+            config.set(path + ".current-station", k.getCurrentStation().name());
+
+            List<String> bList = new ArrayList<>();
+            for (Location bLoc : k.getAllBlockLocations()) {
+                bList.add(bLoc.getBlockX() + "," + bLoc.getBlockY() + "," + bLoc.getBlockZ());
             }
-            cfg.set(key + ".location", k.getLocation());
-            cfg.set(key + ".level", k.getKitchenLevel());
-            cfg.set(key + ".portions", k.getCookedPortions());
-            cfg.set(key + ".progress-sec", k.getCurrentProgressSeconds());
-            cfg.set(key + ".station", k.getCurrentStation().name());
-            cfg.set(key + ".is-cooking", k.isCooking());
+            config.set(path + ".blocks", bList);
         }
+
         try {
-            cfg.save(kitchenFile);
+            config.save(kitchenFile);
         } catch (IOException e) {
-            plugin.getLogger().severe("Failed to save kitchens.yml: " + e.getMessage());
+            plugin.getLogger().severe("Could not save kitchens.yml: " + e.getMessage());
+        }
+    }
+
+    public void cleanup() {
+        for (PetKitchen k : kitchens.values()) {
+            k.removeEntities();
         }
     }
 
     public void removeAllEntities() {
-        for (PetKitchen k : kitchens.values()) {
-            k.removeEntities();
-        }
+        cleanup();
     }
 }

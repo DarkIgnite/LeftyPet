@@ -45,7 +45,7 @@ public class PetAdminCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(ColorUtil.component("<aqua>/leftypet givealtar [player]</aqua> <gray>- ʙᴇʀɪᴋᴀɴ ᴀʟᴛᴀʀ ᴋᴇ ᴘʟᴀʏᴇʀ</gray>"));
             sender.sendMessage(ColorUtil.component("<aqua>/leftypet removealtar [player]</aqua> <gray>- ʜᴀᴘᴜs ᴀʟᴛᴀʀ ᴍɪʟɪᴋ ᴘʟᴀʏᴇʀ</gray>"));
             sender.sendMessage(ColorUtil.component("<aqua>/leftypet tpaltar [player]</aqua> <gray>- ᴛᴇʟᴇᴘᴏʀᴛ ᴋᴇ ᴀʟᴛᴀʀ ᴍɪʟɪᴋ ᴘʟᴀʏᴇʀ</gray>"));
-            sender.sendMessage(ColorUtil.component("<aqua>/leftypet givekitchen [player] [level]</aqua> <gray>- ʙᴇʀɪᴋᴀɴ ᴅᴀᴘᴜʀ ᴍʙɢ ᴋᴇ ᴘʟᴀʏᴇʀ</gray>"));
+            sender.sendMessage(ColorUtil.component("<aqua>/leftypet givekitchen [player]</aqua> <gray>- ʙᴇʀɪᴋᴀɴ ᴅᴀᴘᴜʀ ᴍʙɢ ᴋᴇ ᴘʟᴀʏᴇʀ</gray>"));
             sender.sendMessage(ColorUtil.component("<aqua>/leftypet removekitchen [player]</aqua> <gray>- ʜᴀᴘᴜs ᴅᴀᴘᴜʀ ᴍʙɢ ᴍɪʟɪᴋ ᴘʟᴀʏᴇʀ</gray>"));
             sender.sendMessage(ColorUtil.component("<aqua>/leftypet tpkitchen [player]</aqua> <gray>- ᴛᴇʟᴇᴘᴏʀᴛ ᴋᴇ ᴅᴀᴘᴜʀ ᴍʙɢ ᴍɪʟɪᴋ ᴘʟᴀʏᴇʀ</gray>"));
             sender.sendMessage(ColorUtil.component("<gradient:#00f2fe:#4facfe><b>--------------------------------------------------</b></gradient>"));
@@ -178,15 +178,9 @@ public class PetAdminCommand implements CommandExecutor, TabCompleter {
                     sender.sendMessage(ColorUtil.component("<red>ᴛᴇɴᴛᴜᴋᴀɴ ᴛᴀʀɢᴇᴛ ᴘʟᴀʏᴇʀ!</red>"));
                     return true;
                 }
-                int lvl = 1;
-                if (args.length >= 3) {
-                    try {
-                        lvl = Integer.parseInt(args[2]);
-                    } catch (NumberFormatException ignored) {}
-                }
-                target.getInventory().addItem(plugin.getKitchenManager().createKitchenItem(lvl));
+                target.getInventory().addItem(plugin.getKitchenManager().createKitchenItem());
                 sender.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                        "<gradient:#43e97b:#38f9d7>ʙᴇʀʜᴀsɪʟ ᴍᴇᴍʙᴇʀɪᴋᴀɴ ᴅᴀᴘᴜʀ ᴍʙɢ [ʟᴠ." + lvl + "] ᴋᴇᴘᴀᴅᴀ <yellow>" + target.getName() + "</yellow>!</gradient>"));
+                        "<gradient:#43e97b:#38f9d7>ʙᴇʀʜᴀsɪʟ ᴍᴇᴍʙᴇʀɪᴋᴀɴ ɢᴇᴅᴜɴɢ ᴅᴀᴘᴜʀ ᴍʙɢ ᴋᴇᴘᴀᴅᴀ <yellow>" + target.getName() + "</yellow>!</gradient>"));
             }
             case "removekitchen" -> {
                 if (args.length < 2) {
@@ -209,7 +203,7 @@ public class PetAdminCommand implements CommandExecutor, TabCompleter {
                 }
                 Location loc = kitchen.getLocation();
                 kitchen.removeEntities();
-                plugin.getKitchenManager().getStructureManager().removeStructure(loc);
+                plugin.getKitchenManager().getStructureManager().removeKitchen(kitchen.getAllBlockLocations());
                 plugin.getKitchenManager().removeKitchen(loc);
                 sender.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
                         "<gradient:#43e97b:#38f9d7>ʙᴇʀʜᴀsɪʟ ᴍᴇɴɢʜᴀᴘᴜs ᴅᴀᴘᴜʀ ᴍʙɢ ᴍɪʟɪᴋ <yellow>" + (target.getName() != null ? target.getName() : args[1]) + "</yellow>!</gradient>"));
@@ -259,8 +253,6 @@ public class PetAdminCommand implements CommandExecutor, TabCompleter {
         } else if (args.length == 2 && !args[0].equalsIgnoreCase("reload")) {
             String input = args[1].toLowerCase();
             return Bukkit.getOnlinePlayers().stream().map(Player::getName).filter(s -> s.toLowerCase().startsWith(input)).toList();
-        } else if (args.length == 3 && args[0].equalsIgnoreCase("givekitchen")) {
-            return Arrays.asList("1", "2", "3");
         }
         return new ArrayList<>();
     }

@@ -4,9 +4,12 @@ import com.leftycraft.leftypet.LeftyPetPlugin;
 import com.leftycraft.leftypet.gui.KitchenMenu;
 import com.leftycraft.leftypet.model.PetKitchen;
 import com.leftycraft.leftypet.util.ColorUtil;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
@@ -16,11 +19,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 
 import java.lang.reflect.Method;
-import java.util.UUID;
 
 public class KitchenListener implements Listener {
 
@@ -74,22 +78,14 @@ public class KitchenListener implements Listener {
             return;
         }
 
-        if (!plugin.getKitchenManager().getStructureManager().canPlaceStructure(loc)) {
-            event.setCancelled(true);
-            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                    "<gradient:#ff5f6d:#ffc371>ᴀʀᴇᴀ 3x3x4 ᴛᴇʀʜᴀʟᴀɴɢ! ᴘᴀsᴛɪᴋᴀɴ ᴀʀᴇᴀ ᴅɪ sᴇᴋɪᴛᴀʀ ᴅᴀᴘᴜʀ ʀᴀᴛᴀ ᴅᴀɴ ʙᴇʀsɪʜ ᴅᴀʀɪ ʀɪɴᴛᴀɴɢᴀɴ.</gradient>"));
-            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
-            return;
+        // Cancel standard single-block placement so the building is generated instead
+        event.setCancelled(true);
+        if (player.getGameMode() != GameMode.CREATIVE) {
+            event.getItemInHand().subtract(1);
         }
 
-        int placedLevel = plugin.getKitchenManager().getKitchenItemLevel(event.getItemInHand());
-        UUID kitchenId = UUID.randomUUID();
-        plugin.getKitchenManager().registerKitchen(kitchenId, player.getUniqueId(), player.getName(), loc, placedLevel);
-
-        plugin.getKitchenManager().getStructureManager().buildStructureAnimated(loc, placedLevel, () -> {
-            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                    "<gradient:#43e97b:#38f9d7>ᴅᴀᴘᴜʀ ᴍʙɢ [ʟᴠ." + placedLevel + "] (3x3x4) ʙᴇʀʜᴀsɪʟ ᴅɪʙᴀɴɢᴜɴ! ᴋʟɪᴋ ᴋᴀɴᴀɴ ᴋᴏᴍᴘᴏʀ ᴜɴᴛᴜᴋ ᴍᴇᴍʙᴜᴋᴀ ᴍᴇɴᴜ.</gradient>"));
-        });
+        // Paste building and register
+        plugin.getKitchenManager().placeKitchenBuilding(player, loc);
     }
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -101,14 +97,6 @@ public class KitchenListener implements Listener {
         if (block == null) return;
 
         Location loc = block.getLocation();
-        if (plugin.getKitchenManager().isBuilding(loc)) {
-            event.setCancelled(true);
-            event.getPlayer().sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                    "<gradient:#ff5f6d:#ffc371>ᴅᴀᴘᴜʀ sᴇᴅᴀɴɢ ᴅᴀʟᴀᴍ ᴘʀᴏsᴇs ᴘᴇᴍʙᴀɴɢᴜɴᴀɴ! ʜᴀʀᴀᴘ ᴛᴜɴɢɢᴜ sᴇʙᴇɴᴛᴀʀ.</gradient>"));
-            event.getPlayer().playSound(event.getPlayer().getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
-            return;
-        }
-
         PetKitchen kitchen = plugin.getKitchenManager().getKitchenOfBlock(loc);
         if (kitchen == null) return;
         event.setCancelled(true);
@@ -122,19 +110,34 @@ public class KitchenListener implements Listener {
         KitchenMenu.open(player, kitchen, plugin);
     }
 
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onEntityInteract(PlayerInteractAtEntityEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND) return;
+        Entity target = event.getRightClicked();
+
+        for (PetKitchen kitchen : plugin.getKitchenManager().getKitchensMap().values()) {
+            boolean isChef = (kitchen.getChefDisplay() != null && kitchen.getChefDisplay().equals(target)) ||
+                    (kitchen.getBedrockStand() != null && kitchen.getBedrockStand().equals(target));
+
+            if (isChef) {
+                event.setCancelled(true);
+                Player player = event.getPlayer();
+                ItemStack hand = player.getInventory().getItemInMainHand();
+
+                if (hand.getType().isEdible()) {
+                    plugin.getKitchenManager().feedPetInKitchen(player, kitchen);
+                } else {
+                    KitchenMenu.open(player, kitchen, plugin);
+                }
+                return;
+            }
+        }
+    }
+
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = false)
     public void onBlockBreak(BlockBreakEvent event) {
         Block block = event.getBlock();
         Location loc = block.getLocation();
-
-        if (plugin.getKitchenManager().isBuilding(loc)) {
-            event.setCancelled(true);
-            event.setDropItems(false);
-            event.setExpToDrop(0);
-            event.getPlayer().sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                    "<gradient:#ff5f6d:#ffc371>ᴅᴀᴘᴜʀ sᴇᴅᴀɴɢ ᴅᴀʟᴀᴍ ᴘʀᴏsᴇs ᴘᴇᴍʙᴀɴɢᴜɴᴀɴ! ᴛɪᴅᴀᴋ ᴅᴀᴘᴀᴛ ᴅɪʜᴀɴᴄᴜʀᴋᴀɴ.</gradient>"));
-            return;
-        }
 
         PetKitchen kitchen = plugin.getKitchenManager().getKitchenOfBlock(loc);
         if (kitchen != null) {
@@ -146,7 +149,7 @@ public class KitchenListener implements Listener {
             event.setExpToDrop(0);
 
             if (!kitchen.getOwnerUuid().equals(player.getUniqueId()) && !player.hasPermission("leftypet.admin")) {
-                player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<gradient:#ff5f6d:#ffc371>ᴋᴀᴍᴜ ᴛɪᴅᴀᴋ ʙɪsᴀ ᴍᴇʀᴜsᴀᴋ ᴅᴀᴘᴜʀ ᴍɪʟɪᴋ ᴘᴇᴍᴀɪɴ ʟᴀɪɴ!</gradient>"));
+                player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<gradient:#ff5f6d:#ffc371>ᴋᴀᴍᴜ ᴛɪᴅᴀᴋ ʙɪsᴀ ᴍᴇʀᴜsᴀᴋ ɢᴇᴅᴜɴɢ ᴅᴀᴘᴜʀ ᴍɪʟɪᴋ ᴘᴇᴍᴀɪɴ ʟᴀɪɴ!</gradient>"));
                 return;
             }
 

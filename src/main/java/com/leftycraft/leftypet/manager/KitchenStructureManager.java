@@ -2,181 +2,199 @@ package com.leftycraft.leftypet.manager;
 
 import com.leftycraft.leftypet.LeftyPetPlugin;
 import com.leftycraft.leftypet.model.PetKitchen;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
+import com.leftycraft.leftypet.util.SchematicLoader;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Bisected;
+import org.bukkit.block.structure.StructureRotation;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.*;
 
 public class KitchenStructureManager {
 
     private final LeftyPetPlugin plugin;
+    private SchematicLoader.Schematic cachedSchematic;
+
+    // Anchor at entrance in schematic: x=11, y=0, z=6
+    public static final int ANCHOR_X = 11;
+    public static final int ANCHOR_Y = 0;
+    public static final int ANCHOR_Z = 6;
+
+    // Base Station Coordinates (in WEST orientation)
+    public static final double COOKING_SX = 4.5;
+    public static final double COOKING_SY = 1.2;
+    public static final double COOKING_SZ = 9.0;
+
+    public static final double PACKING_SX = 3.0;
+    public static final double PACKING_SY = 1.2;
+    public static final double PACKING_SZ = 4.0;
+
+    public static final double DELIVERY_SX = 7.5;
+    public static final double DELIVERY_SY = 2.2;
+    public static final double DELIVERY_SZ = 2.0;
+
+    public static final double CASHIER_SX = 11.0;
+    public static final double CASHIER_SY = 3.2;
+    public static final double CASHIER_SZ = 6.0;
 
     public KitchenStructureManager(LeftyPetPlugin plugin) {
         this.plugin = plugin;
+        loadSchematic();
+    }
+
+    public void loadSchematic() {
+        try {
+            File customSchem = new File(plugin.getDataFolder(), "schematics/Kitchen.schem");
+            InputStream is;
+            if (customSchem.exists()) {
+                is = new FileInputStream(customSchem);
+            } else {
+                is = plugin.getResource("schematics/Kitchen.schem");
+            }
+
+            if (is == null) {
+                plugin.getLogger().warning("Could not find Kitchen.schem resource or file!");
+                return;
+            }
+
+            this.cachedSchematic = SchematicLoader.loadFromStream(is, ANCHOR_X, ANCHOR_Y, ANCHOR_Z);
+            plugin.getLogger().info("Successfully loaded Kitchen.schem with " + cachedSchematic.getBlocks().size() + " blocks.");
+        } catch (Exception e) {
+            plugin.getLogger().severe("Failed to load Kitchen.schem: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public SchematicLoader.Schematic getSchematic() {
+        if (cachedSchematic == null) {
+            loadSchematic();
+        }
+        return cachedSchematic;
     }
 
     /**
-     * Checks if the 3x3x4 footprint can accommodate the Dapur MBG structure.
+     * Determines StructureRotation and cardinal facing name from player yaw.
      */
-    public boolean canPlaceStructure(Location center) {
-        for (int y = 0; y <= 3; y++) {
-            for (int x = -1; x <= 1; x++) {
-                for (int z = -1; z <= 1; z++) {
-                    if (x == 0 && y == 0 && z == 0) continue; // center placement block
-                    Block b = center.clone().add(x, y, z).getBlock();
-                    Material mat = b.getType();
-                    if (!mat.isAir() && mat != Material.WATER && mat != Material.SHORT_GRASS && mat != Material.TALL_GRASS) {
-                        return false;
-                    }
-                }
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Builds the 3x3x4 Dapur MBG with smooth phased block animations.
-     */
-    public void buildStructureAnimated(Location center, int level, Runnable onComplete) {
-        plugin.getKitchenManager().setBuilding(center, true);
-
-        // Layer 0: Kitchen Tile Floor (Y=0)
-        buildLayerFloor(center, level);
-        center.getWorld().playSound(center, Sound.BLOCK_STONE_PLACE, 1.0f, 0.9f);
-        center.getWorld().playSound(center, Sound.BLOCK_WOOD_PLACE, 0.8f, 1.1f);
-        center.getWorld().spawnParticle(Particle.CLOUD, center.clone().add(0.5, 0.5, 0.5), 18, 0.8, 0.1, 0.8, 0.05);
-
-        // Layer 1: Workstations (Y=1) after 10 ticks
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            buildLayerStations(center, level);
-            center.getWorld().playSound(center, Sound.BLOCK_WOOD_PLACE, 1.0f, 1.0f);
-            center.getWorld().playSound(center, Sound.BLOCK_CAMPFIRE_CRACKLE, 0.8f, 1.0f);
-            center.getWorld().spawnParticle(Particle.FLAME, center.clone().add(0.5, 1.5, 0.5), 15, 0.8, 0.2, 0.8, 0.03);
-
-            // Layer 2: Pillars (Y=2) after 20 ticks
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                buildLayerPillars(center, level);
-                center.getWorld().playSound(center, Sound.BLOCK_WOOD_PLACE, 1.0f, 1.2f);
-
-                // Layer 3: Red-White Canopy Awning (Y=3) after 30 ticks
-                Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                    buildLayerCanopy(center, level);
-                    center.getWorld().playSound(center, Sound.BLOCK_WOOL_PLACE, 1.0f, 1.0f);
-                    center.getWorld().playSound(center, Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1.2f);
-                    center.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, center.clone().add(0.5, 3.2, 0.5), 35, 0.8, 0.2, 0.8, 0.1);
-
-                    plugin.getKitchenManager().setBuilding(center, false);
-
-                    if (onComplete != null) {
-                        onComplete.run();
-                    }
-                }, 10L);
-            }, 10L);
-        }, 10L);
-    }
-
-    public void buildStructure(Location center, int level) {
-        buildLayerFloor(center, level);
-        buildLayerStations(center, level);
-        buildLayerPillars(center, level);
-        buildLayerCanopy(center, level);
-        center.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, center.clone().add(0.5, 1.5, 0.5), 30, 0.8, 0.5, 0.8, 0.05);
-    }
-
-    private void buildLayerFloor(Location center, int level) {
-        // Center Controller Block: SMOKER
-        center.getBlock().setType(Material.SMOKER);
-
-        // Checkerboard restaurant kitchen tiles
-        Material tileA = Material.SMOOTH_QUARTZ;
-        Material tileB = Material.POLISHED_BLACKSTONE;
-
-        center.clone().add(-1, 0, -1).getBlock().setType(tileA);
-        center.clone().add(0, 0, -1).getBlock().setType(tileB);
-        center.clone().add(1, 0, -1).getBlock().setType(tileA);
-
-        center.clone().add(-1, 0, 0).getBlock().setType(tileB);
-        center.clone().add(1, 0, 0).getBlock().setType(tileB);
-
-        center.clone().add(-1, 0, 1).getBlock().setType(tileA);
-        center.clone().add(0, 0, 1).getBlock().setType(tileB);
-        center.clone().add(1, 0, 1).getBlock().setType(tileA);
-    }
-
-    private void buildLayerStations(Location center, int level) {
-        // Station 1: Bahan & Racik (Left: -1, 1, 0)
-        center.clone().add(-1, 1, 0).getBlock().setType(Material.BARREL);
-
-        // Station 2: Kompor Memasak (Back: 0, 1, -1)
-        center.clone().add(0, 1, -1).getBlock().setType(Material.SMOKER);
-
-        // Station 3: Meja Packing & Distribusi Box (Right: 1, 1, 0)
-        center.clone().add(1, 1, 0).getBlock().setType(Material.BARREL);
-
-        // Corner counter pillars
-        center.clone().add(-1, 1, -1).getBlock().setType(Material.SPRUCE_FENCE);
-        center.clone().add(1, 1, -1).getBlock().setType(Material.SPRUCE_FENCE);
-        center.clone().add(-1, 1, 1).getBlock().setType(Material.SPRUCE_FENCE);
-        center.clone().add(1, 1, 1).getBlock().setType(Material.SPRUCE_FENCE);
-
-        // Front Entrance (0, 1, 1) and Center (0, 1, 0) are clear air for interaction & chef flight
-        center.clone().add(0, 1, 1).getBlock().setType(Material.AIR);
-        center.clone().add(0, 1, 0).getBlock().setType(Material.AIR);
-    }
-
-    private void buildLayerPillars(Location center, int level) {
-        center.clone().add(-1, 2, -1).getBlock().setType(Material.SPRUCE_FENCE);
-        center.clone().add(1, 2, -1).getBlock().setType(Material.SPRUCE_FENCE);
-        center.clone().add(-1, 2, 1).getBlock().setType(Material.SPRUCE_FENCE);
-        center.clone().add(1, 2, 1).getBlock().setType(Material.SPRUCE_FENCE);
-
-        // Clear air for middle viewing
-        for (int x = -1; x <= 1; x++) {
-            for (int z = -1; z <= 1; z++) {
-                if (Math.abs(x) == 1 && Math.abs(z) == 1) continue; // corners
-                center.clone().add(x, 2, z).getBlock().setType(Material.AIR);
-            }
+    public StructureRotation getRotationFromYaw(float yaw) {
+        float normalized = (yaw % 360 + 360) % 360;
+        // In unrotated schematic, looking into door is looking towards -X (WEST).
+        if (normalized >= 45 && normalized < 135) {
+            return StructureRotation.NONE; // Looking WEST
+        } else if (normalized >= 135 && normalized < 225) {
+            return StructureRotation.CLOCKWISE_90; // Looking NORTH
+        } else if (normalized >= 225 && normalized < 315) {
+            return StructureRotation.CLOCKWISE_180; // Looking EAST
+        } else {
+            return StructureRotation.COUNTERCLOCKWISE_90; // Looking SOUTH
         }
     }
 
-    private void buildLayerCanopy(Location center, int level) {
-        // Red-White patriotic awning stripes:
-        // Z = -1 (Red)
-        // Z = 0  (White)
-        // Z = 1  (Red)
-        for (int x = -1; x <= 1; x++) {
-            center.clone().add(x, 3, -1).getBlock().setType(Material.RED_WOOL);
-            center.clone().add(x, 3, 0).getBlock().setType(Material.WHITE_WOOL);
-            center.clone().add(x, 3, 1).getBlock().setType(Material.RED_WOOL);
-        }
-    }
-
-    public void removeStructure(Location center) {
-        for (int y = 0; y <= 3; y++) {
-            for (int x = -1; x <= 1; x++) {
-                for (int z = -1; z <= 1; z++) {
-                    center.clone().add(x, y, z).getBlock().setType(Material.AIR);
-                }
-            }
-        }
-    }
-
-    public boolean isPartOfStructure(Location center, Location target) {
-        if (!center.getWorld().equals(target.getWorld())) return false;
-        int dx = target.getBlockX() - center.getBlockX();
-        int dy = target.getBlockY() - center.getBlockY();
-        int dz = target.getBlockZ() - center.getBlockZ();
-        return (dx >= -1 && dx <= 1) && (dz >= -1 && dz <= 1) && (dy >= 0 && dy <= 3);
-    }
-
-    public Location getStationLocation(Location center, PetKitchen.KitchenStation station) {
-        return switch (station) {
-            case PREPARING -> center.clone().add(-1.0 + 0.5, 1.6, 0.0 + 0.5); // At Station 1: Bahan
-            case COOKING -> center.clone().add(0.0 + 0.5, 1.6, -1.0 + 0.5);   // At Station 2: Kompor
-            case PACKING -> center.clone().add(1.0 + 0.5, 1.6, 0.0 + 0.5);    // At Station 3: Meja Box
+    public String getFacingFromRotation(StructureRotation rotation) {
+        return switch (rotation) {
+            case CLOCKWISE_90 -> "NORTH";
+            case CLOCKWISE_180 -> "EAST";
+            case COUNTERCLOCKWISE_90 -> "SOUTH";
+            default -> "WEST";
         };
     }
+
+    public Location getStationLocation(Location origin, PetKitchen.KitchenStation station, StructureRotation rotation) {
+        SchematicLoader.Schematic schem = getSchematic();
+        if (schem == null || origin == null) return origin;
+
+        return switch (station) {
+            case COOKING -> schem.transformLocation(origin, COOKING_SX, COOKING_SY, COOKING_SZ, rotation);
+            case PACKING -> schem.transformLocation(origin, PACKING_SX, PACKING_SY, PACKING_SZ, rotation);
+            case DELIVERY -> schem.transformLocation(origin, DELIVERY_SX, DELIVERY_SY, DELIVERY_SZ, rotation);
+            case TIRED -> schem.transformLocation(origin, PACKING_SX, PACKING_SY + 0.5, PACKING_SZ, rotation);
+        };
+    }
+
+    public Location getCashierHologramLocation(Location origin, StructureRotation rotation) {
+        SchematicLoader.Schematic schem = getSchematic();
+        if (schem == null || origin == null) return origin;
+        return schem.transformLocation(origin, CASHIER_SX, CASHIER_SY, CASHIER_SZ, rotation);
+    }
+
+    /**
+     * Pastes the kitchen building into the world. Returns the set of all world block locations placed.
+     */
+    public Set<Location> buildKitchen(Location origin, StructureRotation rotation) {
+        SchematicLoader.Schematic schem = getSchematic();
+        Set<Location> placedLocs = new HashSet<>();
+        if (schem == null || origin == null || origin.getWorld() == null) return placedLocs;
+
+        World world = origin.getWorld();
+        List<SchematicLoader.SchematicBlock> allBlocks = schem.getBlocks();
+
+        List<BlockPlacement> pass1 = new ArrayList<>();
+        List<BlockPlacement> pass2 = new ArrayList<>();
+
+        for (SchematicLoader.SchematicBlock sb : allBlocks) {
+            Location worldLoc = schem.transformLocation(origin, sb.x(), sb.y(), sb.z(), rotation);
+            placedLocs.add(worldLoc.getBlock().getLocation());
+
+            try {
+                BlockData bd = Bukkit.createBlockData(sb.blockDataString());
+                if (rotation != StructureRotation.NONE) {
+                    bd.rotate(rotation);
+                }
+
+                if (isAttachableOrUpper(bd)) {
+                    pass2.add(new BlockPlacement(worldLoc, bd));
+                } else {
+                    pass1.add(new BlockPlacement(worldLoc, bd));
+                }
+            } catch (Exception e) {
+                plugin.getLogger().warning("Failed to create block data for: " + sb.blockDataString());
+            }
+        }
+
+        // Pass 1: Solid & Base blocks
+        for (BlockPlacement bp : pass1) {
+            bp.loc.getBlock().setBlockData(bp.data, false);
+        }
+
+        // Pass 2: Attachable, decorations, and upper halves
+        for (BlockPlacement bp : pass2) {
+            bp.loc.getBlock().setBlockData(bp.data, false);
+        }
+
+        // FX
+        world.playSound(origin, Sound.BLOCK_ANVIL_USE, 0.8f, 1.2f);
+        world.playSound(origin, Sound.BLOCK_WOOD_PLACE, 1.0f, 1.0f);
+        world.spawnParticle(Particle.POOF, origin.clone().add(0, 1, 0), 30, 1.5, 1.0, 1.5, 0.05);
+
+        return placedLocs;
+    }
+
+    private boolean isAttachableOrUpper(BlockData data) {
+        Material mat = data.getMaterial();
+        if (data instanceof Bisected bisected && bisected.getHalf() == Bisected.Half.TOP) {
+            return true;
+        }
+        String name = mat.name();
+        return name.contains("LANTERN") || name.contains("BANNER") || name.contains("LEVER")
+                || name.contains("TRAPDOOR") || name.contains("DOOR") || name.contains("PRESSURE_PLATE")
+                || name.contains("POTTED") || name.contains("PEONY") || name.contains("ROSE_BUSH")
+                || name.contains("LILAC");
+    }
+
+    /**
+     * Removes all blocks that were part of the kitchen.
+     */
+    public void removeKitchen(Collection<Location> blockLocations) {
+        if (blockLocations == null) return;
+        for (Location loc : blockLocations) {
+            if (loc != null && loc.getWorld() != null) {
+                loc.getBlock().setType(Material.AIR, false);
+            }
+        }
+    }
+
+    private record BlockPlacement(Location loc, BlockData data) {}
 }
