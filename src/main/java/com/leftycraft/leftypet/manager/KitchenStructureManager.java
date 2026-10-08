@@ -37,8 +37,8 @@ public class KitchenStructureManager {
     public static final double DELIVERY_SY = 2.2;
     public static final double DELIVERY_SZ = 2.0;
 
-    public static final double CASHIER_SX = 11.0;
-    public static final double CASHIER_SY = 3.2;
+    public static final double CASHIER_SX = 6.0;
+    public static final double CASHIER_SY = 2.0;
     public static final double CASHIER_SZ = 6.0;
 
     public KitchenStructureManager(LeftyPetPlugin plugin) {

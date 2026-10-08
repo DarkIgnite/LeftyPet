@@ -5,12 +5,14 @@ import com.leftycraft.leftypet.entity.ActivePet;
 import com.leftycraft.leftypet.gui.AltarCancelMenu;
 import com.leftycraft.leftypet.gui.AltarMenu;
 import com.leftycraft.leftypet.gui.CosmeticMenu;
+import com.leftycraft.leftypet.gui.KitchenMenu;
 import com.leftycraft.leftypet.gui.PetLeaderboardMenu;
 import com.leftycraft.leftypet.gui.PetMenu;
 import com.leftycraft.leftypet.gui.PetRoadmapMenu;
 import com.leftycraft.leftypet.gui.holder.AltarCancelMenuHolder;
 import com.leftycraft.leftypet.gui.holder.AltarMenuHolder;
 import com.leftycraft.leftypet.gui.holder.CosmeticMenuHolder;
+import com.leftycraft.leftypet.gui.holder.KitchenMenuHolder;
 import com.leftycraft.leftypet.gui.holder.PetMenuHolder;
 import com.leftycraft.leftypet.gui.holder.PetRoadmapMenuHolder;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
@@ -150,6 +152,12 @@ public class PetInteractListener implements Listener {
             return;
         }
 
+        if (holder instanceof KitchenMenuHolder) {
+            event.setCancelled(true);
+            KitchenMenu.handleClick(event, plugin);
+            return;
+        }
+
         // Secondary fallback by title
         String title = PlainTextComponentSerializer.plainText().serialize(event.getView().title());
         if (title.contains("ʟᴇғᴛʏᴘᴇᴛ") || title.contains("LeftyPet") || title.contains("ᴘᴇᴛ ᴅᴀsʜʙᴏᴀʀᴅ") || title.contains("Pet Dashboard")) {
@@ -165,6 +173,12 @@ public class PetInteractListener implements Listener {
             } else if (title.contains("ᴘᴇɴɢᴀᴛᴜʀᴀɴ ᴀʟᴛᴀʀ") || title.contains("Pengaturan Altar")) {
                 AltarMenu.handleClick(event, plugin);
             }
+            return;
+        }
+
+        if (title.contains("ᴅᴀᴘᴜʀ ᴍʙɢ") || title.contains("Dapur MBG") || title.contains("ᴋɪᴛᴄʜᴇɴ") || title.contains("Kitchen")) {
+            event.setCancelled(true);
+            KitchenMenu.handleClick(event, plugin);
         }
     }
 
@@ -174,13 +188,14 @@ public class PetInteractListener implements Listener {
         if (holder instanceof PetMenuHolder || holder instanceof CosmeticMenuHolder
                 || holder instanceof AltarMenuHolder || holder instanceof AltarCancelMenuHolder
                 || holder instanceof PetRoadmapMenuHolder
-                || holder instanceof com.leftycraft.leftypet.gui.holder.PetLeaderboardMenuHolder) {
+                || holder instanceof com.leftycraft.leftypet.gui.holder.PetLeaderboardMenuHolder
+                || holder instanceof KitchenMenuHolder) {
             event.setCancelled(true);
             return;
         }
 
         String title = PlainTextComponentSerializer.plainText().serialize(event.getView().title());
-        if (title.contains("ʟᴇғᴛʏᴘᴇᴛ") || title.contains("LeftyPet")) {
+        if (title.contains("ʟᴇғᴛʏᴘᴇᴛ") || title.contains("LeftyPet") || title.contains("ᴅᴀᴘᴜʀ ᴍʙɢ") || title.contains("Dapur MBG")) {
             event.setCancelled(true);
         }
     }

@@ -479,13 +479,14 @@ public class KitchenManager {
             holo = holoLoc.getWorld().spawn(holoLoc, TextDisplay.class, t -> {
                 t.setPersistent(false);
                 t.setBillboard(Display.Billboard.CENTER);
-                t.setBackgroundColor(Color.fromARGB(140, 20, 20, 25));
+                t.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
                 t.text(ColorUtil.component(text));
             });
             kitchen.setHologramDisplay(holo);
             kitchen.setLastRenderedText(text);
         } else {
             holo.teleport(holoLoc);
+            holo.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
             if (!text.equals(kitchen.getLastRenderedText())) {
                 holo.text(ColorUtil.component(text));
                 kitchen.setLastRenderedText(text);
@@ -516,6 +517,16 @@ public class KitchenManager {
         Location holoLoc = structureManager.getCashierHologramLocation(kitchen.getLocation(), kitchen.getRotation());
         if (holoLoc == null || holoLoc.getWorld() == null) return;
 
+        // Facing towards entrance from the center
+        float yaw = switch (kitchen.getRotation()) {
+            case CLOCKWISE_90 -> 180f; // looking South towards entrance
+            case CLOCKWISE_180 -> -90f; // looking West towards entrance
+            case COUNTERCLOCKWISE_90 -> 0f; // looking North towards entrance
+            default -> 90f; // looking East towards entrance
+        };
+        holoLoc.setYaw(yaw);
+        holoLoc.setPitch(0f);
+
         TextDisplay cashier = kitchen.getCashierDisplay();
         String status = kitchen.isPetAssigned() ?
                 kitchen.getCurrentStation().getDisplayName() :
@@ -530,12 +541,15 @@ public class KitchenManager {
         if (cashier == null || !cashier.isValid()) {
             cashier = holoLoc.getWorld().spawn(holoLoc, TextDisplay.class, t -> {
                 t.setPersistent(false);
-                t.setBillboard(Display.Billboard.CENTER);
-                t.setBackgroundColor(Color.fromARGB(150, 15, 15, 20));
+                t.setBillboard(Display.Billboard.FIXED);
+                t.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
                 t.text(ColorUtil.component(text));
             });
             kitchen.setCashierDisplay(cashier);
         } else {
+            cashier.teleport(holoLoc);
+            cashier.setBillboard(Display.Billboard.FIXED);
+            cashier.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
             cashier.text(ColorUtil.component(text));
         }
     }
