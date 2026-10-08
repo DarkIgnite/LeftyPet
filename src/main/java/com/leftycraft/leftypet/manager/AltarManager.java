@@ -178,6 +178,24 @@ public class AltarManager {
         return altars.get(loc.getBlock().getLocation());
     }
 
+    public PetAltar getAltarOfBlock(Location loc) {
+        if (loc == null || loc.getWorld() == null) return null;
+        PetAltar direct = altars.get(loc.getBlock().getLocation());
+        if (direct != null) return direct;
+        for (Map.Entry<Location, PetAltar> entry : altars.entrySet()) {
+            if (structureManager.isPartOfStructure(entry.getKey(), loc)) {
+                return entry.getValue();
+            }
+        }
+        return null;
+    }
+
+    public boolean isAltarAreaOrBuilding(Location loc) {
+        if (loc == null || loc.getWorld() == null) return false;
+        if (isBuilding(loc)) return true;
+        return getAltarOfBlock(loc) != null;
+    }
+
     public PetAltar getAltarByOwner(UUID ownerUuid) {
         for (PetAltar altar : altars.values()) {
             if (altar.getOwnerUuid().equals(ownerUuid)) {
