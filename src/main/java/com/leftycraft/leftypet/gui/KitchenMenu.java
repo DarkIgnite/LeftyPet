@@ -65,6 +65,9 @@ public class KitchenMenu {
                     "&c▶ ᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴍᴇɴᴀʀɪᴋ ᴘᴇᴛ ᴋᴇᴍʙᴀʟɪ!"));
         }
 
+        int petLevel = data != null ? data.getLevel() : 1;
+        int maxEarnings = plugin.getKitchenManager().getMaxEarningsForLevel(petLevel);
+
         // Slot 13: Kitchen Status & Progress
         String stationText = assigned ? kitchen.getCurrentStation().getDisplayName() : "&cᴛɪᴅᴀᴋ ᴀᴋᴛɪғ";
         inv.setItem(13, createItem(Material.SMOKER, true,
@@ -75,6 +78,7 @@ public class KitchenMenu {
                 "&7• sᴛᴀᴛᴜs ᴋᴏᴋɪ: &f" + stationText,
                 "&7• ᴇɴᴇʀɢɪ ᴘᴇᴛ: " + data.getEnergyProgressBar() + " &f" + (int) data.getEnergy() + "%",
                 "&7• ᴛᴏᴛᴀʟ ᴘᴇsᴀɴᴀɴ: &e" + kitchen.getCompletedOrders() + " ʙᴏx",
+                "&7• ᴇsᴛɪᴍᴀsɪ ʜᴀsɪʟ: &a+$10 - $" + maxEarnings + " &7/ ᴘᴇsᴀɴᴀɴ (&e+$5/ʟᴠ&7)",
                 "&7• ᴜᴀɴɢ ᴅɪ ᴋᴀsɪʀ: &a+$" + plugin.getEconomyManager().format(kitchen.getStoredEarnings()),
                 "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
                 "&e▶ ᴋʟɪᴋ ᴋᴀɴᴀɴ ᴘᴇᴛ ᴅɪ ᴅᴀᴘᴜʀ ᴅᴇɴɢᴀɴ ᴍᴀᴋᴀɴᴀɴ ᴜɴᴛᴜᴋ ɪsɪ ᴇɴᴇʀɢɪ!"));
@@ -97,7 +101,7 @@ public class KitchenMenu {
                     "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
                     "&7ʙᴇʟᴜᴍ ᴀᴅᴀ ᴘᴇsᴀɴᴀɴ ʏᴀɴɢ sᴇʟᴇsᴀɪ ᴅɪᴀɴᴛᴀʀ.",
                     "&7ᴘᴇᴛ ᴀᴋᴀɴ ᴍᴇɴʏᴇʀᴀʜᴋᴀɴ ᴘᴇsᴀɴᴀɴ ᴅɪ ᴊᴇɴᴅᴇʟᴀ",
-                    "&7ᴅᴀɴ ᴍᴇɴᴀᴍʙᴀʜ &a+$100 &7sᴇᴛɪᴀᴘ sɪᴋʟᴜs sᴇʟᴇsᴀɪ.",
+                    "&7ᴅᴀɴ ᴍᴇɴᴀᴍʙᴀʜ &a+$10 - $" + maxEarnings + " &7sᴇᴛɪᴀᴘ sɪᴋʟᴜs.",
                     "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
                     "&c▶ ᴛᴜɴɢɢᴜ ᴘᴇᴛ ᴍᴇɴʏᴇʟᴇsᴀɪᴋᴀɴ ᴘᴇsᴀɴᴀɴ"));
         }

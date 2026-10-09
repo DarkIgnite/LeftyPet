@@ -172,12 +172,14 @@ public class PetMenu {
                 "&e▶ ᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴍᴇᴍʙᴜᴋᴀ ʟᴇᴀᴅᴇʀʙᴏᴀʀᴅ!"));
 
         // Slot 20: Dapur MBG (Tycoon Building)
+        int petLvl = data != null ? data.getLevel() : 1;
+        int maxLvlEarnings = plugin.getKitchenManager().getMaxEarningsForLevel(petLvl);
         inv.setItem(20, createItem(Material.SMOKER, true, "<gradient:#ff9966:#ff5e62><b>✦ ɢᴇᴅᴜɴɢ ᴅᴀᴘᴜʀ ᴍʙɢ ✦</b></gradient>",
                 "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
                 "&7ɢᴇᴅᴜɴɢ ᴅᴀᴘᴜʀ ᴋᴀᴛᴇʀɪɴɢ ʟᴇɴɢᴋᴀᴘ (14x7x13)!",
                 "&7ᴘᴇᴛ ᴍᴇɴᴊᴀᴅɪ ᴋᴏᴋɪ ʏᴀɴɢ ᴍᴇᴍᴀsᴀᴋ ᴅɪ ғᴜʀɴᴀᴄᴇ,",
                 "&7ᴘᴀᴄᴋɪɴɢ ᴅɪ ᴍᴇᴊᴀ, ᴅᴀɴ ᴍᴇɴᴊᴜᴀʟ ᴅɪ ᴊᴇɴᴅᴇʟᴀ!",
-                "&7• ʜᴀsɪʟ: &a+$100 &7ᴘᴇʀ ᴘᴇsᴀɴᴀɴ (sɪᴍᴘᴀɴ ᴅɪ ᴋᴀsɪʀ)",
+                "&7• ʜᴀsɪʟ: &a+$10 - $" + maxLvlEarnings + " &7ᴘᴇʀ ᴘᴇsᴀɴᴀɴ (&e+$5/ʟᴠ&7)",
                 "&7• ᴇɴᴇʀɢɪ: &c-10% ᴇɴᴇʀɢɪ &7ᴘᴇʀ ᴘᴇsᴀɴᴀɴ",
                 "<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>",
                 "&a▶ ᴋʟɪᴋ ᴜɴᴛᴜᴋ ᴍᴇɴᴅᴀᴘᴀᴛᴋᴀɴ ɢᴇᴅᴜɴɢ ᴅᴀᴘᴜʀ!"));

@@ -111,7 +111,7 @@ public class KitchenManager {
             lore.add(ColorUtil.component("&b• 30s ᴍᴇɴɢᴇᴍᴀs ᴅɪ ᴍᴇᴊᴀ"));
             lore.add(ColorUtil.component("&a• 5s sᴇʀᴀʜᴋᴀɴ ᴘᴇsᴀɴᴀɴ ᴅɪ ᴊᴇɴᴅᴇʟᴀ"));
             lore.add(ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"));
-            lore.add(ColorUtil.component("&7• ʜᴀsɪʟ: &a+$100 &7ᴘᴇʀ ᴘᴇsᴀɴᴀɴ (ᴅɪsɪᴍᴘᴀɴ ᴅɪ ᴋᴀsɪʀ)"));
+            lore.add(ColorUtil.component("&7• ʜᴀsɪʟ: &a+$10 - $100+ &7ᴘᴇʀ ᴘᴇsᴀɴᴀɴ (&e+$5/ʟᴠ&7)"));
             lore.add(ColorUtil.component("&7• ᴋᴏɴsᴜᴍsɪ: &c-10% ᴇɴᴇʀɢɪ ᴘᴇᴛ &7ᴘᴇʀ ᴘᴇsᴀɴᴀɴ"));
             lore.add(ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"));
             lore.add(ColorUtil.component("&a▶ ʟᴇᴛᴀᴋᴋᴀɴ ᴅɪ ᴛᴀɴᴀʜ ᴜɴᴛᴜᴋ ᴍᴇᴍʙᴀɴɢᴜɴ ɢᴇᴅᴜɴɢ!"));
@@ -444,7 +444,8 @@ public class KitchenManager {
                 }
                 if (progress >= PetKitchen.KitchenStation.DELIVERY.getDurationSeconds()) {
                     // ORDER COMPLETED!
-                    kitchen.addEarnings(100.0);
+                    int earned = calculateOrderEarnings(data.getLevel());
+                    kitchen.addEarnings(earned);
                     kitchen.incrementCompletedOrders();
                     kitchen.setCurrentProgressSeconds(0);
 
@@ -465,7 +466,7 @@ public class KitchenManager {
                     }
 
                     owner.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                            "<gradient:#4facfe:#00f2fe>1x ᴘᴇsᴀɴᴀɴ ᴍʙɢ sᴇʟᴇsᴀɪ! </gradient><yellow>+$100 ᴅɪsɪᴍᴘᴀɴ ᴅɪ ᴋᴀsɪʀ</yellow> <gray>(ᴇɴᴇʀɢɪ ᴘᴇᴛ: " + (int) newEnergy + "%)</gray>"));
+                            "<gradient:#4facfe:#00f2fe>1x ᴘᴇsᴀɴᴀɴ ᴍʙɢ sᴇʟᴇsᴀɪ! </gradient><yellow>+$" + earned + " ᴅɪsɪᴍᴘᴀɴ ᴅɪ ᴋᴀsɪʀ</yellow> <gray>(ᴇɴᴇʀɢɪ ᴘᴇᴛ: " + (int) newEnergy + "%)</gray>"));
 
                     if (newEnergy <= 0.0) {
                         kitchen.setCurrentStation(PetKitchen.KitchenStation.TIRED);
@@ -1048,5 +1049,21 @@ public class KitchenManager {
             }
         }
         return count;
+    }
+
+    public int calculateOrderEarnings(int petLevel) {
+        int baseMin = plugin.getConfig().getInt("kitchen.base-min-earnings", 10);
+        int baseMax = plugin.getConfig().getInt("kitchen.base-max-earnings", 100);
+        int bonusPerLevel = plugin.getConfig().getInt("kitchen.bonus-per-level", 5);
+        int lvl = Math.max(1, petLevel);
+        int maxEarnings = baseMax + (lvl - 1) * bonusPerLevel;
+        return java.util.concurrent.ThreadLocalRandom.current().nextInt(baseMin, maxEarnings + 1);
+    }
+
+    public int getMaxEarningsForLevel(int petLevel) {
+        int baseMax = plugin.getConfig().getInt("kitchen.base-max-earnings", 100);
+        int bonusPerLevel = plugin.getConfig().getInt("kitchen.bonus-per-level", 5);
+        int lvl = Math.max(1, petLevel);
+        return baseMax + (lvl - 1) * bonusPerLevel;
     }
 }

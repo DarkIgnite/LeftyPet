@@ -48,6 +48,12 @@ economy:
   base-cost: 1000.0
   cost-per-level: 500.0
 
+# Dapur MBG (Tycoon Kitchen) Settings
+kitchen:
+  base-min-earnings: 10
+  base-max-earnings: 100
+  bonus-per-level: 5
+
 # Pet Classes
 classes:
   FIGHTER:
