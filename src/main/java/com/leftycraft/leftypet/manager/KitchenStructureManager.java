@@ -8,6 +8,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Bisected;
 import org.bukkit.block.structure.StructureRotation;
+import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -176,10 +177,19 @@ public class KitchenStructureManager {
         }
     }
 
-    public PlacementCheck checkPlacement(Location origin, StructureRotation rotation) {
+    public PlacementCheck checkPlacement(Player player, Location origin, StructureRotation rotation) {
         SchematicLoader.Schematic schem = getSchematic();
         if (schem == null || origin == null || origin.getWorld() == null) {
             return PlacementCheck.failed("Schematic tidak ditemukan!", null, null);
+        }
+
+        // 1. Land protection check (RedProtect & WorldGuard)
+        if (player != null) {
+            com.leftycraft.leftypet.hook.ProtectionHookManager.ProtectionResult protRes =
+                    plugin.getProtectionHookManager().canPlaceKitchen(player, origin, rotation, schem);
+            if (!protRes.allowed()) {
+                return PlacementCheck.failed("ᴛᴇʀʟɪɴᴅᴜɴɢɪ " + protRes.pluginName() + " (" + protRes.claimInfo() + ")! Bukan land milikmu.", origin, Material.BARRIER);
+            }
         }
 
         int width = schem.getWidth();
@@ -216,6 +226,10 @@ public class KitchenStructureManager {
             }
         }
         return PlacementCheck.ok();
+    }
+
+    public PlacementCheck checkPlacement(Location origin, StructureRotation rotation) {
+        return checkPlacement(null, origin, rotation);
     }
 
     public boolean canPlaceKitchen(Location origin, StructureRotation rotation) {

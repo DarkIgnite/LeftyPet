@@ -82,13 +82,13 @@ public class KitchenListener implements Listener {
         }
 
         org.bukkit.block.structure.StructureRotation rotation = plugin.getKitchenManager().getStructureManager().getRotationFromYaw(player.getLocation().getYaw());
-        KitchenStructureManager.PlacementCheck check = plugin.getKitchenManager().getStructureManager().checkPlacement(loc, rotation);
+        KitchenStructureManager.PlacementCheck check = plugin.getKitchenManager().getStructureManager().checkPlacement(player, loc, rotation);
         if (!check.success()) {
             event.setCancelled(true);
             player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
                     "<gradient:#ff5f6d:#ffc371>ʟᴀʜᴀɴ ᴛᴇʀʜᴀʟᴀɴɢ! " + check.reason() + "</gradient>"));
             player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                    "<gradient:#ff5f6d:#ffc371>ᴘᴀsᴛɪᴋᴀɴ ᴀʀᴇᴀ 14x7x13 ʙᴇɴᴇʀ-ʙᴇɴᴇʀ ʙᴇʀsɪʜ ᴅᴀʀɪ ʀɪɴᴛᴀɴɢᴀɴ ʙʟᴏᴋ!</gradient>"));
+                    "<gradient:#ff5f6d:#ffc371>ᴘᴀsᴛɪᴋᴀɴ ᴀʀᴇᴀ 14x7x13 ʙᴇɴᴇʀ-ʙᴇɴᴇʀ ʙᴇʀsɪʜ ᴅᴀʀɪ ʀɪɴᴛᴀɴɢᴀɴ ʙʟᴏᴋ & ʟᴀɴᴅ ᴏʀᴀɴɢ ʟᴀɪɴ!</gradient>"));
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
             if (check.obstacleLoc() != null && check.obstacleLoc().getWorld() != null) {
                 check.obstacleLoc().getWorld().spawnParticle(Particle.FLAME, check.obstacleLoc().clone().add(0.5, 0.5, 0.5), 15, 0.2, 0.2, 0.2, 0.02);

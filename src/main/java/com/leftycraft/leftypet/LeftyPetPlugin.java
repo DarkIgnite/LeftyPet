@@ -23,6 +23,7 @@ public final class LeftyPetPlugin extends JavaPlugin {
     private com.leftycraft.leftypet.manager.EconomyManager economyManager;
     private com.leftycraft.leftypet.manager.PetDuelManager petDuelManager;
     private com.leftycraft.leftypet.manager.PetLeaderboardManager leaderboardManager;
+    private com.leftycraft.leftypet.hook.ProtectionHookManager protectionHookManager;
 
     @Override
     public void onEnable() {
@@ -32,7 +33,8 @@ public final class LeftyPetPlugin extends JavaPlugin {
         configManager = new ConfigManager(this);
         configManager.loadConfig();
 
-        // 2. Initialize Managers
+        // 2. Initialize Managers & Hooks
+        protectionHookManager = new com.leftycraft.leftypet.hook.ProtectionHookManager(this);
         economyManager = new com.leftycraft.leftypet.manager.EconomyManager(this);
         petManager = new PetManager(this);
         combatManager = new CombatManager(this);
@@ -131,5 +133,9 @@ public final class LeftyPetPlugin extends JavaPlugin {
 
     public com.leftycraft.leftypet.manager.PetLeaderboardManager getLeaderboardManager() {
         return leaderboardManager;
+    }
+
+    public com.leftycraft.leftypet.hook.ProtectionHookManager getProtectionHookManager() {
+        return protectionHookManager;
     }
 }
