@@ -27,6 +27,7 @@ import org.joml.Vector3f;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class KitchenManager {
 
@@ -34,6 +35,7 @@ public class KitchenManager {
     private final KitchenStructureManager structureManager;
     private final Map<Location, PetKitchen> kitchens = new HashMap<>();
     private final Map<Location, PetKitchen> blockToKitchen = new HashMap<>();
+    private final Map<UUID, Long> lastClaimBroadcastTime = new ConcurrentHashMap<>();
     private final NamespacedKey kitchenItemKey;
     private final NamespacedKey kitchenEntityKey;
     private final NamespacedKey kitchenIdKey;
@@ -297,6 +299,25 @@ public class KitchenManager {
         player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
                 "<gradient:#4facfe:#00f2fe>ʙᴇʀʜᴀsɪʟ ᴍᴇɴᴀʀɪᴋ ᴜᴀɴɢ ᴋᴀsɪʀ: </gradient><green><b>+$" + plugin.getEconomyManager().format(amount) + "</b></green>"));
         player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1.2f);
+
+        // Global broadcast with 10-minute anti-spam cooldown per player
+        long now = System.currentTimeMillis();
+        long cooldownMinutes = plugin.getConfig().getLong("kitchen.broadcast-cooldown-minutes", 10L);
+        long cooldownMillis = cooldownMinutes * 60 * 1000L;
+        Long lastBroadcast = lastClaimBroadcastTime.get(player.getUniqueId());
+
+        if (lastBroadcast == null || (now - lastBroadcast) >= cooldownMillis) {
+            lastClaimBroadcastTime.put(player.getUniqueId(), now);
+
+            Component bc = ColorUtil.component("<gradient:#4facfe:#00f2fe><b>[ᴅᴀᴘᴜʀ ᴍʙɢ]</b></gradient> <yellow>"
+                    + player.getName() + "</yellow> <white>ʙᴀʀᴜ sᴀᴊᴀ ᴍᴇɴɢᴀᴍʙɪʟ</white> <green><b>+$"
+                    + plugin.getEconomyManager().format(amount) + "</b></green> <white>ᴅᴀʀɪ ᴋᴀsɪʀ ᴅᴀᴘᴜʀ ᴍʙɢ ᴍᴇʀᴇᴋᴀ!</white>\n"
+                    + "<gradient:#ffaa00:#ffd200><b>💡 Tips:</b></gradient> <white>Gunakan command</white> <yellow><b>/pet kitchen</b></yellow> <white>untuk membangun Dapur MBG & raih passive income!</white>");
+            Bukkit.broadcast(bc);
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 0.6f, 1.4f);
+            }
+        }
 
         updateCashierHologram(kitchen);
     }

@@ -53,6 +53,7 @@ kitchen:
   base-min-earnings: 10
   base-max-earnings: 100
   bonus-per-level: 5
+  broadcast-cooldown-minutes: 10
 
 # Pet Classes
 classes:
