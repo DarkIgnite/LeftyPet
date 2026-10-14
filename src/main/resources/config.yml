@@ -50,9 +50,9 @@ economy:
 
 # Dapur MBG (Tycoon Kitchen) Settings
 kitchen:
-  base-min-earnings: 10
-  base-max-earnings: 100
-  bonus-per-level: 5
+  base-min-earnings: 0
+  base-max-earnings: 1000
+  bonus-per-level: 50
   broadcast-cooldown-minutes: 10
 
 # Pet Classes

@@ -14,6 +14,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,7 +25,7 @@ import java.util.List;
 public class PetAdminCommand implements CommandExecutor, TabCompleter {
 
     private final LeftyPetPlugin plugin;
-    private final List<String> subCommands = Arrays.asList("reload", "setlevel", "setenergy", "givealtar", "removealtar", "tpaltar", "givekitchen", "removekitchen", "tpkitchen", "cleankitchen", "purgeghosts");
+    private final List<String> subCommands = Arrays.asList("reload", "setlevel", "setenergy", "givealtar", "removealtar", "tpaltar", "givekitchen", "removekitchen", "tpkitchen", "cleankitchen", "purgeghosts", "giveinstantupgrader", "giveinstantupgrade");
 
     public PetAdminCommand(LeftyPetPlugin plugin) {
         this.plugin = plugin;
@@ -48,6 +49,7 @@ public class PetAdminCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(ColorUtil.component("<aqua>/leftypet givekitchen [player]</aqua> <gray>- ʙᴇʀɪᴋᴀɴ ᴅᴀᴘᴜʀ ᴍʙɢ ᴋᴇ ᴘʟᴀʏᴇʀ</gray>"));
             sender.sendMessage(ColorUtil.component("<aqua>/leftypet removekitchen [player]</aqua> <gray>- ʜᴀᴘᴜs ᴅᴀᴘᴜʀ ᴍʙɢ ᴍɪʟɪᴋ ᴘʟᴀʏᴇʀ</gray>"));
             sender.sendMessage(ColorUtil.component("<aqua>/leftypet tpkitchen [player]</aqua> <gray>- ᴛᴇʟᴇᴘᴏʀᴛ ᴋᴇ ᴅᴀᴘᴜʀ ᴍʙɢ ᴍɪʟɪᴋ ᴘʟᴀʏᴇʀ</gray>"));
+            sender.sendMessage(ColorUtil.component("<aqua>/leftypet giveinstantupgrader [player] [amount]</aqua> <gray>- ʙᴇʀɪᴋᴀɴ ɪɴsᴛᴀɴᴛ ᴜᴘɢʀᴀᴅᴇʀ (sᴏᴜʟʙᴏᴜɴᴅ)</gray>"));
             sender.sendMessage(ColorUtil.component("<aqua>/leftypet cleankitchen</aqua> <gray>- ᴘᴜʀɢᴇ sᴇᴍᴜᴀ ɢʜᴏsᴛ ᴇɴᴛɪᴛɪᴇs ᴅᴀᴘᴜʀ ᴍʙɢ</gray>"));
             sender.sendMessage(ColorUtil.component("<gradient:#00f2fe:#4facfe><b>--------------------------------------------------</b></gradient>"));
             return true;
@@ -243,6 +245,37 @@ public class PetAdminCommand implements CommandExecutor, TabCompleter {
                 sender.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
                         "<gradient:#4facfe:#00f2fe>ʙᴇʀʜᴀsɪʟ ᴍᴇᴍʙᴇʀsɪʜᴋᴀɴ " + count + " ɢʜᴏsᴛ ᴇɴᴛɪᴛʏ ᴅᴀᴘᴜʀ ᴍʙɢ ᴅɪ sᴇʟᴜʀᴜʜ ᴡᴏʀʟᴅ!</gradient>"));
             }
+            case "giveinstantupgrader", "giveinstantupgrade", "instantupgrader" -> {
+                if (args.length < 2) {
+                    sender.sendMessage(ColorUtil.component("<red>ɢᴜɴᴀᴋᴀɴ: /leftypet giveinstantupgrader [player] [amount]</red>"));
+                    return true;
+                }
+                Player target = Bukkit.getPlayer(args[1]);
+                if (target == null) {
+                    sender.sendMessage(ColorUtil.component("<red>ᴘʟᴀʏᴇʀ ᴛɪᴅᴀᴋ ᴅɪᴛᴇᴍᴜᴋᴀɴ ᴀᴛᴀᴜ sᴇᴅᴀɴɢ ᴏғғʟɪɴᴇ!</red>"));
+                    return true;
+                }
+                int amount = 1;
+                if (args.length >= 3) {
+                    try {
+                        amount = Math.max(1, Integer.parseInt(args[2]));
+                    } catch (NumberFormatException e) {
+                        sender.sendMessage(ColorUtil.component("<red>ᴊᴜᴍʟᴀʜ ʜᴀʀᴜs ʙᴇʀᴜᴘᴀ ᴀɴɢᴋᴀ ʙᴜʟᴀᴛ!</red>"));
+                        return true;
+                    }
+                }
+                ItemStack item = plugin.getAltarManager().createInstantUpgraderItem(target, amount);
+                if (target.getInventory().firstEmpty() == -1) {
+                    target.getWorld().dropItemNaturally(target.getLocation(), item);
+                } else {
+                    target.getInventory().addItem(item);
+                }
+                sender.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                        "<gradient:#43e97b:#38f9d7>ʙᴇʀʜᴀsɪʟ ᴍᴇᴍʙᴇʀɪᴋᴀɴ " + amount + "x ɪɴsᴛᴀɴᴛ ᴜᴘɢʀᴀᴅᴇʀ ᴋᴇᴘᴀᴅᴀ <yellow>" + target.getName() + "</yellow>!</gradient>"));
+                target.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                        "<gradient:#f7971e:#ffd200>ᴋᴀᴍᴜ ᴍᴇɴᴇʀɪᴍᴀ " + amount + "x ⚡ ᴘᴇᴛ ɪɴsᴛᴀɴᴛ ᴜᴘɢʀᴀᴅᴇʀ ⚡!</gradient> <gray>(sᴏᴜʟʙᴏᴜɴᴅ / ᴋʜᴜsᴜs ᴜɴᴛᴜᴋᴍᴜ)</gray>"));
+                target.playSound(target.getLocation(), Sound.ENTITY_ITEM_PICKUP, 0.7f, 1.4f);
+            }
             default -> {
                 sender.sendMessage(ColorUtil.component("<red>sᴜʙᴄᴏᴍᴍᴀɴᴅ ᴛɪᴅᴀᴋ ᴅɪᴋᴇᴛᴀʜᴜɪ!</red>"));
             }
@@ -256,9 +289,11 @@ public class PetAdminCommand implements CommandExecutor, TabCompleter {
         if (args.length == 1) {
             String input = args[0].toLowerCase();
             return subCommands.stream().filter(s -> s.startsWith(input)).toList();
-        } else if (args.length == 2 && !args[0].equalsIgnoreCase("reload")) {
+        } else if (args.length == 2 && !args[0].equalsIgnoreCase("reload") && !args[0].equalsIgnoreCase("cleankitchen") && !args[0].equalsIgnoreCase("purgeghosts")) {
             String input = args[1].toLowerCase();
             return Bukkit.getOnlinePlayers().stream().map(Player::getName).filter(s -> s.toLowerCase().startsWith(input)).toList();
+        } else if (args.length == 3 && (args[0].equalsIgnoreCase("giveinstantupgrader") || args[0].equalsIgnoreCase("giveinstantupgrade"))) {
+            return Arrays.asList("1", "3", "5", "10", "64");
         }
         return new ArrayList<>();
     }

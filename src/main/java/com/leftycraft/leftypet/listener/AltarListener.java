@@ -30,6 +30,7 @@ import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 
 import java.lang.reflect.Method;
 import java.util.UUID;
@@ -160,6 +161,50 @@ public class AltarListener implements Listener {
         event.setCancelled(true);
 
         Player player = event.getPlayer();
+        ItemStack hand = player.getInventory().getItemInMainHand();
+
+        // Instant Upgrader handling
+        if (plugin.getAltarManager().isInstantUpgraderItem(hand)) {
+            UUID boundUuid = plugin.getAltarManager().getInstantUpgraderOwnerUuid(hand);
+            String boundName = plugin.getAltarManager().getInstantUpgraderOwnerName(hand);
+
+            // 1. Must be the bound owner of the item
+            if (boundUuid != null && !boundUuid.equals(player.getUniqueId())) {
+                player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                        "<gradient:#ff5f6d:#ffc371>ɪᴛᴇᴍ ɪɴɪ ᴛᴇʀɪᴋᴀᴛ ᴜɴᴛᴜᴋ ᴘʟᴀʏᴇʀ <yellow>" + (boundName != null ? boundName : "lain") + "</yellow>! ᴋᴀᴍᴜ ᴛɪᴅᴀᴋ ʙɪsᴀ ᴍᴇɴɢɢᴜɴᴀᴋᴀɴɴʏᴀ.</gradient>"));
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
+                return;
+            }
+
+            // 2. Must be their own altar
+            if (!altar.getOwnerUuid().equals(player.getUniqueId())) {
+                player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                        "<gradient:#ff5f6d:#ffc371>ɪɴɪ ʙᴜᴋᴀɴ ᴀʟᴛᴀʀ ᴍɪʟɪᴋᴍᴜ! ᴋᴀᴍᴜ ʜᴀɴʏᴀ ʙɪsᴀ ᴍᴇɴɢɢᴜɴᴀᴋᴀɴ ɪᴛᴇᴍ ɪɴɪ ᴅɪ ᴀʟᴛᴀʀ sᴇɴᴅɪʀɪ.</gradient>"));
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
+                return;
+            }
+
+            // 3. If already finished, don't waste item
+            if (altar.isFinished()) {
+                player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                        "<yellow>ᴜᴘɢʀᴀᴅᴇ ᴘᴇᴛ sᴜᴅᴀʜ sᴇʟᴇsᴀɪ! ᴋʟɪᴋ ᴀʟᴛᴀʀ ᴛᴀɴᴘᴀ ɪᴛᴇᴍ ᴜɴᴛᴜᴋ ᴍᴇɴɢᴋʟᴀɪᴍ.</yellow>"));
+                return;
+            }
+
+            // 4. Must be currently training/upgrading
+            if (!altar.isTraining()) {
+                player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                        "<gradient:#ff5f6d:#ffc371>ᴀʟᴛᴀʀ ᴍɪʟɪᴋᴍᴜ ᴛɪᴅᴀᴋ sᴇᴅᴀɴɢ ᴍᴇʟᴀᴋᴜᴋᴀɴ ᴜᴘɢʀᴀᴅᴇ ᴘᴇᴛ!</gradient>"));
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
+                return;
+            }
+
+            // Consume 1 item and instant upgrade
+            hand.subtract(1);
+            plugin.getAltarManager().instantUpgradeAltar(player, altar);
+            return;
+        }
+
         if (!altar.getOwnerUuid().equals(player.getUniqueId()) && !player.hasPermission("leftypet.admin")) {
             player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<gradient:#ff5f6d:#ffc371>ɪɴɪ ʙᴜᴋᴀɴ ᴀʟᴛᴀʀ ᴍɪʟɪᴋᴍᴜ!</gradient>"));
             return;

@@ -36,6 +36,9 @@ public class AltarManager {
     private final Set<Location> buildingAltars = ConcurrentHashMap.newKeySet();
     private final NamespacedKey altarKey;
     private final NamespacedKey altarLevelKey;
+    private final NamespacedKey instantUpgraderKey;
+    private final NamespacedKey instantUpgraderOwnerKey;
+    private final NamespacedKey instantUpgraderOwnerNameKey;
     private final File altarFile;
 
     public AltarManager(LeftyPetPlugin plugin) {
@@ -43,6 +46,9 @@ public class AltarManager {
         this.structureManager = new AltarStructureManager(plugin);
         this.altarKey = new NamespacedKey(plugin, "is_pet_altar");
         this.altarLevelKey = new NamespacedKey(plugin, "pet_altar_level");
+        this.instantUpgraderKey = new NamespacedKey(plugin, "is_instant_upgrader");
+        this.instantUpgraderOwnerKey = new NamespacedKey(plugin, "instant_upgrader_owner");
+        this.instantUpgraderOwnerNameKey = new NamespacedKey(plugin, "instant_upgrader_owner_name");
         this.altarFile = new File(plugin.getDataFolder(), "altars.yml");
         loadAltars();
         startAltarTicker();
@@ -156,6 +162,82 @@ public class AltarManager {
 
     public NamespacedKey getAltarKey() {
         return altarKey;
+    }
+
+    public ItemStack createInstantUpgraderItem(Player target, int amount) {
+        return createInstantUpgraderItem(target.getUniqueId(), target.getName(), amount);
+    }
+
+    public ItemStack createInstantUpgraderItem(UUID targetUuid, String targetName, int amount) {
+        ItemStack item = new ItemStack(Material.NETHER_STAR, Math.max(1, amount));
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.displayName(ColorUtil.component("<gradient:#f7971e:#ffd200><b>⚡ ᴘᴇᴛ ɪɴsᴛᴀɴᴛ ᴜᴘɢʀᴀᴅᴇʀ ⚡</b></gradient>"));
+            List<Component> lore = new ArrayList<>();
+            lore.add(ColorUtil.component("&7Klik kanan pada &ePet Altar &7milikmu"));
+            lore.add(ColorUtil.component("&7yang sedang meng-upgrade pet untuk"));
+            lore.add(ColorUtil.component("&7menyelesaikannya secara instan!"));
+            lore.add(ColorUtil.component(""));
+            lore.add(ColorUtil.component("&eᴋʜᴜsᴜs ᴘʟᴀʏᴇʀ: &b&l" + (targetName != null ? targetName : "Player")));
+            lore.add(ColorUtil.component("&c⚠ Item terikat (Soulbound), tidak dapat"));
+            lore.add(ColorUtil.component("&cdigunakan oleh pemain lain!"));
+            lore.add(ColorUtil.component(""));
+            lore.add(ColorUtil.component("&8(Sekali pakai - Consumable)"));
+            meta.lore(lore);
+
+            meta.getPersistentDataContainer().set(instantUpgraderKey, PersistentDataType.BOOLEAN, true);
+            if (targetUuid != null) {
+                meta.getPersistentDataContainer().set(instantUpgraderOwnerKey, PersistentDataType.STRING, targetUuid.toString());
+            }
+            if (targetName != null) {
+                meta.getPersistentDataContainer().set(instantUpgraderOwnerNameKey, PersistentDataType.STRING, targetName);
+            }
+            item.setItemMeta(meta);
+        }
+        return item;
+    }
+
+    public boolean isInstantUpgraderItem(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return false;
+        Boolean isUpgrader = item.getItemMeta().getPersistentDataContainer().get(instantUpgraderKey, PersistentDataType.BOOLEAN);
+        return isUpgrader != null && isUpgrader;
+    }
+
+    public UUID getInstantUpgraderOwnerUuid(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return null;
+        String uuidStr = item.getItemMeta().getPersistentDataContainer().get(instantUpgraderOwnerKey, PersistentDataType.STRING);
+        if (uuidStr == null || uuidStr.isEmpty()) return null;
+        try {
+            return UUID.fromString(uuidStr);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    public String getInstantUpgraderOwnerName(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return null;
+        return item.getItemMeta().getPersistentDataContainer().get(instantUpgraderOwnerNameKey, PersistentDataType.STRING);
+    }
+
+    public void instantUpgradeAltar(Player player, PetAltar altar) {
+        altar.setRemainingSeconds(0);
+        claimTraining(player, altar);
+
+        // Reset upgrade cooldown so player can immediately upgrade again!
+        PetData data = plugin.getPetManager().getPetData(player.getUniqueId());
+        if (data != null) {
+            data.setUpgradeCooldownRemainingSeconds(0);
+            plugin.getPetManager().savePetData(player.getUniqueId());
+        }
+
+        player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                "<gradient:#f7971e:#ffd200><b>⚡ INSTANT UPGRADE BERHASIL!</b></gradient> <green>Proses upgrade pet kamu langsung selesai!</green>"));
+
+        if (altar.getLocation().getWorld() != null) {
+            altar.getLocation().getWorld().playSound(altar.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.8f);
+            altar.getLocation().getWorld().playSound(altar.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.2f);
+            altar.getLocation().getWorld().spawnParticle(Particle.FIREWORK, altar.getLocation().clone().add(0.5, 1.5, 0.5), 25, 0.4, 0.4, 0.4, 0.1);
+        }
     }
 
     public void registerAltar(UUID altarId, UUID ownerUuid, String ownerName, Location loc, int level) {

@@ -465,7 +465,9 @@ public class KitchenManager {
                 }
                 if (progress >= PetKitchen.KitchenStation.DELIVERY.getDurationSeconds()) {
                     // ORDER COMPLETED!
-                    int earned = calculateOrderEarnings(data.getLevel());
+                    int baseEarned = calculateOrderEarnings(data.getLevel());
+                    double boostMult = getEventBoostMultiplier();
+                    int earned = (int) Math.round(baseEarned * boostMult);
                     kitchen.addEarnings(earned);
                     kitchen.incrementCompletedOrders();
                     kitchen.setCurrentProgressSeconds(0);
@@ -486,8 +488,9 @@ public class KitchenManager {
                         delLoc.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, delLoc.clone().add(0, 0.6, 0), 10, 0.4, 0.4, 0.4, 0.05);
                     }
 
+                    String boostMsg = (boostMult > 1.0) ? " <gold>(⚡ " + (int) boostMult + "x BOOST!)</gold>" : "";
                     owner.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                            "<gradient:#4facfe:#00f2fe>1x ᴘᴇsᴀɴᴀɴ ᴍʙɢ sᴇʟᴇsᴀɪ! </gradient><yellow>+$" + earned + " ᴅɪsɪᴍᴘᴀɴ ᴅɪ ᴋᴀsɪʀ</yellow> <gray>(ᴇɴᴇʀɢɪ ᴘᴇᴛ: " + (int) newEnergy + "%)</gray>"));
+                            "<gradient:#4facfe:#00f2fe>1x ᴘᴇsᴀɴᴀɴ ᴍʙɢ sᴇʟᴇsᴀɪ! </gradient><yellow>+$" + earned + " ᴅɪsɪᴍᴘᴀɴ ᴅɪ ᴋᴀsɪʀ</yellow>" + boostMsg + " <gray>(ᴇɴᴇʀɢɪ ᴘᴇᴛ: " + (int) newEnergy + "%)</gray>"));
 
                     if (newEnergy <= 0.0) {
                         kitchen.setCurrentStation(PetKitchen.KitchenStation.TIRED);
@@ -1072,18 +1075,35 @@ public class KitchenManager {
         return count;
     }
 
+    public double getEventBoostMultiplier() {
+        try {
+            org.bukkit.plugin.Plugin boostPlugin = Bukkit.getPluginManager().getPlugin("DungeonEventBoost");
+            if (boostPlugin != null && boostPlugin.isEnabled()) {
+                Object eventManager = boostPlugin.getClass().getMethod("getEventManager").invoke(boostPlugin);
+                if (eventManager != null) {
+                    java.lang.reflect.Method m = eventManager.getClass().getMethod("getKokiMbgMultiplier");
+                    Object res = m.invoke(eventManager);
+                    if (res instanceof Number n) {
+                        return n.doubleValue();
+                    }
+                }
+            }
+        } catch (Throwable ignored) {}
+        return 1.0;
+    }
+
     public int calculateOrderEarnings(int petLevel) {
-        int baseMin = plugin.getConfig().getInt("kitchen.base-min-earnings", 10);
-        int baseMax = plugin.getConfig().getInt("kitchen.base-max-earnings", 100);
-        int bonusPerLevel = plugin.getConfig().getInt("kitchen.bonus-per-level", 5);
+        int baseMin = plugin.getConfig().getInt("kitchen.base-min-earnings", 0);
+        int baseMax = plugin.getConfig().getInt("kitchen.base-max-earnings", 1000);
+        int bonusPerLevel = plugin.getConfig().getInt("kitchen.bonus-per-level", 50);
         int lvl = Math.max(1, petLevel);
         int maxEarnings = baseMax + (lvl - 1) * bonusPerLevel;
         return java.util.concurrent.ThreadLocalRandom.current().nextInt(baseMin, maxEarnings + 1);
     }
 
     public int getMaxEarningsForLevel(int petLevel) {
-        int baseMax = plugin.getConfig().getInt("kitchen.base-max-earnings", 100);
-        int bonusPerLevel = plugin.getConfig().getInt("kitchen.bonus-per-level", 5);
+        int baseMax = plugin.getConfig().getInt("kitchen.base-max-earnings", 1000);
+        int bonusPerLevel = plugin.getConfig().getInt("kitchen.bonus-per-level", 50);
         int lvl = Math.max(1, petLevel);
         return baseMax + (lvl - 1) * bonusPerLevel;
     }

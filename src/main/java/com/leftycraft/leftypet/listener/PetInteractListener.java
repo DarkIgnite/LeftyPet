@@ -40,11 +40,13 @@ public class PetInteractListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onEntityInteractAt(PlayerInteractAtEntityEvent event) {
+        if (event.getHand() != org.bukkit.inventory.EquipmentSlot.HAND) return;
         handleInteract(event.getPlayer(), event.getRightClicked(), event);
     }
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onEntityInteract(PlayerInteractEntityEvent event) {
+        if (event.getHand() != org.bukkit.inventory.EquipmentSlot.HAND) return;
         handleInteract(event.getPlayer(), event.getRightClicked(), event);
     }
 
@@ -54,19 +56,28 @@ public class PetInteractListener implements Listener {
                     clicked.equals(pet.getNameTagDisplay()) || (pet.getBedrockStand() != null && clicked.equals(pet.getBedrockStand()))) {
                 event.setCancelled(true);
                 if (player.getUniqueId().equals(pet.getOwner().getUniqueId())) {
-                    ItemStack hand = player.getInventory().getItemInMainHand();
-                    // 1. Petting: sneaking or empty hand
-                    if (player.isSneaking() || hand.getType() == Material.AIR) {
-                        pet.pet(player);
+                    // 1. Shift + Right Click -> Open Pet Dashboard GUI
+                    if (player.isSneaking()) {
+                        PetMenu.open(player, plugin);
                         return;
                     }
-                    // 2. Try feeding if holding food
-                    if (plugin.getConfigManager().getFoodRestore(hand.getType()) > 0) {
+
+                    ItemStack hand = player.getInventory().getItemInMainHand();
+
+                    // 2. Normal Right Click with food -> Feed Pet
+                    if (hand != null && hand.getType() != Material.AIR && plugin.getConfigManager().getFoodRestore(hand.getType()) > 0) {
                         plugin.getPetManager().feedPet(player, hand);
                         return;
                     }
-                    // 3. Open Pet Dashboard GUI
-                    PetMenu.open(player, plugin);
+
+                    // 3. Normal Right Click with empty hand -> Petting
+                    if (hand == null || hand.getType() == Material.AIR) {
+                        pet.pet(player);
+                        return;
+                    }
+
+                    // 4. Normal Right Click holding any other item -> No action!
+                    return;
                 }
                 return;
             }
