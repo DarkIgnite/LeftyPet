@@ -57,6 +57,7 @@ public class PetKitchen {
     private transient TextDisplay hologramDisplay;
     private transient TextDisplay cashierDisplay;
     private transient String lastRenderedText;
+    private transient String lastCashierText;
     private transient boolean isGliding;
 
     public PetKitchen(UUID kitchenId, UUID ownerUuid, String cachedOwnerName, Location location,
@@ -216,6 +217,14 @@ public class PetKitchen {
         this.lastRenderedText = lastRenderedText;
     }
 
+    public String getLastCashierText() {
+        return lastCashierText;
+    }
+
+    public void setLastCashierText(String lastCashierText) {
+        this.lastCashierText = lastCashierText;
+    }
+
     public boolean isGliding() {
         return isGliding;
     }
@@ -254,5 +263,6 @@ public class PetKitchen {
         hologramDisplay = null;
         cashierDisplay = null;
         lastRenderedText = null;
+        lastCashierText = null;
     }
 }

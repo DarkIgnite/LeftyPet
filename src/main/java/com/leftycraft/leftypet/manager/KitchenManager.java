@@ -366,6 +366,13 @@ public class KitchenManager {
     private void startKitchenTicker() {
         Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             for (PetKitchen kitchen : kitchens.values()) {
+                Location loc = kitchen.getLocation();
+                if (loc == null || loc.getWorld() == null) continue;
+
+                int cx = loc.getBlockX() >> 4;
+                int cz = loc.getBlockZ() >> 4;
+                boolean chunkLoaded = loc.getWorld().isChunkLoaded(cx, cz);
+
                 Player owner = Bukkit.getPlayer(kitchen.getOwnerUuid());
                 boolean isOnline = (owner != null && owner.isOnline());
 
@@ -374,11 +381,13 @@ public class KitchenManager {
                     tickKitchenTycoon(kitchen, owner);
                 }
 
-                // Periodic check for displays
-                if (kitchen.isPetAssigned() && !kitchen.isGliding()) {
-                    spawnOrUpdateChefDisplay(kitchen);
+                // Periodic check for displays only if chunk is actively loaded
+                if (chunkLoaded) {
+                    if (kitchen.isPetAssigned() && !kitchen.isGliding()) {
+                        spawnOrUpdateChefDisplay(kitchen);
+                    }
+                    updateCashierHologram(kitchen);
                 }
-                updateCashierHologram(kitchen);
             }
         }, 20L, 20L);
     }
@@ -612,6 +621,7 @@ public class KitchenManager {
         KitchenStructureManager.StationPose pose = structureManager.getStationPose(kitchen.getLocation(), kitchen.getCurrentStation(), kitchen.getRotation());
         Location targetLoc = pose.location();
         if (targetLoc == null || targetLoc.getWorld() == null) return;
+        if (!targetLoc.getWorld().isChunkLoaded(targetLoc.getBlockX() >> 4, targetLoc.getBlockZ() >> 4)) return;
 
         PetData data = plugin.getPetManager().getPetData(kitchen.getOwnerUuid());
         PetSkin skin = plugin.getConfigManager().getSkin(data.getSkinKey());
@@ -662,11 +672,15 @@ public class KitchenManager {
             // Enforce Java vs Bedrock visibility: hide ArmorStand from Java players!
             updateChefVisibility(kitchen);
         } else if (!kitchen.isGliding()) {
-            chef.teleport(targetLoc);
+            if (chef.getLocation().distanceSquared(targetLoc) > 0.001) {
+                chef.teleport(targetLoc);
+            }
             if (kitchen.getBedrockStand() != null && kitchen.getBedrockStand().isValid()) {
                 Location standLoc = targetLoc.clone().subtract(0, 0.70, 0);
                 standLoc.setYaw(pose.entityYaw());
-                kitchen.getBedrockStand().teleport(standLoc);
+                if (kitchen.getBedrockStand().getLocation().distanceSquared(standLoc) > 0.001) {
+                    kitchen.getBedrockStand().teleport(standLoc);
+                }
             }
         }
 
@@ -685,7 +699,9 @@ public class KitchenManager {
             });
             kitchen.setInteractionEntity(interact);
         } else if (!kitchen.isGliding()) {
-            interact.teleport(interactLoc);
+            if (interact.getLocation().distanceSquared(interactLoc) > 0.001) {
+                interact.teleport(interactLoc);
+            }
         }
 
         // Hologram above chef (lowered by 0.2 to +0.55 above targetLoc)
@@ -706,7 +722,9 @@ public class KitchenManager {
             kitchen.setHologramDisplay(holo);
             kitchen.setLastRenderedText(text);
         } else if (!kitchen.isGliding()) {
-            holo.teleport(holoLoc);
+            if (holo.getLocation().distanceSquared(holoLoc) > 0.001) {
+                holo.teleport(holoLoc);
+            }
             holo.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
             if (!text.equals(kitchen.getLastRenderedText())) {
                 holo.text(ColorUtil.component(text));
@@ -762,6 +780,7 @@ public class KitchenManager {
     private void updateCashierHologram(PetKitchen kitchen) {
         Location holoLoc = structureManager.getCashierHologramLocation(kitchen.getLocation(), kitchen.getRotation());
         if (holoLoc == null || holoLoc.getWorld() == null) return;
+        if (!holoLoc.getWorld().isChunkLoaded(holoLoc.getBlockX() >> 4, holoLoc.getBlockZ() >> 4)) return;
 
         // Facing towards entrance from the center
         float yaw = switch (kitchen.getRotation()) {
@@ -796,11 +815,15 @@ public class KitchenManager {
                 t.getPersistentDataContainer().set(kitchenRoleKey, PersistentDataType.STRING, "CASHIER_HOLO");
             });
             kitchen.setCashierDisplay(cashier);
+            kitchen.setLastCashierText(text);
         } else {
-            cashier.teleport(holoLoc);
-            cashier.setBillboard(Display.Billboard.FIXED);
-            cashier.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
-            cashier.text(ColorUtil.component(text));
+            if (cashier.getLocation().distanceSquared(holoLoc) > 0.001) {
+                cashier.teleport(holoLoc);
+            }
+            if (!text.equals(kitchen.getLastCashierText())) {
+                cashier.text(ColorUtil.component(text));
+                kitchen.setLastCashierText(text);
+            }
         }
     }
 
@@ -878,6 +901,10 @@ public class KitchenManager {
     }
 
     public void saveKitchens() {
+        saveKitchens(plugin != null && plugin.isEnabled());
+    }
+
+    public synchronized void saveKitchens(boolean async) {
         FileConfiguration config = new YamlConfiguration();
         for (PetKitchen k : kitchens.values()) {
             String path = "kitchens." + k.getKitchenId().toString();
@@ -902,10 +929,18 @@ public class KitchenManager {
             config.set(path + ".blocks", bList);
         }
 
-        try {
-            config.save(kitchenFile);
-        } catch (IOException e) {
-            plugin.getLogger().severe("Could not save kitchens.yml: " + e.getMessage());
+        Runnable writeTask = () -> {
+            try {
+                config.save(kitchenFile);
+            } catch (IOException e) {
+                plugin.getLogger().severe("Could not save kitchens.yml: " + e.getMessage());
+            }
+        };
+
+        if (async && plugin.isEnabled()) {
+            Bukkit.getScheduler().runTaskAsynchronously(plugin, writeTask);
+        } else {
+            writeTask.run();
         }
     }
 
