@@ -19,6 +19,7 @@ import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Transformation;
@@ -27,6 +28,7 @@ import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
 
 import java.util.Collection;
+import java.util.Map;
 
 public class ActivePet {
 
@@ -43,6 +45,7 @@ public class ActivePet {
     private float smoothedYaw = 0f;
     private long lastSupportHeal = 0;
     private long lastLooterPickup = 0;
+    private long lastInventoryFullWarning = 0;
     private long lastPetTime = 0;
     private boolean isSleeping = false;
     private Location lastOwnerLocation = null;
@@ -325,18 +328,85 @@ public class ActivePet {
     private void handleLooterVacuum() {
         if (System.currentTimeMillis() - lastLooterPickup > 1000) {
             lastLooterPickup = System.currentTimeMillis();
-            Collection<Item> nearbyItems = displayEntity.getLocation().getNearbyEntitiesByType(Item.class, 4.0);
+            Location checkLoc = (displayEntity != null && displayEntity.isValid()) ? displayEntity.getLocation() : owner.getLocation();
+            Collection<Item> nearbyItems = checkLoc.getNearbyEntitiesByType(Item.class, 4.0);
+            boolean inventoryFullForAny = false;
+
             for (Item item : nearbyItems) {
                 if (!item.isValid() || item.isDead() || item.getPickupDelay() > 0) continue;
                 ItemStack stack = item.getItemStack();
-                if (owner.getInventory().firstEmpty() != -1 || owner.getInventory().contains(stack.getType())) {
-                    owner.getInventory().addItem(stack);
-                    owner.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, item.getLocation(), 3, 0.1, 0.1, 0.1, 0.02);
+                if (stack == null || stack.getType().isAir() || stack.getAmount() <= 0) continue;
+
+                int space = getAvailableSpace(owner.getInventory(), stack);
+                if (space <= 0) {
+                    inventoryFullForAny = true;
+                    continue;
+                }
+
+                int toPickUp = Math.min(stack.getAmount(), space);
+                ItemStack pickStack = stack.clone();
+                pickStack.setAmount(toPickUp);
+
+                Map<Integer, ItemStack> remaining = owner.getInventory().addItem(pickStack);
+                int notAdded = 0;
+                if (remaining != null && !remaining.isEmpty()) {
+                    for (ItemStack rem : remaining.values()) {
+                        if (rem != null) {
+                            notAdded += rem.getAmount();
+                        }
+                    }
+                }
+
+                int actuallyAdded = toPickUp - notAdded;
+                if (actuallyAdded > 0) {
+                    owner.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, item.getLocation(), 3, 0.1, 0.1, 0.02);
                     owner.playSound(owner.getLocation(), Sound.ENTITY_ITEM_PICKUP, 0.4f, 1.5f);
-                    item.remove();
+
+                    if (actuallyAdded >= stack.getAmount()) {
+                        item.remove();
+                    } else {
+                        stack.setAmount(stack.getAmount() - actuallyAdded);
+                        item.setItemStack(stack);
+                        inventoryFullForAny = true;
+                    }
                     break;
+                } else {
+                    inventoryFullForAny = true;
                 }
             }
+
+            if (inventoryFullForAny) {
+                notifyInventoryFull();
+            }
+        }
+    }
+
+    private int getAvailableSpace(PlayerInventory inv, ItemStack item) {
+        if (item == null || item.getType().isAir() || item.getAmount() <= 0) return 0;
+        int space = 0;
+        for (ItemStack slot : inv.getStorageContents()) {
+            if (slot == null || slot.getType().isAir()) {
+                space += item.getMaxStackSize();
+            } else if (slot.isSimilar(item)) {
+                int max = slot.getMaxStackSize();
+                if (slot.getAmount() < max) {
+                    space += (max - slot.getAmount());
+                }
+            }
+        }
+        return space;
+    }
+
+    private void notifyInventoryFull() {
+        long now = System.currentTimeMillis();
+        if (now - lastInventoryFullWarning > 3500L) {
+            lastInventoryFullWarning = now;
+            String msg = plugin.getConfigManager().getMessage("looter-inventory-full");
+            if (msg.trim().equals(plugin.getConfigManager().getMessage("prefix").trim())) {
+                msg = plugin.getConfigManager().getMessage("prefix") + "<gradient:#ff5f6d:#ffc371>Pet tidak dapat mengambil item karena inventory kamu penuh!</gradient>";
+            }
+            ColorUtil.sendMessage(owner, msg);
+            owner.playSound(owner.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.5f, 1.2f);
         }
     }
 
