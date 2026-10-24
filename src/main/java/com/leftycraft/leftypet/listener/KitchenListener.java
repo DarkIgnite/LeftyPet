@@ -2,6 +2,7 @@ package com.leftycraft.leftypet.listener;
 
 import com.leftycraft.leftypet.LeftyPetPlugin;
 import com.leftycraft.leftypet.gui.KitchenMenu;
+import com.leftycraft.leftypet.manager.KitchenManager;
 import com.leftycraft.leftypet.manager.KitchenStructureManager;
 import com.leftycraft.leftypet.model.PetKitchen;
 import com.leftycraft.leftypet.util.ColorUtil;
@@ -13,6 +14,7 @@ import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
@@ -293,10 +295,13 @@ public class KitchenListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onChunkLoad(org.bukkit.event.world.ChunkLoadEvent event) {
-        for (Entity e : event.getChunk().getEntities()) {
-            if (e instanceof Player) continue;
-            if (plugin.getKitchenManager().isOrphanedOrLegacyKitchenEntity(e)) {
+    public void onEntitiesLoad(org.bukkit.event.world.EntitiesLoadEvent event) {
+        // EntitiesLoadEvent hands over the loaded entities directly, unlike Chunk#getEntities() in ChunkLoadEvent
+        KitchenManager km = plugin.getKitchenManager();
+        for (Entity e : event.getEntities()) {
+            // Only tagged entities and TextDisplays can be kitchen leftovers; skip the rest cheaply
+            if (!(e instanceof TextDisplay) && !km.isTaggedKitchenEntity(e)) continue;
+            if (km.isOrphanedOrLegacyKitchenEntity(e)) {
                 e.remove();
             }
         }

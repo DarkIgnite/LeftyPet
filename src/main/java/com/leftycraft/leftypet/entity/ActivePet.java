@@ -52,6 +52,8 @@ public class ActivePet {
     private int afkTimer = 0;
     private int celebratingTicks = 0;
     private String lastNameTagText = null;
+    private long lastRespawnAttempt = 0;
+    private static final long RESPAWN_COOLDOWN_MS = 2000;
 
     public ActivePet(LeftyPetPlugin plugin, Player owner, PetData data) {
         this.plugin = plugin;
@@ -129,6 +131,13 @@ public class ActivePet {
     public void tick() {
         if (!owner.isOnline()) return;
         if (!isValid()) {
+            // Throttle respawns and never spawn into an unloaded chunk: spawning the ArmorStand fires
+            // CreatureSpawnEvent, and other plugins (e.g. MythicMobs) then sync-load the chunk on the main thread.
+            long now = System.currentTimeMillis();
+            if (owner.isDead() || now - lastRespawnAttempt < RESPAWN_COOLDOWN_MS) return;
+            Location loc = owner.getLocation();
+            if (!loc.getWorld().isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4)) return;
+            lastRespawnAttempt = now;
             despawn();
             spawn();
             return;
