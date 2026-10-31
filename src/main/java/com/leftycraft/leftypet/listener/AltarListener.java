@@ -9,6 +9,7 @@ import com.leftycraft.leftypet.model.PetData;
 import com.leftycraft.leftypet.util.ColorUtil;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -86,19 +87,7 @@ public class AltarListener implements Listener {
         Player player = event.getPlayer();
         Location loc = event.getBlock().getLocation();
 
-        // 1. Check land protection (RedProtect & WorldGuard)
-        com.leftycraft.leftypet.hook.ProtectionHookManager.ProtectionResult protRes =
-                plugin.getProtectionHookManager().canPlaceAltar(player, loc);
-        if (!protRes.allowed()) {
-            event.setCancelled(true);
-            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                    "<gradient:#ff5f6d:#ffc371>ʟᴀʜᴀɴ ᴛᴇʀʟɪɴᴅᴜɴɢɪ! ᴋᴀᴍᴜ ᴛɪᴅᴀᴋ ʙɪsᴀ ᴍᴇɴᴀʀᴏ ᴀʟᴛᴀʀ ᴅɪ ʟᴀɴᴅ ᴏʀᴀɴɢ ʟᴀɪɴ (" +
-                    protRes.pluginName() + ": " + protRes.claimInfo() + ").</gradient>"));
-            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
-            return;
-        }
-
-        // 2. Check if player already owns an active altar
+        // 1. Check if player already owns an active altar
         PetAltar existing = plugin.getAltarManager().getAltarByOwner(player.getUniqueId());
         if (existing != null) {
             event.setCancelled(true);
@@ -111,19 +100,27 @@ public class AltarListener implements Listener {
             return;
         }
 
-        // Check 3x3x4 footprint clearance
-        if (!plugin.getAltarManager().getStructureManager().canPlaceStructure(loc)) {
+        // 2. Check 3x3x4 footprint clearance & land protection (like pet kitchen)
+        com.leftycraft.leftypet.manager.AltarStructureManager.PlacementCheck check =
+                plugin.getAltarManager().getStructureManager().checkPlacement(player, loc);
+        if (!check.success()) {
             event.setCancelled(true);
-            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") + "<gradient:#ff5f6d:#ffc371>ᴀʀᴇᴀ 3x3x4 ᴛᴇʀʜᴀʟᴀɴɢ! ᴘᴀsᴛɪᴋᴀɴ ᴀʀᴇᴀ ᴅɪ sᴇᴋɪᴛᴀʀ ᴀʟᴛᴀʀ ʀᴀᴛᴀ ᴅᴀɴ ʙᴇʀsɪʜ ᴅᴀʀɪ ʀɪɴᴛᴀɴɢᴀɴ.</gradient>"));
+            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                    "<gradient:#ff5f6d:#ffc371>ʟᴀʜᴀɴ ᴛᴇʀʜᴀʟᴀɴɢ! " + check.reason() + "</gradient>"));
+            player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
+                    "<gradient:#ff5f6d:#ffc371>ᴘᴀsᴛɪᴋᴀɴ ᴀʀᴇᴀ 3x3x4 ʙᴇɴᴇʀ-ʙᴇɴᴇʀ ʙᴇʀsɪʜ ᴅᴀʀɪ ʀɪɴᴛᴀɴɢᴀɴ ʙʟᴏᴋ & ʟᴀɴᴅ ᴏʀᴀɴɢ ʟᴀɪɴ!</gradient>"));
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
+            if (check.obstacleLoc() != null && check.obstacleLoc().getWorld() != null) {
+                check.obstacleLoc().getWorld().spawnParticle(Particle.FLAME, check.obstacleLoc().clone().add(0.5, 0.5, 0.5), 15, 0.2, 0.2, 0.2, 0.02);
+            }
             return;
         }
 
         int placedLevel = plugin.getAltarManager().getAltarItemLevel(event.getItemInHand());
-        if (placedLevel == 4 && !player.hasPermission("leftypet.celestial")) {
+        if (placedLevel == 6 && !player.hasPermission("leftypet.celestial")) {
             event.setCancelled(true);
             player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                    "<gradient:#ff5f6d:#ffc371>ᴀʟᴛᴀʀ ʟᴇᴠᴇʟ 4 ʜᴀɴʏᴀ ʙɪsᴀ ᴅɪʟᴇᴛᴀᴋᴋᴀɴ ᴅᴀɴ ᴅɪɢᴜɴᴀᴋᴀɴ ᴏʟᴇʜ ʀᴀɴᴋ </gradient><gradient:#d946ef:#8b5cf6><b>CELESTIAL</b></gradient>!"));
+                    "<gradient:#ff5f6d:#ffc371>ᴀʟᴛᴀʀ ʟᴇᴠᴇʟ 6 ʜᴀɴʏᴀ ʙɪsᴀ ᴅɪʟᴇᴛᴀᴋᴋᴀɴ ᴅᴀɴ ᴅɪɢᴜɴᴀᴋᴀɴ ᴏʟᴇʜ ʀᴀɴᴋ </gradient><gradient:#ffe259:#ffa751><b>CELESTIAL</b></gradient>!"));
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
             return;
         }

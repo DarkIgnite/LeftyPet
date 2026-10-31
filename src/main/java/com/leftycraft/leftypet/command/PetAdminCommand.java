@@ -43,7 +43,7 @@ public class PetAdminCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(ColorUtil.component("<aqua>/leftypet reload</aqua> <gray>- ʀᴇʟᴏᴀᴅ ᴋᴏɴғɪɢᴜʀᴀsɪ ᴘʟᴜɢɪɴ</gray>"));
             sender.sendMessage(ColorUtil.component("<aqua>/leftypet setlevel [player] [level]</aqua> <gray>- ᴀᴛᴜʀ ʟᴇᴠᴇʟ ᴘᴇᴛ ᴘʟᴀʏᴇʀ</gray>"));
             sender.sendMessage(ColorUtil.component("<aqua>/leftypet setenergy [player] [amount]</aqua> <gray>- ᴀᴛᴜʀ ᴇɴᴇʀɢɪ ᴘᴇᴛ ᴘʟᴀʏᴇʀ</gray>"));
-            sender.sendMessage(ColorUtil.component("<aqua>/leftypet givealtar [player]</aqua> <gray>- ʙᴇʀɪᴋᴀɴ ᴀʟᴛᴀʀ ᴋᴇ ᴘʟᴀʏᴇʀ</gray>"));
+            sender.sendMessage(ColorUtil.component("<aqua>/leftypet givealtar [player] [level]</aqua> <gray>- ʙᴇʀɪᴋᴀɴ ᴀʟᴛᴀʀ ᴋᴇ ᴘʟᴀʏᴇʀ (1-6)</gray>"));
             sender.sendMessage(ColorUtil.component("<aqua>/leftypet removealtar [player]</aqua> <gray>- ʜᴀᴘᴜs ᴀʟᴛᴀʀ ᴍɪʟɪᴋ ᴘʟᴀʏᴇʀ</gray>"));
             sender.sendMessage(ColorUtil.component("<aqua>/leftypet tpaltar [player]</aqua> <gray>- ᴛᴇʟᴇᴘᴏʀᴛ ᴋᴇ ᴀʟᴛᴀʀ ᴍɪʟɪᴋ ᴘʟᴀʏᴇʀ</gray>"));
             sender.sendMessage(ColorUtil.component("<aqua>/leftypet givekitchen [player]</aqua> <gray>- ʙᴇʀɪᴋᴀɴ ᴅᴀᴘᴜʀ ᴍʙɢ ᴋᴇ ᴘʟᴀʏᴇʀ</gray>"));
@@ -117,7 +117,13 @@ public class PetAdminCommand implements CommandExecutor, TabCompleter {
                     sender.sendMessage(ColorUtil.component("<red>ᴛᴇɴᴛᴜᴋᴀɴ ᴛᴀʀɢᴇᴛ ᴘʟᴀʏᴇʀ!</red>"));
                     return true;
                 }
-                target.getInventory().addItem(plugin.getAltarManager().createAltarItem());
+                int level = 1;
+                if (args.length >= 3) {
+                    try {
+                        level = Math.max(1, Math.min(6, Integer.parseInt(args[2])));
+                    } catch (NumberFormatException ignored) {}
+                }
+                target.getInventory().addItem(plugin.getAltarManager().createAltarItem(level));
                 sender.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
                         "<gradient:#43e97b:#38f9d7>ʙᴇʀʜᴀsɪʟ ᴍᴇᴍʙᴇʀɪᴋᴀɴ ᴀʟᴛᴀʀ ᴋᴇᴘᴀᴅᴀ <yellow>" + target.getName() + "</yellow>!</gradient>"));
             }
@@ -294,6 +300,8 @@ public class PetAdminCommand implements CommandExecutor, TabCompleter {
             return Bukkit.getOnlinePlayers().stream().map(Player::getName).filter(s -> s.toLowerCase().startsWith(input)).toList();
         } else if (args.length == 3 && (args[0].equalsIgnoreCase("giveinstantupgrader") || args[0].equalsIgnoreCase("giveinstantupgrade"))) {
             return Arrays.asList("1", "3", "5", "10", "64");
+        } else if (args.length == 3 && args[0].equalsIgnoreCase("givealtar")) {
+            return Arrays.asList("1", "2", "3", "4", "5", "6");
         }
         return new ArrayList<>();
     }

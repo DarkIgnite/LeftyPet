@@ -23,50 +23,98 @@ public class AltarStructureManager {
         this.plugin = plugin;
     }
 
+    public record PlacementCheck(boolean success, String reason, Location obstacleLoc, Material obstacleMat) {
+        public static PlacementCheck ok() {
+            return new PlacementCheck(true, null, null, null);
+        }
+        public static PlacementCheck failed(String reason, Location obstacleLoc, Material obstacleMat) {
+            return new PlacementCheck(false, reason, obstacleLoc, obstacleMat);
+        }
+    }
+
     /**
-     * Checks if the 3x3x4 volume around the center lodestone can be built on.
-     * Y=0 is the floor level (dirt, stone, grass, etc. can be replaced, but not bedrock, chests, or another altar).
-     * Y=1..3 is the chamber & roof (must be clear of solid blocks).
+     * Checks if the 3x3x4 volume around the center lodestone can be built on (like pet kitchen).
+     * Includes land protection check, collision check with other altars/kitchens, and block clearance check.
      */
-    public boolean canPlaceStructure(Location center) {
+    public PlacementCheck checkPlacement(org.bukkit.entity.Player player, Location center) {
+        if (center == null || center.getWorld() == null) {
+            return PlacementCheck.failed("Lokasi tidak valid!", null, null);
+        }
+
+        // 1. Land protection check (RedProtect & WorldGuard)
+        if (player != null) {
+            com.leftycraft.leftypet.hook.ProtectionHookManager.ProtectionResult protRes =
+                    plugin.getProtectionHookManager().canPlaceAltar(player, center);
+            if (!protRes.allowed()) {
+                return PlacementCheck.failed("ᴛᴇʀʟɪɴᴅᴜɴɢɪ " + protRes.pluginName() + " (" + protRes.claimInfo() + ")! Bukan land milikmu.", center, Material.BARRIER);
+            }
+        }
+
+        int ox = center.getBlockX();
+        int oy = center.getBlockY();
+        int oz = center.getBlockZ();
+
         for (int y = 0; y <= 3; y++) {
             for (int x = -1; x <= 1; x++) {
                 for (int z = -1; z <= 1; z++) {
-                    if (x == 0 && y == 0 && z == 0) continue;
-                    Block b = center.clone().add(x, y, z).getBlock();
+                    Location worldLoc = center.clone().add(x, y, z);
 
                     // Check if block overlaps with an existing registered altar
-                    for (Location aLoc : plugin.getAltarManager().getAltarsMap().keySet()) {
-                        if (isPartOfStructure(aLoc, b.getLocation())) {
-                            return false;
-                        }
+                    if (plugin.getAltarManager().isAltarAreaOrBuilding(worldLoc)) {
+                        return PlacementCheck.failed("ᴛᴇʀʟᴀʟᴜ ᴅᴇᴋᴀᴛ ᴅᴇɴɢᴀɴ ᴀʟᴛᴀʀ ᴘᴇᴛ ʟᴀɪɴ!", worldLoc, worldLoc.getBlock().getType());
                     }
 
-                    if (y == 0) {
-                        // Base layer: cannot replace bedrock, barrier, end portal, chests, or shulker boxes
-                        Material m = b.getType();
-                        if (m == Material.BEDROCK || m == Material.BARRIER || m == Material.END_PORTAL
-                                || m == Material.END_PORTAL_FRAME || m == Material.CHEST || m == Material.TRAPPED_CHEST
-                                || m.name().contains("SHULKER_BOX")) {
-                            return false;
-                        }
-                    } else {
-                        // Upper layers (chamber Y=1, Y=2 and roof Y=3): must be clear / air / passable
-                        if (!isClearBlock(b)) {
-                            return false;
+                    // Check if block overlaps with a kitchen
+                    if (plugin.getKitchenManager().isKitchenAreaOrBuilding(worldLoc)) {
+                        return PlacementCheck.failed("ᴛᴇʀʟᴀʟᴜ ᴅᴇᴋᴀᴛ ᴅᴇɴɢᴀɴ ᴅᴀᴘᴜʀ ᴍʙɢ!", worldLoc, worldLoc.getBlock().getType());
+                    }
+
+                    // Check if this location is the placement origin itself (the lodestone item being placed)
+                    boolean isOrigin = (x == 0 && y == 0 && z == 0);
+                    if (!isOrigin) {
+                        Block b = worldLoc.getBlock();
+                        Material mat = b.getType();
+                        if (!isPassableOrAir(mat)) {
+                            return PlacementCheck.failed("ᴛᴇʀʜᴀʟᴀɴɢ ʙʟᴏᴋ " + formatMaterial(mat) + " ᴅɪ X:" + b.getX() + " Y:" + b.getY() + " Z:" + b.getZ(), worldLoc, mat);
                         }
                     }
                 }
             }
         }
-        return true;
+        return PlacementCheck.ok();
     }
 
-    private boolean isClearBlock(Block b) {
-        Material mat = b.getType();
-        return mat.isAir() || b.isLiquid() || mat == Material.SHORT_GRASS || mat == Material.TALL_GRASS
-                || mat == Material.SNOW || mat.name().contains("FLOWER") || mat.name().contains("FERN")
-                || mat == Material.VINE || mat == Material.GLOW_LICHEN || mat == Material.HANGING_ROOTS;
+    public PlacementCheck checkPlacement(Location center) {
+        return checkPlacement(null, center);
+    }
+
+    public boolean canPlaceStructure(Location center) {
+        return checkPlacement(center).success();
+    }
+
+    public boolean isPassableOrAir(Material mat) {
+        if (mat == null || mat.isAir()) return true;
+        if (mat == Material.SHORT_GRASS || mat == Material.TALL_GRASS) return true;
+        if (mat == Material.FERN || mat == Material.LARGE_FERN) return true;
+        if (mat == Material.DEAD_BUSH || mat == Material.SNOW || mat == Material.LIGHT) return true;
+        if (mat == Material.VINE || mat == Material.GLOW_LICHEN || mat == Material.HANGING_ROOTS) return true;
+        try {
+            if (org.bukkit.Tag.FLOWERS.isTagged(mat)) return true;
+        } catch (Throwable ignored) {}
+        return mat.name().contains("FLOWER") || mat == Material.POPPY || mat == Material.DANDELION;
+    }
+
+    public String formatMaterial(Material mat) {
+        if (mat == null) return "Unknown";
+        String name = mat.name().toLowerCase(java.util.Locale.ROOT).replace('_', ' ');
+        String[] words = name.split(" ");
+        StringBuilder sb = new StringBuilder();
+        for (String w : words) {
+            if (!w.isEmpty()) {
+                sb.append(Character.toUpperCase(w.charAt(0))).append(w.substring(1)).append(" ");
+            }
+        }
+        return sb.toString().trim();
     }
 
     /**
@@ -100,7 +148,9 @@ public class AltarStructureManager {
                     buildLayerRoof(center, level);
                     center.getWorld().playSound(center, Sound.BLOCK_BEACON_ACTIVATE, 1.0f, 1.4f);
                     center.getWorld().playSound(center, Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.7f, 1.2f);
-                    center.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, center.clone().add(0.5, 3.2, 0.5), 30, 0.8, 0.2, 0.8, 0.1);
+                    Particle finishP = (level == 6) ? Particle.WAX_ON :
+                            (level == 5 ? Particle.SOUL_FIRE_FLAME : Particle.TOTEM_OF_UNDYING);
+                    center.getWorld().spawnParticle(finishP, center.clone().add(0.5, 3.2, 0.5), 30, 0.8, 0.2, 0.8, 0.1);
 
                     plugin.getAltarManager().setBuilding(center, false);
 
@@ -122,17 +172,49 @@ public class AltarStructureManager {
         buildLayerRoof(center, level);
 
         Particle p = switch (level) {
+            case 6 -> Particle.WAX_ON;
+            case 5 -> Particle.SOUL_FIRE_FLAME;
             case 4 -> Particle.TOTEM_OF_UNDYING;
             case 3 -> Particle.PORTAL;
             case 2 -> Particle.END_ROD;
             default -> Particle.ENCHANT;
         };
         center.getWorld().spawnParticle(p, center.clone().add(0.5, 1.5, 0.5), 45, 1.2, 1.2, 1.2, 0.05);
-        center.getWorld().playSound(center, Sound.BLOCK_BEACON_ACTIVATE, 0.8f, 1.0f + (level * 0.2f));
+        center.getWorld().playSound(center, Sound.BLOCK_BEACON_ACTIVATE, 0.8f, 1.0f + (level * 0.15f));
     }
 
     private void buildLayerBase(Location center, int level) {
         center.getBlock().setType(Material.LODESTONE);
+
+        if (level == 6) {
+            // Level 6 (level6.schem yellow glazed terracotta & yellow concrete pattern)
+            setBlockData(center.clone().add(-1, 0, -1).getBlock(), "minecraft:yellow_glazed_terracotta[facing=west]");
+            setBlockData(center.clone().add(0, 0, -1).getBlock(), "minecraft:yellow_concrete");
+            setBlockData(center.clone().add(1, 0, -1).getBlock(), "minecraft:yellow_glazed_terracotta[facing=north]");
+
+            setBlockData(center.clone().add(-1, 0, 0).getBlock(), "minecraft:yellow_concrete");
+            setBlockData(center.clone().add(1, 0, 0).getBlock(), "minecraft:yellow_concrete");
+
+            setBlockData(center.clone().add(-1, 0, 1).getBlock(), "minecraft:yellow_glazed_terracotta[facing=south]");
+            setBlockData(center.clone().add(0, 0, 1).getBlock(), "minecraft:yellow_concrete");
+            setBlockData(center.clone().add(1, 0, 1).getBlock(), "minecraft:yellow_glazed_terracotta[facing=east]");
+            return;
+        }
+
+        if (level == 5) {
+            // Level 5 (level5.schem light blue glazed terracotta & light blue concrete pattern)
+            setBlockData(center.clone().add(-1, 0, -1).getBlock(), "minecraft:light_blue_glazed_terracotta[facing=north]");
+            setBlockData(center.clone().add(0, 0, -1).getBlock(), "minecraft:light_blue_concrete");
+            setBlockData(center.clone().add(1, 0, -1).getBlock(), "minecraft:light_blue_glazed_terracotta[facing=east]");
+
+            setBlockData(center.clone().add(-1, 0, 0).getBlock(), "minecraft:light_blue_concrete");
+            setBlockData(center.clone().add(1, 0, 0).getBlock(), "minecraft:light_blue_concrete");
+
+            setBlockData(center.clone().add(-1, 0, 1).getBlock(), "minecraft:light_blue_glazed_terracotta[facing=north]");
+            setBlockData(center.clone().add(0, 0, 1).getBlock(), "minecraft:light_blue_concrete");
+            setBlockData(center.clone().add(1, 0, 1).getBlock(), "minecraft:light_blue_glazed_terracotta[facing=east]");
+            return;
+        }
 
         if (level == 4) {
             // Level 4 (level4.schem exact terracotta pattern)
@@ -174,6 +256,8 @@ public class AltarStructureManager {
 
     private void buildGlassLevel(Location center, int level, int y) {
         Material glassMat = switch (level) {
+            case 6 -> Material.YELLOW_STAINED_GLASS;
+            case 5 -> Material.BLUE_STAINED_GLASS;
             case 4 -> Material.PINK_STAINED_GLASS;
             case 3 -> Material.MAGENTA_STAINED_GLASS;
             case 2 -> Material.LIGHT_BLUE_STAINED_GLASS;
@@ -193,6 +277,33 @@ public class AltarStructureManager {
     }
 
     private void buildLayerRoof(Location center, int level) {
+        if (level == 6) {
+            // Level 6 (level6.schem bamboo mosaic slab)
+            for (int x = -1; x <= 1; x++) {
+                for (int z = -1; z <= 1; z++) {
+                    Block b = center.clone().add(x, 3, z).getBlock();
+                    setBlockData(b, "minecraft:bamboo_mosaic_slab[type=bottom,waterlogged=false]");
+                }
+            }
+            return;
+        }
+
+        if (level == 5) {
+            // Level 5 (level5.schem prismarine slab corners + prismarine brick slab cross)
+            for (int x = -1; x <= 1; x++) {
+                for (int z = -1; z <= 1; z++) {
+                    Block b = center.clone().add(x, 3, z).getBlock();
+                    boolean isCorner = (x != 0 && z != 0);
+                    if (isCorner) {
+                        setBlockData(b, "minecraft:prismarine_slab[type=bottom,waterlogged=false]");
+                    } else {
+                        setBlockData(b, "minecraft:prismarine_brick_slab[type=bottom,waterlogged=false]");
+                    }
+                }
+            }
+            return;
+        }
+
         if (level == 4) {
             // Level 4 (level4.schem exact cherry slab)
             for (int x = -1; x <= 1; x++) {

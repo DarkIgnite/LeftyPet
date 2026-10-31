@@ -29,7 +29,7 @@ public class PetAltar {
         this.ownerUuid = ownerUuid;
         this.cachedOwnerName = cachedOwnerName;
         this.location = location;
-        this.altarLevel = Math.max(1, Math.min(4, altarLevel));
+        this.altarLevel = Math.max(1, Math.min(6, altarLevel));
         this.remainingSeconds = Math.max(0, remainingSeconds);
         this.targetLevel = targetLevel;
         this.isTraining = isTraining;
@@ -60,14 +60,16 @@ public class PetAltar {
     }
 
     public void setAltarLevel(int altarLevel) {
-        this.altarLevel = Math.max(1, Math.min(4, altarLevel));
+        this.altarLevel = Math.max(1, Math.min(6, altarLevel));
     }
 
     public double getTimeReductionPercent() {
         return switch (altarLevel) {
             case 2 -> 10.0;
             case 3 -> 20.0;
-            case 4 -> 50.0;
+            case 4 -> 30.0;
+            case 5 -> 40.0;
+            case 6 -> 50.0;
             default -> 0.0;
         };
     }

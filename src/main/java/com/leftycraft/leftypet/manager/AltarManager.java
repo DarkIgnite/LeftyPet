@@ -85,7 +85,7 @@ public class AltarManager {
     }
 
     public ItemStack createAltarItem(int level) {
-        int lvl = Math.max(1, Math.min(4, level));
+        int lvl = Math.max(1, Math.min(6, level));
         ItemStack item = new ItemStack(Material.LODESTONE);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
@@ -94,16 +94,23 @@ public class AltarManager {
             lore.add(ColorUtil.component("&7ʟᴇᴛᴀᴋᴋᴀɴ ᴅɪ ᴀʀᴇᴀ &e3x3 &7ᴛᴇʀʙᴜᴋᴀ"));
             lore.add(ColorUtil.component("&7ᴜɴᴛᴜᴋ ᴍᴇᴍʙᴀɴɢᴜɴ ғᴀsɪʟɪᴛᴀs ᴀғᴋ ᴛʀᴀɪɴɪɴɢ!"));
             lore.add(ColorUtil.component(""));
-            int discount = (lvl == 4) ? 50 : ((lvl - 1) * 10);
+            int discount = switch (lvl) {
+                case 6 -> 50;
+                case 5 -> 40;
+                case 4 -> 30;
+                case 3 -> 20;
+                case 2 -> 10;
+                default -> 0;
+            };
             if (discount > 0) {
                 lore.add(ColorUtil.component("&eᴀʟᴛᴀʀ ʟᴇᴠᴇʟ: &f" + lvl + " &7(-" + discount + "% ᴡᴀᴋᴛᴜ ᴜᴘɢʀᴀᴅᴇ)"));
             } else {
                 lore.add(ColorUtil.component("&eᴀʟᴛᴀʀ ʟᴇᴠᴇʟ: &f" + lvl + " &7(sᴛᴀɴᴅᴀʀ / 0% ᴅɪsᴋᴏɴ)"));
             }
-            if (lvl == 4) {
-                lore.add(ColorUtil.component("&d&l✦ CELESTIAL EXCLUSIVE &7- Max Level!"));
-            } else if (lvl < 4) {
-                lore.add(ColorUtil.component("&bʙɪsᴀ ᴅɪ-ᴜᴘɢʀᴀᴅᴇ &7ʜɪɴɢɢᴀ ʟᴇᴠᴇʟ 4 (-50%)"));
+            if (lvl == 6) {
+                lore.add(ColorUtil.component("&e&l✦ CELESTIAL EXCLUSIVE &7- Max Level!"));
+            } else if (lvl < 6) {
+                lore.add(ColorUtil.component("&bʙɪsᴀ ᴅɪ-ᴜᴘɢʀᴀᴅᴇ &7ʜɪɴɢɢᴀ ʟᴇᴠᴇʟ 6 (-50%)"));
             }
             meta.lore(lore);
             meta.getPersistentDataContainer().set(altarKey, PersistentDataType.BOOLEAN, true);
@@ -152,7 +159,7 @@ public class AltarManager {
     public int getAltarItemLevel(ItemStack item) {
         if (item == null || !item.hasItemMeta()) return 1;
         Integer lvl = item.getItemMeta().getPersistentDataContainer().get(altarLevelKey, PersistentDataType.INTEGER);
-        return (lvl != null) ? Math.max(1, Math.min(4, lvl)) : 1;
+        return (lvl != null) ? Math.max(1, Math.min(6, lvl)) : 1;
     }
 
     public boolean isAltarItem(ItemStack item) {
@@ -361,10 +368,10 @@ public class AltarManager {
             return;
         }
 
-        // Celestial rank restriction for Level 4 altar
-        if (altar.getAltarLevel() == 4 && !player.hasPermission("leftypet.celestial")) {
+        // Celestial rank restriction for Level 6 altar
+        if (altar.getAltarLevel() == 6 && !player.hasPermission("leftypet.celestial")) {
             player.sendMessage(ColorUtil.component(plugin.getConfigManager().getMessage("prefix") +
-                    "<gradient:#ff5f6d:#ffc371>ᴀʟᴛᴀʀ ʟᴇᴠᴇʟ 4 ʜᴀɴʏᴀ ʙɪsᴀ ᴅɪɢᴜɴᴀᴋᴀɴ ᴏʟᴇʜ ʀᴀɴᴋ </gradient><gradient:#d946ef:#8b5cf6><b>CELESTIAL</b></gradient>!"));
+                    "<gradient:#ff5f6d:#ffc371>ᴀʟᴛᴀʀ ʟᴇᴠᴇʟ 6 ʜᴀɴʏᴀ ʙɪsᴀ ᴅɪɢᴜɴᴀᴋᴀɴ ᴏʟᴇʜ ʀᴀɴᴋ </gradient><gradient:#ffe259:#ffa751><b>CELESTIAL</b></gradient>!"));
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
             return;
         }
@@ -908,7 +915,16 @@ public class AltarManager {
     private void spawnAltarAmbientParticles(PetAltar altar) {
         Location loc = altar.getLocation().clone().add(0.5, 1.2, 0.5);
         int lvl = altar.getAltarLevel();
-        if (lvl == 3) {
+        if (lvl == 6) {
+            loc.getWorld().spawnParticle(Particle.WAX_ON, loc, 2, 0.6, 0.4, 0.6, 0.02);
+            loc.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, loc, 1, 0.4, 0.2, 0.4, 0.02);
+        } else if (lvl == 5) {
+            loc.getWorld().spawnParticle(Particle.SOUL_FIRE_FLAME, loc, 1, 0.4, 0.2, 0.4, 0.01);
+            loc.getWorld().spawnParticle(Particle.GLOW, loc, 2, 0.6, 0.4, 0.6, 0.02);
+        } else if (lvl == 4) {
+            loc.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, loc, 1, 0.4, 0.2, 0.4, 0.02);
+            loc.getWorld().spawnParticle(Particle.CHERRY_LEAVES, loc, 2, 0.6, 0.4, 0.6, 0.01);
+        } else if (lvl == 3) {
             loc.getWorld().spawnParticle(Particle.PORTAL, loc, 2, 0.6, 0.4, 0.6, 0.02);
             loc.getWorld().spawnParticle(Particle.DRAGON_BREATH, loc, 1, 0.4, 0.2, 0.4, 0.01);
         } else if (lvl == 2) {

@@ -219,7 +219,7 @@ public class CombatListener implements Listener {
      * Returns the 2x drop chance (0-90) for MythicMobs based on pet level.
      * Lv 20 = 10%, Lv 30 = 20%, ... Lv 100 = 90%
      */
-    private int getMythicDoubleDropChance(int level) {
+    public static int getMythicDoubleDropChance(int level) {
         if (level < 20) return 0;
         if (level >= 100) return 90;
         return ((level / 10) - 1) * 10;

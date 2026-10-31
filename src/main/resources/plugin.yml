@@ -33,5 +33,5 @@ permissions:
     description: Alias for leftypet.memberplusplus
     default: false
   leftypet.celestial:
-    description: Allows upgrading Pet Training Altar to Level 4
+    description: Allows upgrading Pet Training Altar to Level 6
     default: false
