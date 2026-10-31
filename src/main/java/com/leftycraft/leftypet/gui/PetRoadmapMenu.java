@@ -229,7 +229,11 @@ public class PetRoadmapMenu {
             lore.add(ColorUtil.component("&8" + info.description()));
             lore.add(ColorUtil.component(""));
             lore.add(ColorUtil.component("&7• sʏᴀʀᴀᴛ: &fᴍᴇɴᴄᴀᴘᴀɪ ʟᴇᴠᴇʟ " + lvl));
-            lore.add(ColorUtil.component("&7• ʜɪᴛ ᴘᴀʀᴛɪᴄʟᴇ: &8" + info.hitParticle()));
+            lore.add(ColorUtil.component("&7• ʜɪᴛ ᴘᴀʀᴛɪᴄʟᴇ: &8" + info.hitParticle()));
+            int mChanceLocked = com.leftycraft.leftypet.listener.CombatListener.getMythicDoubleDropChance(lvl);
+            if (mChanceLocked > 0) {
+                lore.add(ColorUtil.component("&6• ᴅᴜɴɢᴇᴏɴ 2x ᴅʀᴏᴘ: &e" + mChanceLocked + "% ᴄʜᴀɴᴄᴇ &7(MythicMobs)"));
+            }
             lore.add(ColorUtil.component("<dark_gray>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</dark_gray>"));
             lore.add(ColorUtil.component("&8ʙᴜᴋᴀ ᴛɪᴇʀ sᴇʙᴇʟᴜᴍɴʏᴀ ᴛᴇʀʟᴇʙɪʜ ᴅᴀʜᴜʟᴜ."));
         }

@@ -113,7 +113,7 @@ public final class PetSoundUtil {
 
         switch (key) {
             case "celestial_gojo" -> loc.getWorld().playSound(loc, Sound.BLOCK_AMETHYST_BLOCK_CHIME, 0.8f, 1.8f);
-            case "celestial_tanjiro" -> loc.getWorld().playSound(loc, Sound.ITEM_BOTTLE_FILL_DRAGONBREATH, 0.7f, 1.5f);
+            case "celestial_tanjiro" -> loc.getWorld().playSound(loc, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, 1.4f);
             case "celestial_zenitsu" -> loc.getWorld().playSound(loc, Sound.BLOCK_NOTE_BLOCK_BELL, 0.8f, 1.8f);
             case "celestial_nezuko" -> loc.getWorld().playSound(loc, Sound.ENTITY_PANDA_AMBIENT, 0.7f, 1.7f);
             case "celestial_kakashi" -> loc.getWorld().playSound(loc, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, 1.5f);
